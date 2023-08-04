@@ -62,15 +62,15 @@ VoxelStreamRegionFiles::~VoxelStreamRegionFiles() {
 	close_all_regions();
 }
 
-void VoxelStreamRegionFiles::load_voxel_block(VoxelStream::VoxelQueryData &query) {
-	load_voxel_blocks(Span<VoxelStream::VoxelQueryData>(&query, 1));
+void VoxelStreamRegionFiles::load_voxel_chunk(VoxelStream::VoxelQueryData &query) {
+	load_voxel_chunks(Span<VoxelStream::VoxelQueryData>(&query, 1));
 }
 
-void VoxelStreamRegionFiles::save_voxel_block(VoxelStream::VoxelQueryData &query) {
-	save_voxel_blocks(Span<VoxelStream::VoxelQueryData>(&query, 1));
+void VoxelStreamRegionFiles::save_voxel_chunk(VoxelStream::VoxelQueryData &query) {
+	save_voxel_chunks(Span<VoxelStream::VoxelQueryData>(&query, 1));
 }
 
-void VoxelStreamRegionFiles::load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
 	ZN_PROFILE_SCOPE();
 
 	// In order to minimize opening/closing files, requests are grouped according to their region.
@@ -102,7 +102,7 @@ void VoxelStreamRegionFiles::load_voxel_blocks(Span<VoxelStream::VoxelQueryData>
 	}
 }
 
-void VoxelStreamRegionFiles::save_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamRegionFiles::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
 	ZN_PROFILE_SCOPE();
 
 	// Had to copy input to sort it, as some areas in the module break if they get responses in different order
@@ -693,7 +693,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 				region_info.lod, //
 				RESULT_ERROR //
 			};
-			old_stream->load_voxel_block(old_block_load_query);
+			old_stream->load_voxel_chunk(old_block_load_query);
 
 			// Save it in the new one
 			if (old_block_size == new_block_size) {
@@ -703,7 +703,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 					region_info.lod,
 					RESULT_ERROR //
 				};
-				save_voxel_block(old_block_save_query);
+				save_voxel_chunk(old_block_save_query);
 
 			} else {
 				Vector3i new_block_pos = convert_block_coordinates(block_pos, old_block_size, new_block_size);
@@ -720,7 +720,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 						region_info.lod, //
 						RESULT_ERROR
 					};
-					load_voxel_block(new_block_load_query);
+					load_voxel_chunk(new_block_load_query);
 
 					Vector3i dst_pos = rel * old_block.get_size();
 
@@ -736,7 +736,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 						region_info.lod, //
 						RESULT_ERROR
 					};
-					save_voxel_block(new_block_save_query);
+					save_voxel_chunk(new_block_save_query);
 
 				} else {
 					// Copy to multiple blocks
@@ -760,7 +760,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 									region_info.lod, //
 									RESULT_ERROR
 								};
-								save_voxel_block(new_block_save_query);
+								save_voxel_chunk(new_block_save_query);
 							}
 						}
 					}

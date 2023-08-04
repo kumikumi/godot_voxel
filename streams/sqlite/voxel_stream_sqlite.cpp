@@ -686,15 +686,15 @@ String VoxelStreamSQLite::get_database_path() const {
 	return _connection_path;
 }
 
-void VoxelStreamSQLite::load_voxel_block(VoxelStream::VoxelQueryData &q) {
-	load_voxel_blocks(Span<VoxelStream::VoxelQueryData>(&q, 1));
+void VoxelStreamSQLite::load_voxel_chunk(VoxelStream::VoxelQueryData &q) {
+	load_voxel_chunks(Span<VoxelStream::VoxelQueryData>(&q, 1));
 }
 
-void VoxelStreamSQLite::save_voxel_block(VoxelStream::VoxelQueryData &q) {
-	save_voxel_blocks(Span<VoxelStream::VoxelQueryData>(&q, 1));
+void VoxelStreamSQLite::save_voxel_chunk(VoxelStream::VoxelQueryData &q) {
+	save_voxel_chunks(Span<VoxelStream::VoxelQueryData>(&q, 1));
 }
 
-void VoxelStreamSQLite::load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
 	ZN_PROFILE_SCOPE();
 
 	// TODO Get block size from database
@@ -713,7 +713,7 @@ void VoxelStreamSQLite::load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_bl
 			continue;
 		}
 
-		if (_cache.load_voxel_block(pos, q.lod, q.voxel_buffer)) {
+		if (_cache.load_voxel_chunk(pos, q.lod, q.voxel_buffer)) {
 			q.result = RESULT_BLOCK_FOUND;
 
 		} else {
@@ -761,7 +761,7 @@ void VoxelStreamSQLite::load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_bl
 	recycle_connection(con);
 }
 
-void VoxelStreamSQLite::save_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
 	// TODO Get block size from database
 	const int bs_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
 
@@ -775,7 +775,7 @@ void VoxelStreamSQLite::save_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_bl
 			continue;
 		}
 
-		_cache.save_voxel_block(pos, q.lod, q.voxel_buffer);
+		_cache.save_voxel_chunk(pos, q.lod, q.voxel_buffer);
 		if (_block_keys_cache_enabled) {
 			_block_keys_cache.add(to_vec3i16(pos), q.lod);
 		}

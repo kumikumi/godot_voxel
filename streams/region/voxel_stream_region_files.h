@@ -24,11 +24,11 @@ public:
 	VoxelStreamRegionFiles();
 	~VoxelStreamRegionFiles();
 
-	void load_voxel_block(VoxelStream::VoxelQueryData &query) override;
-	void save_voxel_block(VoxelStream::VoxelQueryData &query) override;
+	void load_voxel_chunk(VoxelStream::VoxelQueryData &query) override;
+	void save_voxel_chunk(VoxelStream::VoxelQueryData &query) override;
 
-	void load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
-	void save_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
+	void load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
+	void save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
 
 	int get_used_channels_mask() const override;
 

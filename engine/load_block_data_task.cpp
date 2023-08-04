@@ -61,7 +61,7 @@ void LoadBlockDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	// TODO Assign max_lod_hint when available
 
 	VoxelStream::VoxelQueryData voxel_query_data{ *_voxels, origin_in_voxels, _lod_index, VoxelStream::RESULT_ERROR };
-	stream->load_voxel_block(voxel_query_data);
+	stream->load_voxel_chunk(voxel_query_data);
 
 	if (voxel_query_data.result == VoxelStream::RESULT_ERROR) {
 		ERR_PRINT("Error loading voxel block");

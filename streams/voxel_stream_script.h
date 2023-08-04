@@ -15,8 +15,8 @@ namespace zylann::voxel {
 class VoxelStreamScript : public VoxelStream {
 	GDCLASS(VoxelStreamScript, VoxelStream)
 public:
-	void load_voxel_block(VoxelStream::VoxelQueryData &q) override;
-	void save_voxel_block(VoxelStream::VoxelQueryData &q) override;
+	void load_voxel_chunk(VoxelStream::VoxelQueryData &q) override;
+	void save_voxel_chunk(VoxelStream::VoxelQueryData &q) override;
 
 	int get_used_channels_mask() const override;
 
@@ -25,8 +25,8 @@ protected:
 #if defined(ZN_GODOT)
 	// TODO Why is it unable to convert `Result` into `Variant` even though a cast is defined in voxel_stream.h???
 	//GDVIRTUAL3R(VoxelStream::Result, _emerge_block, Ref<VoxelBuffer>, Vector3i, int)
-	GDVIRTUAL3R(int, _load_voxel_block, Ref<gd::VoxelBuffer>, Vector3i, int)
-	GDVIRTUAL3(_save_voxel_block, Ref<gd::VoxelBuffer>, Vector3i, int)
+	GDVIRTUAL3R(int, _load_voxel_chunk, Ref<gd::VoxelBuffer>, Vector3i, int)
+	GDVIRTUAL3(_save_voxel_chunk, Ref<gd::VoxelBuffer>, Vector3i, int)
 	GDVIRTUAL0RC(int, _get_used_channels_mask) // I think `C` means `const`?
 #endif
 

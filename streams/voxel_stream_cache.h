@@ -27,10 +27,10 @@ public:
 	};
 
 	// Copies cached block into provided buffer
-	bool load_voxel_block(Vector3i position, uint8_t lod_index, VoxelBufferInternal &out_voxels);
+	bool load_voxel_chunk(Vector3i position, uint8_t lod_index, VoxelBufferInternal &out_voxels);
 
 	// Stores provided block into the cache. The cache will take ownership of the provided data.
-	void save_voxel_block(Vector3i position, uint8_t lod_index, VoxelBufferInternal &voxels);
+	void save_voxel_chunk(Vector3i position, uint8_t lod_index, VoxelBufferInternal &voxels);
 
 	// Copies cached data into the provided pointer. A new instance will be made if found.
 	bool load_instance_block(Vector3i position, uint8_t lod_index, UniquePtr<InstanceBlockData> &out_instances);

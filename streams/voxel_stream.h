@@ -60,17 +60,17 @@ public:
 	// Queries a block of voxels beginning at the given world-space voxel position and LOD.
 	// If you use LOD, the result at a given coordinate must always remain the same regardless of it.
 	// In other words, voxels values must solely depend on their coordinates or fixed parameters.
-	virtual void load_voxel_block(VoxelQueryData &query_data);
+	virtual void load_voxel_chunk(VoxelQueryData &query_data);
 
 	// TODO Deprecate
-	virtual void save_voxel_block(VoxelQueryData &query_data);
+	virtual void save_voxel_chunk(VoxelQueryData &query_data);
 
 	// Note: Don't modify the order of `p_blocks`.
-	virtual void load_voxel_blocks(Span<VoxelQueryData> p_blocks);
+	virtual void load_voxel_chunks(Span<VoxelQueryData> p_blocks);
 
 	// Returns multiple blocks of voxels to the stream.
 	// This function is recommended if you save to files, because you can batch their access.
-	virtual void save_voxel_blocks(Span<VoxelQueryData> p_blocks);
+	virtual void save_voxel_chunks(Span<VoxelQueryData> p_blocks);
 
 	// TODO Merge support functions into a single getter with Feature bitmask
 	virtual bool supports_instance_blocks() const;
@@ -117,8 +117,8 @@ public:
 private:
 	static void _bind_methods();
 
-	ResultCode _b_load_voxel_block(Ref<gd::VoxelBuffer> out_buffer, Vector3i origin_in_voxels, int lod);
-	void _b_save_voxel_block(Ref<gd::VoxelBuffer> buffer, Vector3i origin_in_voxels, int lod);
+	ResultCode _b_load_voxel_chunk(Ref<gd::VoxelBuffer> out_buffer, Vector3i origin_in_voxels, int lod);
+	void _b_save_voxel_chunk(Ref<gd::VoxelBuffer> buffer, Vector3i origin_in_voxels, int lod);
 	int _b_get_used_channels_mask() const;
 	Vector3 _b_get_block_size() const;
 	// Deprecated

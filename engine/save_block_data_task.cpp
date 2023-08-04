@@ -78,7 +78,7 @@ void SaveBlockDataTask::run(zylann::ThreadedTaskContext &ctx) {
 		_voxels = nullptr;
 		const Vector3i origin_in_voxels = (_position << _lod) * _block_size;
 		VoxelStream::VoxelQueryData q{ voxels_copy, origin_in_voxels, _lod, VoxelStream::RESULT_ERROR };
-		stream->save_voxel_block(q);
+		stream->save_voxel_chunk(q);
 	}
 
 	if (_save_instances && stream->supports_instance_blocks()) {

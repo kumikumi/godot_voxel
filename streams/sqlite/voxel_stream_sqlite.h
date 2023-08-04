@@ -30,11 +30,11 @@ public:
 	void set_database_path(String path);
 	String get_database_path() const;
 
-	void load_voxel_block(VoxelStream::VoxelQueryData &q) override;
-	void save_voxel_block(VoxelStream::VoxelQueryData &q) override;
+	void load_voxel_chunk(VoxelStream::VoxelQueryData &q) override;
+	void save_voxel_chunk(VoxelStream::VoxelQueryData &q) override;
 
-	void load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
-	void save_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
+	void load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
+	void save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) override;
 
 	bool supports_instance_blocks() const override;
 	void load_instance_blocks(Span<VoxelStream::InstancesQueryData> out_blocks) override;
