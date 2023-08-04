@@ -234,7 +234,7 @@ private:
 	Vector3i _b_data_block_to_voxel(Vector3i pos) const;
 	// void _force_load_blocks_binding(Vector3 center, Vector3 extents) { force_load_blocks(center, extents); }
 	Ref<VoxelSaveCompletionTracker> _b_save_modified_blocks();
-	void _b_save_block(Vector3i p_block_pos);
+	void _b_save_chunk(Vector3i p_block_pos);
 	void _b_set_bounds(AABB aabb);
 	AABB _b_get_bounds() const;
 	bool _b_try_set_block_data(Vector3i position, Ref<gd::VoxelBuffer> voxel_data);

@@ -84,7 +84,7 @@ void VoxelStreamRegionFiles::load_voxel_blocks(Span<VoxelStream::VoxelQueryData>
 	for (unsigned int i = 0; i < sorted_block_indices.size(); ++i) {
 		const unsigned int bi = sorted_block_indices[i];
 		VoxelStream::VoxelQueryData &q = p_blocks[bi];
-		const EmergeResult result = _load_block(q.voxel_buffer, q.origin_in_voxels, q.lod);
+		const EmergeResult result = _load_chunk(q.voxel_buffer, q.origin_in_voxels, q.lod);
 		switch (result) {
 			case EMERGE_OK:
 				q.result = RESULT_BLOCK_FOUND;
@@ -114,7 +114,7 @@ void VoxelStreamRegionFiles::save_voxel_blocks(Span<VoxelStream::VoxelQueryData>
 	for (unsigned int i = 0; i < sorted_block_indices.size(); ++i) {
 		const unsigned int bi = sorted_block_indices[i];
 		VoxelStream::VoxelQueryData &q = p_blocks[bi];
-		_save_block(q.voxel_buffer, q.origin_in_voxels, q.lod);
+		_save_chunk(q.voxel_buffer, q.origin_in_voxels, q.lod);
 	}
 }
 
@@ -123,7 +123,7 @@ int VoxelStreamRegionFiles::get_used_channels_mask() const {
 	return VoxelBufferInternal::ALL_CHANNELS_MASK;
 }
 
-VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_block(
+VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_chunk(
 		VoxelBufferInternal &out_buffer, Vector3i origin_in_voxels, int lod) {
 	ZN_PROFILE_SCOPE();
 
@@ -164,7 +164,7 @@ VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_block(
 
 	const Vector3i block_rpos = math::wrap(block_pos, region_size);
 
-	const Error err = cache->region.load_block(block_rpos, out_buffer);
+	const Error err = cache->region.load_chunk(block_rpos, out_buffer);
 	switch (err) {
 		case OK:
 			return EMERGE_OK;
@@ -177,7 +177,7 @@ VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_block(
 	}
 }
 
-void VoxelStreamRegionFiles::_save_block(VoxelBufferInternal &voxel_buffer, Vector3i origin_in_voxels, int lod) {
+void VoxelStreamRegionFiles::_save_chunk(VoxelBufferInternal &voxel_buffer, Vector3i origin_in_voxels, int lod) {
 	ZN_PROFILE_SCOPE();
 
 	MutexLock lock(_mutex);
@@ -219,7 +219,7 @@ void VoxelStreamRegionFiles::_save_block(VoxelBufferInternal &voxel_buffer, Vect
 
 	CachedRegion *cache = open_region(region_pos, lod, true);
 	ERR_FAIL_COND_MSG(cache == nullptr, "Could not save region file data");
-	ERR_FAIL_COND(cache->region.save_block(block_rpos, voxel_buffer) != OK);
+	ERR_FAIL_COND(cache->region.save_chunk(block_rpos, voxel_buffer) != OK);
 }
 
 String VoxelStreamRegionFiles::get_directory() const {

@@ -54,12 +54,12 @@ void test_region_file() {
 		ZN_TEST_ASSERT(open_error == OK);
 
 		// Save block
-		const Error save_error = region_file.save_block(Vector3i(1, 2, 3), voxel_buffer);
+		const Error save_error = region_file.save_chunk(Vector3i(1, 2, 3), voxel_buffer);
 		ZN_TEST_ASSERT(save_error == OK);
 
 		// Read back
 		VoxelBufferInternal loaded_voxel_buffer;
-		const Error load_error = region_file.load_block(Vector3i(1, 2, 3), loaded_voxel_buffer);
+		const Error load_error = region_file.load_chunk(Vector3i(1, 2, 3), loaded_voxel_buffer);
 		ZN_TEST_ASSERT(load_error == OK);
 
 		// Must be equal
@@ -75,7 +75,7 @@ void test_region_file() {
 
 		// Read back
 		VoxelBufferInternal loaded_voxel_buffer;
-		const Error load_error = region_file.load_block(Vector3i(1, 2, 3), loaded_voxel_buffer);
+		const Error load_error = region_file.load_chunk(Vector3i(1, 2, 3), loaded_voxel_buffer);
 		ZN_TEST_ASSERT(load_error == OK);
 
 		// Must be equal
@@ -103,7 +103,7 @@ void test_region_file() {
 			generator.generate(voxel_buffer);
 
 			// Save block
-			const Error save_error = region_file.save_block(pos, voxel_buffer);
+			const Error save_error = region_file.save_chunk(pos, voxel_buffer);
 			ZN_TEST_ASSERT(save_error == OK);
 
 			// Note, the same position can occur twice, we just overwrite
@@ -113,7 +113,7 @@ void test_region_file() {
 		// Read back
 		for (auto it = buffers.begin(); it != buffers.end(); ++it) {
 			VoxelBufferInternal loaded_voxel_buffer;
-			const Error load_error = region_file.load_block(it->first, loaded_voxel_buffer);
+			const Error load_error = region_file.load_chunk(it->first, loaded_voxel_buffer);
 			ZN_TEST_ASSERT(load_error == OK);
 			ZN_TEST_ASSERT(it->second.equals(loaded_voxel_buffer));
 		}
@@ -128,7 +128,7 @@ void test_region_file() {
 		// Read back again
 		for (auto it = buffers.begin(); it != buffers.end(); ++it) {
 			VoxelBufferInternal loaded_voxel_buffer;
-			const Error load_error = region_file.load_block(it->first, loaded_voxel_buffer);
+			const Error load_error = region_file.load_chunk(it->first, loaded_voxel_buffer);
 			ZN_TEST_ASSERT(load_error == OK);
 			ZN_TEST_ASSERT(it->second.equals(loaded_voxel_buffer));
 		}

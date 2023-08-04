@@ -64,8 +64,8 @@ private:
 		EMERGE_FAILED
 	};
 
-	EmergeResult _load_block(VoxelBufferInternal &out_buffer, Vector3i origin_in_voxels, int lod);
-	void _save_block(VoxelBufferInternal &voxel_buffer, Vector3i origin_in_voxels, int lod);
+	EmergeResult _load_chunk(VoxelBufferInternal &out_buffer, Vector3i origin_in_voxels, int lod);
+	void _save_chunk(VoxelBufferInternal &voxel_buffer, Vector3i origin_in_voxels, int lod);
 
 	FileResult save_meta();
 	FileResult load_meta();

@@ -73,7 +73,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="save_block">
+		<method name="save_chunk">
 			<return type="void" />
 			<param index="0" name="position" type="Vector3i" />
 			<description>

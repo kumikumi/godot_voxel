@@ -885,7 +885,7 @@ void VoxelInstancer::on_mesh_block_exit(Vector3i render_grid_position, unsigned 
 				auto modified_block_it = lod.modified_blocks.find(data_grid_pos);
 				if (modified_block_it != lod.modified_blocks.end()) {
 					if (can_save) {
-						SaveBlockDataTask *task = save_block(data_grid_pos, lod_index, nullptr);
+						SaveBlockDataTask *task = save_chunk(data_grid_pos, lod_index, nullptr);
 						if (task != nullptr) {
 							tasks.push_io_task(task);
 						}
@@ -924,7 +924,7 @@ void VoxelInstancer::save_all_modified_blocks(
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
 		for (auto it = lod.modified_blocks.begin(); it != lod.modified_blocks.end(); ++it) {
-			SaveBlockDataTask *task = save_block(*it, lod_index, tracker);
+			SaveBlockDataTask *task = save_chunk(*it, lod_index, tracker);
 			if (task != nullptr) {
 				tasks.push_io_task(task);
 			}
@@ -1288,7 +1288,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 	task_scheduler.flush();
 }
 
-SaveBlockDataTask *VoxelInstancer::save_block(
+SaveBlockDataTask *VoxelInstancer::save_chunk(
 		Vector3i data_grid_pos, int lod_index, std::shared_ptr<AsyncDependencyTracker> tracker) const {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND_V(_library.is_null(), nullptr);

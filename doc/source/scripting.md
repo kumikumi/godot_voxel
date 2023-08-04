@@ -158,7 +158,7 @@ Custom stream
 
 Making a custom stream works similarly to a custom generator.
 
-You have to extend the class `VoxelStreamScript` and override the methods `_load_block` and `_save_block`.
+You have to extend the class `VoxelStreamScript` and override the methods `_load_chunk` and `_save_chunk`.
 See 
 
 TODO Script example of a custom stream

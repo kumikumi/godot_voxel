@@ -137,7 +137,7 @@ private:
 	void clear_blocks_in_layer(int layer_id);
 	void clear_layers();
 	void update_visibility();
-	SaveBlockDataTask *save_block(
+	SaveBlockDataTask *save_chunk(
 			Vector3i data_grid_pos, int lod_index, std::shared_ptr<AsyncDependencyTracker> tracker) const;
 
 	// Get a layer assuming it exists

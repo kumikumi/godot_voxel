@@ -90,8 +90,8 @@ public:
 	bool begin_transaction();
 	bool end_transaction();
 
-	bool save_block(BlockLocation loc, const std::vector<uint8_t> &block_data, BlockType type);
-	VoxelStream::ResultCode load_block(BlockLocation loc, std::vector<uint8_t> &out_block_data, BlockType type);
+	bool save_chunk(BlockLocation loc, const std::vector<uint8_t> &block_data, BlockType type);
+	VoxelStream::ResultCode load_chunk(BlockLocation loc, std::vector<uint8_t> &out_block_data, BlockType type);
 
 	bool load_all_blocks(void *callback_data,
 			void (*process_block_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
@@ -299,7 +299,7 @@ bool VoxelStreamSQLiteInternal::end_transaction() {
 	return true;
 }
 
-bool VoxelStreamSQLiteInternal::save_block(BlockLocation loc, const std::vector<uint8_t> &block_data, BlockType type) {
+bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<uint8_t> &block_data, BlockType type) {
 	ZN_PROFILE_SCOPE();
 
 	sqlite3 *db = _db;
@@ -350,7 +350,7 @@ bool VoxelStreamSQLiteInternal::save_block(BlockLocation loc, const std::vector<
 	return true;
 }
 
-VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_block(
+VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 		BlockLocation loc, std::vector<uint8_t> &out_block_data, BlockType type) {
 	sqlite3 *db = _db;
 
@@ -746,7 +746,7 @@ void VoxelStreamSQLite::load_voxel_blocks(Span<VoxelStream::VoxelQueryData> p_bl
 
 		std::vector<uint8_t> &temp_block_data = get_tls_temp_block_data();
 
-		const ResultCode res = con->load_block(loc, temp_block_data, VoxelStreamSQLiteInternal::VOXELS);
+		const ResultCode res = con->load_chunk(loc, temp_block_data, VoxelStreamSQLiteInternal::VOXELS);
 
 		if (res == RESULT_BLOCK_FOUND) {
 			// TODO Not sure if we should actually expect non-null. There can be legit not found blocks.
@@ -834,7 +834,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 
 		std::vector<uint8_t> &temp_compressed_block_data = get_tls_temp_compressed_block_data();
 
-		const ResultCode res = con->load_block(loc, temp_compressed_block_data, VoxelStreamSQLiteInternal::INSTANCES);
+		const ResultCode res = con->load_chunk(loc, temp_compressed_block_data, VoxelStreamSQLiteInternal::INSTANCES);
 
 		if (res == RESULT_BLOCK_FOUND) {
 			std::vector<uint8_t> &temp_block_data = get_tls_temp_block_data();
@@ -980,11 +980,11 @@ void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_c
 		if (block.has_voxels) {
 			if (block.voxels_deleted) {
 				const std::vector<uint8_t> empty;
-				p_connection->save_block(loc, empty, VoxelStreamSQLiteInternal::VOXELS);
+				p_connection->save_chunk(loc, empty, VoxelStreamSQLiteInternal::VOXELS);
 			} else {
 				BlockSerializer::SerializeResult res = BlockSerializer::serialize_and_compress(block.voxels);
 				ERR_FAIL_COND(!res.success);
-				p_connection->save_block(loc, res.data, VoxelStreamSQLiteInternal::VOXELS);
+				p_connection->save_chunk(loc, res.data, VoxelStreamSQLiteInternal::VOXELS);
 			}
 		}
 
@@ -998,7 +998,7 @@ void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_c
 			ERR_FAIL_COND(!CompressedData::compress(
 					to_span_const(temp_data), temp_compressed_data, CompressedData::COMPRESSION_NONE));
 		}
-		p_connection->save_block(loc, temp_compressed_data, VoxelStreamSQLiteInternal::INSTANCES);
+		p_connection->save_chunk(loc, temp_compressed_data, VoxelStreamSQLiteInternal::INSTANCES);
 
 		// TODO Optimization: add a version of the query that can update both at once
 	});

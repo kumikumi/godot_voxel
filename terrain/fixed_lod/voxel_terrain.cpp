@@ -1803,7 +1803,7 @@ Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_blocks() {
 }
 
 // Explicitly ask to save a block if it was modified
-void VoxelTerrain::_b_save_block(Vector3i p_block_pos) {
+void VoxelTerrain::_b_save_chunk(Vector3i p_block_pos) {
 	VoxelData::BlockToSave to_save;
 	if (_data->consume_block_modifications(p_block_pos, to_save)) {
 		_blocks_to_save.push_back(to_save);
@@ -1905,7 +1905,7 @@ void VoxelTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_voxel_tool"), &VoxelTerrain::get_voxel_tool);
 
 	ClassDB::bind_method(D_METHOD("save_modified_blocks"), &VoxelTerrain::_b_save_modified_blocks);
-	ClassDB::bind_method(D_METHOD("save_block", "position"), &VoxelTerrain::_b_save_block);
+	ClassDB::bind_method(D_METHOD("save_chunk", "position"), &VoxelTerrain::_b_save_chunk);
 
 	ClassDB::bind_method(D_METHOD("set_run_stream_in_editor", "enable"), &VoxelTerrain::set_run_stream_in_editor);
 	ClassDB::bind_method(D_METHOD("is_stream_running_in_editor"), &VoxelTerrain::is_stream_running_in_editor);

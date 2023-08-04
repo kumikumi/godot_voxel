@@ -310,7 +310,7 @@ bool RegionFile::is_valid_block_position(const Vector3 position) const {
 			position.z < _header.format.region_size.z;
 }
 
-Error RegionFile::load_block(Vector3i position, VoxelBufferInternal &out_block) {
+Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) {
 	ERR_FAIL_COND_V(_file_access.is_null(), ERR_FILE_CANT_READ);
 	FileAccess &f = **_file_access;
 
@@ -343,7 +343,7 @@ Error RegionFile::load_block(Vector3i position, VoxelBufferInternal &out_block) 
 	return OK;
 }
 
-Error RegionFile::save_block(Vector3i position, VoxelBufferInternal &block) {
+Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 	ERR_FAIL_COND_V(_header.format.verify_block(block) == false, ERR_INVALID_PARAMETER);
 	ERR_FAIL_COND_V(!is_valid_block_position(position), ERR_INVALID_PARAMETER);
 
