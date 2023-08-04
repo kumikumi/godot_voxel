@@ -47,7 +47,7 @@ public:
 		uint32_t lod;
 	};
 
-	virtual Result generate_block(VoxelQueryData &input);
+	virtual Result generate_chunk(VoxelQueryData &input);
 
 	virtual bool supports_single_generation() const {
 		return false;
@@ -114,9 +114,9 @@ public:
 	void invalidate_shaders();
 
 	// Requests to generate a broad result, which is supposed to be faster to obtain than full generation.
-	// If it returns true, the returned block may be used as if it was a result from `generate_block`.
+	// If it returns true, the returned block may be used as if it was a result from `generate_chunk`.
 	// If it returns false, no block is returned and full generation should be used.
-	// Usually, `generate_block` can do this anyways internally, but in some cases like GPU generation it may be used
+	// Usually, `generate_chunk` can do this anyways internally, but in some cases like GPU generation it may be used
 	// to avoid sending work to the graphics card.
 	virtual bool generate_broad_block(VoxelQueryData &input);
 
@@ -129,7 +129,7 @@ public:
 protected:
 	static void _bind_methods();
 
-	void _b_generate_block(Ref<gd::VoxelBuffer> out_buffer, Vector3 origin_in_voxels, int lod);
+	void _b_generate_chunk(Ref<gd::VoxelBuffer> out_buffer, Vector3 origin_in_voxels, int lod);
 
 	std::shared_ptr<ComputeShader> _detail_rendering_shader;
 	std::shared_ptr<ComputeShaderParameters> _detail_rendering_shader_parameters;

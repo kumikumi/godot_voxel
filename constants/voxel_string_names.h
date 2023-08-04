@@ -19,7 +19,7 @@ public:
 
 	StringName _emerge_block;
 	StringName _immerge_block;
-	StringName _generate_block;
+	StringName _generate_chunk;
 	StringName _get_used_channels_mask;
 
 	StringName block_loaded;

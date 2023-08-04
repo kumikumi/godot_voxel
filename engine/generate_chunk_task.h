@@ -1,8 +1,8 @@
-#ifndef GENERATE_BLOCK_TASK_H
-#define GENERATE_BLOCK_TASK_H
+#ifndef GENERATE_CHUNK_TASK_H
+#define GENERATE_CHUNK_TASK_H
 
 #include "../util/tasks/threaded_task.h"
-#include "generate_block_gpu_task.h"
+#include "generate_chunk_gpu_task.h"
 #include "ids.h"
 #include "priority_dependency.h"
 #include "streaming_dependency.h"
@@ -61,4 +61,4 @@ private:
 } // namespace voxel
 } // namespace zylann
 
-#endif // GENERATE_BLOCK_TASK_H
+#endif // GENERATE_CHUNK_TASK_H

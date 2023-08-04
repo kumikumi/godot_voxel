@@ -9,7 +9,7 @@
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="_generate_block" qualifiers="virtual">
+		<method name="_generate_chunk" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="out_buffer" type="VoxelBuffer" />
 			<param index="1" name="origin_in_voxels" type="Vector3i" />

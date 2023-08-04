@@ -120,7 +120,7 @@ public:
 	// Asks to generate (or re-generate) a block at the given position asynchronously.
 	// If the block already exists once the block is generated, it will be cancelled.
 	// If the block is out of range of any viewer, it will be cancelled.
-	void generate_block_async(Vector3i block_position);
+	void generate_chunk_async(Vector3i block_position);
 
 	struct Stats {
 		int updated_blocks = 0;

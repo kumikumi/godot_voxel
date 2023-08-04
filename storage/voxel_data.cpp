@@ -225,7 +225,7 @@ bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel
 			voxels = make_shared_instance<VoxelBufferInternal>();
 			voxels->create(Vector3iUtil::create(get_block_size()));
 			VoxelGenerator::VoxelQueryData q{ *voxels, pos, 0 };
-			generator->generate_block(q);
+			generator->generate_chunk(q);
 
 			_modifiers.apply(q.voxel_buffer, AABB(pos, q.voxel_buffer.get_size()));
 
@@ -287,7 +287,7 @@ void VoxelData::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsigned
 					// Suffixed with `2` because GCC warns it shadows a previous local...
 					GenContext *gctx2 = reinterpret_cast<GenContext *>(callback_data);
 					VoxelGenerator::VoxelQueryData q{ voxels, pos, 0 };
-					gctx2->generator.generate_block(q);
+					gctx2->generator.generate_chunk(q);
 					gctx2->modifiers.apply(voxels, AABB(pos, voxels.get_size()));
 				});
 	}
@@ -406,7 +406,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int d
 			VoxelGenerator::VoxelQueryData q{ //
 				*task.voxels, task.block_pos * (data_block_size << task.lod_index), task.lod_index
 			};
-			generator->generate_block(q);
+			generator->generate_chunk(q);
 			modifiers.apply(q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << q.lod));
 		}
 	}
@@ -625,7 +625,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 					};
 					if (generator.is_valid()) {
 						ZN_PROFILE_SCOPE_NAMED("Generate");
-						generator->generate_block(q);
+						generator->generate_chunk(q);
 					}
 					_modifiers.apply(
 							q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << dst_lod_index));

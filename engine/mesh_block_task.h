@@ -6,7 +6,7 @@
 #include "../util/godot/classes/array_mesh.h"
 #include "../util/tasks/threaded_task.h"
 #include "detail_rendering.h"
-#include "generate_block_gpu_task.h"
+#include "generate_chunk_gpu_task.h"
 #include "ids.h"
 #include "mesh_block_task.h"
 #include "meshing_dependency.h"

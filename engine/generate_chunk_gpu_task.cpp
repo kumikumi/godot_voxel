@@ -1,4 +1,4 @@
-#include "generate_block_gpu_task.h"
+#include "generate_chunk_gpu_task.h"
 #include "../modifiers/voxel_modifier.h"
 #include "../util/dstack.h"
 #include "../util/godot/funcs.h"

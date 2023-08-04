@@ -20,7 +20,7 @@ public:
 	void set_blur_enabled(bool enable);
 	bool is_blur_enabled() const;
 
-	Result generate_block(VoxelGenerator::VoxelQueryData &input) override;
+	Result generate_chunk(VoxelGenerator::VoxelQueryData &input) override;
 
 private:
 	static void _bind_methods();

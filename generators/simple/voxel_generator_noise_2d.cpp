@@ -60,7 +60,7 @@ Ref<Curve> VoxelGeneratorNoise2D::get_curve() const {
 	return _curve;
 }
 
-VoxelGenerator::Result VoxelGeneratorNoise2D::generate_block(VoxelGenerator::VoxelQueryData &input) {
+VoxelGenerator::Result VoxelGeneratorNoise2D::generate_chunk(VoxelGenerator::VoxelQueryData &input) {
 	Parameters params;
 	{
 		RWLockRead rlock(_parameters_lock);

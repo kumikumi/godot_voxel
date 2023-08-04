@@ -2,7 +2,7 @@
 #include "../../constants/voxel_constants.h"
 #include "../../constants/voxel_string_names.h"
 #include "../../edition/voxel_tool_terrain.h"
-#include "../../engine/generate_block_task.h"
+#include "../../engine/generate_chunk_task.h"
 #include "../../engine/load_block_data_task.h"
 #include "../../engine/mesh_block_task.h"
 #include "../../engine/save_block_data_task.h"
@@ -626,7 +626,7 @@ void VoxelTerrain::remesh_all_blocks() {
 }
 
 // At the moment, this function is for client-side use case in multiplayer scenarios
-void VoxelTerrain::generate_block_async(Vector3i block_position) {
+void VoxelTerrain::generate_chunk_async(Vector3i block_position) {
 	if (_data->has_block(block_position, 0)) {
 		// Already exists
 		return;

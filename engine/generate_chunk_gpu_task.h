@@ -1,5 +1,5 @@
-#ifndef VOXEL_GENERATE_BLOCK_GPU_TASK_H
-#define VOXEL_GENERATE_BLOCK_GPU_TASK_H
+#ifndef VOXEL_GENERATE_CHUNK_GPU_TASK_H
+#define VOXEL_GENERATE_CHUNK_GPU_TASK_H
 
 #include "../generators/voxel_generator.h"
 #include "../util/godot/classes/rd_uniform.h"
@@ -87,4 +87,4 @@ private:
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_GENERATE_BLOCK_GPU_TASK_H
+#endif // VOXEL_GENERATE_CHUNK_GPU_TASK_H

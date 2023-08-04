@@ -62,7 +62,7 @@ void test_normalmap_render_gpu() {
 
 	const Vector3i origin_in_voxels;
 	const uint8_t lod_index = 0;
-	generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
+	generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
 
 	const VoxelMesher::Input mesher_input = { voxels, generator.ptr(), nullptr, origin_in_voxels, lod_index, false,
 		false, true };

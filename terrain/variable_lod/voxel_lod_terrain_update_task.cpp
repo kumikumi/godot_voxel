@@ -1,5 +1,5 @@
 #include "voxel_lod_terrain_update_task.h"
-#include "../../engine/generate_block_task.h"
+#include "../../engine/generate_chunk_task.h"
 #include "../../engine/load_block_data_task.h"
 #include "../../engine/mesh_block_task.h"
 #include "../../engine/save_block_data_task.h"

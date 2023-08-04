@@ -63,8 +63,8 @@ bool check_graph_results_are_equal(VoxelGeneratorGraph &generator1, VoxelGenerat
 	// So it is important that we test generators with the same SDF clipping options.
 	ZN_ASSERT(generator1.get_sdf_clip_threshold() == generator2.get_sdf_clip_threshold());
 
-	generator1.generate_block(VoxelGenerator::VoxelQueryData{ block1, origin, 0 });
-	generator2.generate_block(VoxelGenerator::VoxelQueryData{ block2, origin, 0 });
+	generator1.generate_chunk(VoxelGenerator::VoxelQueryData{ block1, origin, 0 });
+	generator2.generate_chunk(VoxelGenerator::VoxelQueryData{ block2, origin, 0 });
 
 	if (block1.equals(block2)) {
 		return true;
@@ -512,7 +512,7 @@ void test_voxel_graph_generator_texturing() {
 					buffer.create(Vector3i(16, 16, 16));
 
 					VoxelGenerator::VoxelQueryData query{ buffer, -buffer.get_size() / 2, 0 };
-					generator->generate_block(query);
+					generator->generate_chunk(query);
 
 					L::check_weights(buffer, Vector3i(4, 3, 8), true, false);
 					L::check_weights(buffer, Vector3i(12, 11, 8), false, true);
@@ -526,7 +526,7 @@ void test_voxel_graph_generator_texturing() {
 					{
 						buffer0.create(Vector3i(16, 16, 16));
 						VoxelGenerator::VoxelQueryData query{ buffer0, Vector3i(0, -16, 0), 0 };
-						generator->generate_block(query);
+						generator->generate_chunk(query);
 					}
 
 					// Above 0
@@ -534,7 +534,7 @@ void test_voxel_graph_generator_texturing() {
 					{
 						buffer1.create(Vector3i(16, 16, 16));
 						VoxelGenerator::VoxelQueryData query{ buffer1, Vector3i(0, 0, 0), 0 };
-						generator->generate_block(query);
+						generator->generate_chunk(query);
 					}
 
 					L::check_weights(buffer0, Vector3i(8, 8, 8), true, false);
@@ -688,7 +688,7 @@ void print_sdf_as_ascii(const VoxelBufferInternal &vb) {
 	return false;
 }*/
 
-void test_voxel_graph_generate_block_with_input_sdf() {
+void test_voxel_graph_generate_chunk_with_input_sdf() {
 	static const int BLOCK_SIZE = 16;
 	static const float SPHERE_RADIUS = 6;
 
@@ -733,7 +733,7 @@ void test_voxel_graph_generate_block_with_input_sdf() {
 
 			generator->set_use_subdivision(subdivision_enabled);
 			generator->set_subdivision_size(subdivision_size);
-			generator->generate_block(VoxelGenerator::VoxelQueryData{ buffer, Vector3i(), 0 });
+			generator->generate_chunk(VoxelGenerator::VoxelQueryData{ buffer, Vector3i(), 0 });
 
 			/*if (!buffer.equals(buffer_before)) {
 				println("Buffer before:");
@@ -1427,7 +1427,7 @@ void test_voxel_graph_unused_single_texture_output() {
 
 	for (const Vector3i bpos : block_positions) {
 		const Vector3i origin_in_voxels = bpos * BLOCK_SIZE - Vector3iUtil::create(MIN_MARGIN);
-		generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
+		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
 
 		if (bpos.y <= -2) {
 			// We expect only ground below this height (in block coordinates)
@@ -1677,12 +1677,12 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 	generator->set_use_optimized_execution_map(false);
 	{
 		// There is a spot in the top-right corner of this area
-		generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels1, Vector3i(16, 0, 16), 0 });
+		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels1, Vector3i(16, 0, 16), 0 });
 		// L::print_indices_and_weights(voxels1, 8);
 		ZN_TEST_ASSERT(L::has_spot(voxels1));
 
 		// There is no spot here
-		generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels2, Vector3i(0, 0, 0), 0 });
+		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels2, Vector3i(0, 0, 0), 0 });
 		// L::print_indices_and_weights(voxels2, 8);
 		ZN_TEST_ASSERT(L::has_spot(voxels2) == false);
 	}
@@ -1695,12 +1695,12 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 	// Now do a run with the optimization, results must be the same
 	generator->set_use_optimized_execution_map(true);
 	{
-		generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels3, Vector3i(16, 0, 16), 0 });
+		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels3, Vector3i(16, 0, 16), 0 });
 		// L::print_indices_and_weights(voxels3, 8);
 		ZN_TEST_ASSERT(L::has_spot(voxels3));
 		ZN_TEST_ASSERT(voxels3.equals(voxels1));
 
-		generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels4, Vector3i(0, 0, 0), 0 });
+		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels4, Vector3i(0, 0, 0), 0 });
 		// L::print_indices_and_weights(voxels4, 8);
 		ZN_TEST_ASSERT(L::has_spot(voxels4) == false);
 		ZN_TEST_ASSERT(voxels4.equals(voxels2));
@@ -1721,7 +1721,7 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 		for (bpos.z = -4; bpos.z < 4; ++bpos.z) {
 			for (bpos.x = -4; bpos.x < 4; ++bpos.x) {
 				const Vector3i origin = bpos * BLOCK_SIZE;
-				generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels, origin, 0 });
+				generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin, 0 });
 				block_tests.push_back(BlockTest{ origin, L::has_spot(voxels) });
 			}
 		}
@@ -1730,7 +1730,7 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 
 		for (unsigned int bti = 0; bti < block_tests.size(); ++bti) {
 			const BlockTest bt = block_tests[bti];
-			generator->generate_block(VoxelGenerator::VoxelQueryData{ voxels, bt.origin, 0 });
+			generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, bt.origin, 0 });
 			const bool spot_found = L::has_spot(voxels);
 			ZN_TEST_ASSERT(bt.expect_spot == spot_found);
 		}

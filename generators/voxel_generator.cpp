@@ -11,7 +11,7 @@ namespace zylann::voxel {
 
 VoxelGenerator::VoxelGenerator() {}
 
-VoxelGenerator::Result VoxelGenerator::generate_block(VoxelQueryData &input) {
+VoxelGenerator::Result VoxelGenerator::generate_chunk(VoxelQueryData &input) {
 	return Result();
 }
 
@@ -30,7 +30,7 @@ VoxelSingleValue VoxelGenerator::generate_single(Vector3i pos, unsigned int chan
 	VoxelBufferInternal buffer;
 	buffer.create(1, 1, 1);
 	VoxelQueryData q{ buffer, pos, 0 };
-	generate_block(q);
+	generate_chunk(q);
 	if (channel == VoxelBufferInternal::CHANNEL_SDF) {
 		v.f = buffer.get_voxel_f(0, 0, 0, channel);
 	} else {
@@ -45,12 +45,12 @@ void VoxelGenerator::generate_series(Span<const float> positions_x, Span<const f
 	ZN_PRINT_ERROR("Not implemented");
 }
 
-void VoxelGenerator::_b_generate_block(Ref<gd::VoxelBuffer> out_buffer, Vector3 origin_in_voxels, int lod) {
+void VoxelGenerator::_b_generate_chunk(Ref<gd::VoxelBuffer> out_buffer, Vector3 origin_in_voxels, int lod) {
 	ERR_FAIL_COND(lod < 0);
 	ERR_FAIL_COND(lod >= int(constants::MAX_LOD));
 	ERR_FAIL_COND(out_buffer.is_null());
 	VoxelQueryData q = { out_buffer->get_buffer(), origin_in_voxels, uint8_t(lod) };
-	generate_block(q);
+	generate_chunk(q);
 }
 
 bool VoxelGenerator::get_shader_source(ShaderSourceData &out_params) const {
@@ -255,14 +255,14 @@ void VoxelGenerator::invalidate_shaders() {
 }
 
 bool VoxelGenerator::generate_broad_block(VoxelQueryData &input) {
-	// By default, generators don't support this separately and just do it inside `generate_block`.
+	// By default, generators don't support this separately and just do it inside `generate_chunk`.
 	// However if a generator supports GPU, it is recommended to implement it.
 	return false;
 }
 
 void VoxelGenerator::_bind_methods() {
 	ClassDB::bind_method(
-			D_METHOD("generate_block", "out_buffer", "origin_in_voxels", "lod"), &VoxelGenerator::_b_generate_block);
+			D_METHOD("generate_chunk", "out_buffer", "origin_in_voxels", "lod"), &VoxelGenerator::_b_generate_chunk);
 }
 
 } // namespace zylann::voxel

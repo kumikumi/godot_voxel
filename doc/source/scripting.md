@@ -72,7 +72,7 @@ const channel : int = VoxelBuffer.CHANNEL_TYPE
 func _get_used_channels_mask() -> int:
     return 1 << channel
  
-func _generate_block(buffer : VoxelBuffer, origin : Vector3i, lod : int) -> void:
+func _generate_chunk(buffer : VoxelBuffer, origin : Vector3i, lod : int) -> void:
 	if lod != 0:
         return
 	if origin.y < 0:
@@ -97,7 +97,7 @@ Make sure to have a `VoxelViewer` node in the scene under the camera, and you sh
 
 ![Custom stream](images/custom-stream.jpg)
 
-Though `VoxelBuffer.fill()` is probably not what you want to use, the above is a quick example. Generate_block generally gives you a block of 16x16x16 cubes to fill all at once, so you may also use `VoxelBuffer.set_voxel()` to specify each one individually. You can change the channel to `VoxelBuffer.CHANNEL_SDF` to get smooth voxels using another mesher such as `VoxelMesherTransvoxel`.
+Though `VoxelBuffer.fill()` is probably not what you want to use, the above is a quick example. Generate_chunk generally gives you a block of 16x16x16 cubes to fill all at once, so you may also use `VoxelBuffer.set_voxel()` to specify each one individually. You can change the channel to `VoxelBuffer.CHANNEL_SDF` to get smooth voxels using another mesher such as `VoxelMesherTransvoxel`.
 
 
 ### Thread-safety
@@ -117,7 +117,7 @@ const MountainsCurve : Curve = preload("moutains_curve.tres")
 
 # This is called when the generator is created
 func _init():
-    # Call `bake()` to be sure it doesn't happen later inside `generate_block()`.
+    # Call `bake()` to be sure it doesn't happen later inside `generate_chunk()`.
     MountainsCurve.bake()
 
 # ...
@@ -136,7 +136,7 @@ func _init():
     image.load("some_heightmap.png")
     image.lock()
 
-func generate_block(buffer : VoxelBuffer, origin : Vector3i, lod : int) -> void:
+func generate_chunk(buffer : VoxelBuffer, origin : Vector3i, lod : int) -> void:
     # ... use image.get_pixel() freely ...
     # ... but DO NOT use image.set_pixel() ...
 

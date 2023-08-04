@@ -4,7 +4,7 @@
 #include "../util/godot/funcs.h"
 #include "../util/log.h"
 #include "../util/profiling.h"
-#include "generate_block_task.h"
+#include "generate_chunk_task.h"
 #include "voxel_engine.h"
 
 namespace zylann::voxel {

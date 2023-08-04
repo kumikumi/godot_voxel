@@ -16,13 +16,13 @@ class VoxelGeneratorScript : public VoxelGenerator {
 public:
 	VoxelGeneratorScript();
 
-	Result generate_block(VoxelGenerator::VoxelQueryData &input) override;
+	Result generate_chunk(VoxelGenerator::VoxelQueryData &input) override;
 	int get_used_channels_mask() const override;
 
 protected:
 // TODO GDX: Defining custom virtual functions is not supported...
 #if defined(ZN_GODOT)
-	GDVIRTUAL3(_generate_block, Ref<gd::VoxelBuffer>, Vector3i, int)
+	GDVIRTUAL3(_generate_chunk, Ref<gd::VoxelBuffer>, Vector3i, int)
 	GDVIRTUAL0RC(int, _get_used_channels_mask) // I think `C` means `const`?
 #endif
 

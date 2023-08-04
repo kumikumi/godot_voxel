@@ -7,7 +7,7 @@ namespace zylann::voxel {
 
 VoxelGeneratorScript::VoxelGeneratorScript() {}
 
-VoxelGenerator::Result VoxelGeneratorScript::generate_block(VoxelGenerator::VoxelQueryData &input) {
+VoxelGenerator::Result VoxelGeneratorScript::generate_chunk(VoxelGenerator::VoxelQueryData &input) {
 	Result result;
 
 	// Create a temporary wrapper so Godot can pass it to scripts
@@ -17,11 +17,11 @@ VoxelGenerator::Result VoxelGeneratorScript::generate_block(VoxelGenerator::Voxe
 	buffer_wrapper->get_buffer().create(input.voxel_buffer.get_size());
 
 #if defined(ZN_GODOT)
-	if (!GDVIRTUAL_CALL(_generate_block, buffer_wrapper, input.origin_in_voxels, input.lod)) {
-		WARN_PRINT_ONCE("VoxelGeneratorScript::_generate_block is unimplemented!");
+	if (!GDVIRTUAL_CALL(_generate_chunk, buffer_wrapper, input.origin_in_voxels, input.lod)) {
+		WARN_PRINT_ONCE("VoxelGeneratorScript::_generate_chunk is unimplemented!");
 	}
 #else
-	ERR_PRINT_ONCE("VoxelGeneratorScript::_generate_block is not supported yet in GDExtension!");
+	ERR_PRINT_ONCE("VoxelGeneratorScript::_generate_chunk is not supported yet in GDExtension!");
 #endif
 
 	// The wrapper is discarded
@@ -51,7 +51,7 @@ int VoxelGeneratorScript::get_used_channels_mask() const {
 void VoxelGeneratorScript::_bind_methods() {
 #if defined(ZN_GODOT)
 	// TODO Test if GDVIRTUAL can print errors properly when GDScript fails inside a different thread.
-	GDVIRTUAL_BIND(_generate_block, "out_buffer", "origin_in_voxels", "lod");
+	GDVIRTUAL_BIND(_generate_chunk, "out_buffer", "origin_in_voxels", "lod");
 	GDVIRTUAL_BIND(_get_used_channels_mask);
 #endif
 }

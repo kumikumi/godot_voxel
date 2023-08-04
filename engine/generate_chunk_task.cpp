@@ -1,4 +1,4 @@
-#include "generate_block_task.h"
+#include "generate_chunk_task.h"
 #include "../storage/voxel_buffer_internal.h"
 #include "../storage/voxel_data.h"
 #include "../util/godot/funcs.h"
@@ -119,7 +119,7 @@ void GenerateBlockTask::run_cpu_generation() {
 	Ref<VoxelGenerator> generator = stream_dependency->generator;
 
 	VoxelGenerator::VoxelQueryData query_data{ *voxels, origin_in_voxels, lod_index };
-	const VoxelGenerator::Result result = generator->generate_block(query_data);
+	const VoxelGenerator::Result result = generator->generate_chunk(query_data);
 	max_lod_hint = result.max_lod_hint;
 
 	if (data != nullptr) {

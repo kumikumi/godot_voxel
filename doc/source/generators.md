@@ -11,7 +11,7 @@ Generators currently run on the CPU and primarily work on blocks of voxels. For 
 
 Voxel data is split into various channels, so depending on the kind of volume to generate, one or more different channels will be used. For example, a Minecraft generator will likely use the `TYPE` channel for voxel types, while a smooth terrain generator will use the `SDF` channel to fill in distance field values.
 
-Generators have a thread-safe API. The same generator `generate_block` method may be used by multiple threads at once. However, depending on the class, some parameters might only be modifiable from the main thread, so check the documentation to be sure.
+Generators have a thread-safe API. The same generator `generate_chunk` method may be used by multiple threads at once. However, depending on the class, some parameters might only be modifiable from the main thread, so check the documentation to be sure.
 
 If a volume is not given a generator, blocks will be filled with air by default.
 

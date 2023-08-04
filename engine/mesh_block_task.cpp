@@ -10,7 +10,7 @@
 #include "render_detail_texture_task.h"
 //#include "../util/string_funcs.h" // Debug
 #include "../meshers/transvoxel/transvoxel_cell_iterator.h"
-#include "generate_block_gpu_task.h"
+#include "generate_chunk_gpu_task.h"
 #include "voxel_engine.h"
 
 namespace zylann::voxel {
@@ -195,7 +195,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 			VoxelGenerator::VoxelQueryData q{ generated_voxels, (box.pos << lod_index) + origin_in_voxels, lod_index };
 
 			if (generator.is_valid()) {
-				generator->generate_block(q);
+				generator->generate_chunk(q);
 			}
 			modifiers.apply(q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << lod_index));
 

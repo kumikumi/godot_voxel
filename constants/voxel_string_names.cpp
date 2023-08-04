@@ -25,7 +25,7 @@ const VoxelStringNames &VoxelStringNames::get_singleton() {
 VoxelStringNames::VoxelStringNames() {
 	_emerge_block = StringName("_emerge_block");
 	_immerge_block = StringName("_immerge_block");
-	_generate_block = StringName("_generate_block");
+	_generate_chunk = StringName("_generate_chunk");
 	_get_used_channels_mask = StringName("_get_used_channels_mask");
 
 	block_loaded = StringName("block_loaded");

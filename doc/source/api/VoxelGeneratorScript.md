@@ -14,13 +14,13 @@ Important: this engine makes heavy use of threads. Generators will run in one of
 
 Return                                                                | Signature                                                                                                                                                                                                                                                             
 --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[void](#)                                                             | [_generate_block](#i__generate_block) ( [VoxelBuffer](VoxelBuffer.md) out_buffer, [Vector3i](https://docs.godotengine.org/en/stable/classes/class_vector3i.html) origin_in_voxels, [int](https://docs.godotengine.org/en/stable/classes/class_int.html) lod ) virtual 
+[void](#)                                                             | [_generate_chunk](#i__generate_chunk) ( [VoxelBuffer](VoxelBuffer.md) out_buffer, [Vector3i](https://docs.godotengine.org/en/stable/classes/class_vector3i.html) origin_in_voxels, [int](https://docs.godotengine.org/en/stable/classes/class_int.html) lod ) virtual 
 [int](https://docs.godotengine.org/en/stable/classes/class_int.html)  | [_get_used_channels_mask](#i__get_used_channels_mask) ( ) virtual const                                                                                                                                                                                               
 <p></p>
 
 ## Method Descriptions
 
-- [void](#)<span id="i__generate_block"></span> **_generate_block**( [VoxelBuffer](VoxelBuffer.md) out_buffer, [Vector3i](https://docs.godotengine.org/en/stable/classes/class_vector3i.html) origin_in_voxels, [int](https://docs.godotengine.org/en/stable/classes/class_int.html) lod ) 
+- [void](#)<span id="i__generate_chunk"></span> **_generate_chunk**( [VoxelBuffer](VoxelBuffer.md) out_buffer, [Vector3i](https://docs.godotengine.org/en/stable/classes/class_vector3i.html) origin_in_voxels, [int](https://docs.godotengine.org/en/stable/classes/class_int.html) lod ) 
 
 `out_buffer`: Buffer in which to populate voxel data. It will never be `null` and will have the requested size. It is only valid for this function, do not store it anywhere after the end.
 

@@ -4,7 +4,7 @@
 #include "../util/profiling.h"
 #include "../util/string_funcs.h"
 #include "../util/tasks/async_dependency_tracker.h"
-#include "generate_block_task.h"
+#include "generate_chunk_task.h"
 #include "voxel_engine.h"
 
 namespace zylann::voxel {

@@ -58,7 +58,7 @@ void run_voxel_tests() {
 	VOXEL_TEST(test_voxel_graph_generator_expressions_2);
 	VOXEL_TEST(test_voxel_graph_generator_texturing);
 	VOXEL_TEST(test_voxel_graph_equivalence_merging);
-	VOXEL_TEST(test_voxel_graph_generate_block_with_input_sdf);
+	VOXEL_TEST(test_voxel_graph_generate_chunk_with_input_sdf);
 	VOXEL_TEST(test_voxel_graph_functions_pass_through);
 	VOXEL_TEST(test_voxel_graph_functions_nested_pass_through);
 	VOXEL_TEST(test_voxel_graph_functions_autoconnect);
