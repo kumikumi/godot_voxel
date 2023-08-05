@@ -149,7 +149,7 @@ static void process_unload_data_blocks_sliding_box(VoxelLodTerrainUpdateData::St
 	}
 }
 
-static void process_unload_chunk_meshs_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector3 p_viewer_pos,
+static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector3 p_viewer_pos,
 		const VoxelLodTerrainUpdateData::Settings &settings, const VoxelData &data) {
 	ZN_PROFILE_SCOPE_NAMED("Sliding box mesh unload");
 	// TODO Could it actually be enough to have a rolling update on all blocks?
@@ -179,7 +179,7 @@ static void process_unload_chunk_meshs_sliding_box(VoxelLodTerrainUpdateData::St
 		const Box3i new_box =
 				Box3i::from_center_extents(viewer_block_pos_within_lod, Vector3iUtil::create(chunk_mesh_region_extent));
 		const Box3i prev_box = Box3i::from_center_extents(
-				lod.last_viewer_chunk_mesh_pos, Vector3iUtil::create(lod.last_view_distance_chunk_meshs));
+				lod.last_viewer_chunk_mesh_pos, Vector3iUtil::create(lod.last_view_distance_chunk_meshes));
 
 		if (!new_box.intersects(bounds_in_blocks) && !prev_box.intersects(bounds_in_blocks)) {
 			// If this box doesn't intersect either now or before, there is no chance a smaller one will
@@ -196,7 +196,7 @@ static void process_unload_chunk_meshs_sliding_box(VoxelLodTerrainUpdateData::St
 					// print_line(String("Immerge {0}").format(varray(pos.to_vec3())));
 					// unload_chunk_mesh(pos, lod_index);
 					lod.mesh_map_state.map.erase(pos);
-					lod.chunk_meshs_to_unload.push_back(pos);
+					lod.chunk_meshes_to_unload.push_back(pos);
 				});
 			});
 		}
@@ -210,7 +210,7 @@ static void process_unload_chunk_meshs_sliding_box(VoxelLodTerrainUpdateData::St
 		}
 
 		lod.last_viewer_chunk_mesh_pos = viewer_block_pos_within_lod;
-		lod.last_view_distance_chunk_meshs = chunk_mesh_region_extent;
+		lod.last_view_distance_chunk_meshes = chunk_mesh_region_extent;
 	}
 }
 
@@ -246,7 +246,7 @@ void process_octrees_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector
 
 				auto block_it = lod.mesh_map_state.map.find(bpos);
 				if (block_it != lod.mesh_map_state.map.end()) {
-					lod.chunk_meshs_to_deactivate.push_back(bpos);
+					lod.chunk_meshes_to_deactivate.push_back(bpos);
 					block_it->second.active = false;
 				}
 			}
@@ -279,7 +279,7 @@ void process_octrees_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector
 				// Other LODs are unloaded earlier using a sliding region.
 				VoxelLodTerrainUpdateData::Lod &last_lod = state.lods[last_lod_index];
 				last_lod.mesh_map_state.map.erase(pos);
-				last_lod.chunk_meshs_to_unload.push_back(pos);
+				last_lod.chunk_meshes_to_unload.push_back(pos);
 			}
 		};
 
@@ -632,7 +632,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				CRASH_COND(chunk_mesh_it->second.state != VoxelLodTerrainUpdateData::MESH_UP_TO_DATE);
 
 				// self->set_chunk_mesh_active(*block, true);
-				lod.chunk_meshs_to_activate.push_back(bpos);
+				lod.chunk_meshes_to_activate.push_back(bpos);
 				chunk_mesh_it->second.active = true;
 				lods_to_update_transitions |= (0b111 << lod_index);
 			}
@@ -645,7 +645,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				if (chunk_mesh_it != lod.mesh_map_state.map.end()) {
 					// self->set_chunk_mesh_active(*block, false);
 					chunk_mesh_it->second.active = false;
-					lod.chunk_meshs_to_deactivate.push_back(bpos);
+					lod.chunk_meshes_to_deactivate.push_back(bpos);
 					lods_to_update_transitions |= (0b111 << lod_index);
 				}
 			}
@@ -663,7 +663,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 						chunk_mesh_it->second.state == VoxelLodTerrainUpdateData::MESH_UP_TO_DATE) {
 					// self->set_chunk_mesh_active(*block, true);
 					chunk_mesh_it->second.active = true;
-					lod.chunk_meshs_to_activate.push_back(bpos);
+					lod.chunk_meshes_to_activate.push_back(bpos);
 					lods_to_update_transitions |= (0b111 << lod_index);
 				}
 			}
@@ -797,7 +797,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 							VoxelLodTerrainUpdateTask::get_transition_mask(state, it->first, lod_index, lod_count);
 					if (recomputed_mask != it->second.transition_mask) {
 						it->second.transition_mask = recomputed_mask;
-						lod.chunk_meshs_to_update_transitions.push_back(
+						lod.chunk_meshes_to_update_transitions.push_back(
 								VoxelLodTerrainUpdateData::TransitionUpdate{ it->first, recomputed_mask });
 					}
 				}
@@ -1242,10 +1242,10 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 
 	for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
 		const VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-		CRASH_COND(lod.chunk_meshs_to_unload.size() != 0);
-		CRASH_COND(lod.chunk_meshs_to_update_transitions.size() != 0);
-		CRASH_COND(lod.chunk_meshs_to_activate.size() != 0);
-		CRASH_COND(lod.chunk_meshs_to_deactivate.size() != 0);
+		CRASH_COND(lod.chunk_meshes_to_unload.size() != 0);
+		CRASH_COND(lod.chunk_meshes_to_update_transitions.size() != 0);
+		CRASH_COND(lod.chunk_meshes_to_activate.size() != 0);
+		CRASH_COND(lod.chunk_meshes_to_deactivate.size() != 0);
 	}
 
 	SetCompleteOnScopeExit scoped_complete(update_data.task_is_complete);
@@ -1275,7 +1275,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 		}
 
 		// Unload mesh blocks falling out of block region extent
-		process_unload_chunk_meshs_sliding_box(state, _viewer_pos, settings, data);
+		process_unload_chunk_meshes_sliding_box(state, _viewer_pos, settings, data);
 
 		// Create and remove octrees in a grid around the viewer.
 		// Mesh blocks drive the loading of voxel data and visuals.

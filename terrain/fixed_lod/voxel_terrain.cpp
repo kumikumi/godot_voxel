@@ -580,7 +580,7 @@ Dictionary VoxelTerrain::_b_get_statistics() const {
 	d["time_request_blocks_to_update"] = _stats.time_request_blocks_to_update;
 
 	d["dropped_block_loads"] = _stats.dropped_block_loads;
-	d["dropped_block_meshs"] = _stats.dropped_block_meshs;
+	d["dropped_block_meshes"] = _stats.dropped_block_meshes;
 	d["updated_blocks"] = _stats.updated_blocks;
 
 	return d;
@@ -1064,12 +1064,12 @@ void VoxelTerrain::process_viewers() {
 		const Box3i bounds_in_voxels = _data->get_bounds();
 
 		const Box3i bounds_in_data_blocks = bounds_in_voxels.downscaled(get_data_block_size());
-		const Box3i bounds_in_chunk_meshs = bounds_in_voxels.downscaled(get_chunk_mesh_size());
+		const Box3i bounds_in_chunk_meshes = bounds_in_voxels.downscaled(get_chunk_mesh_size());
 
 		struct UpdatePairedViewer {
 			VoxelTerrain &self;
 			const Box3i bounds_in_data_blocks;
-			const Box3i bounds_in_chunk_meshs;
+			const Box3i bounds_in_chunk_meshes;
 			const Transform3D world_to_local_transform;
 			const float view_distance_scale;
 
@@ -1107,17 +1107,17 @@ void VoxelTerrain::process_viewers() {
 				Vector3i data_block_pos;
 
 				if (state.requires_meshes || state.requires_collisions) {
-					const int view_distance_chunk_meshs = math::ceildiv(state.view_distance_voxels, chunk_mesh_size);
+					const int view_distance_chunk_meshes = math::ceildiv(state.view_distance_voxels, chunk_mesh_size);
 					const int render_to_data_factor = (chunk_mesh_size / data_block_size);
 					const Vector3i chunk_mesh_pos = math::floordiv(state.local_position_voxels, chunk_mesh_size);
 
 					// Adding one block of padding because meshing requires neighbors
-					view_distance_data_blocks = view_distance_chunk_meshs * render_to_data_factor + 1;
+					view_distance_data_blocks = view_distance_chunk_meshes * render_to_data_factor + 1;
 
 					data_block_pos = chunk_mesh_pos * render_to_data_factor;
 					state.mesh_box =
-							Box3i::from_center_extents(chunk_mesh_pos, Vector3iUtil::create(view_distance_chunk_meshs))
-									.clipped(bounds_in_chunk_meshs);
+							Box3i::from_center_extents(chunk_mesh_pos, Vector3iUtil::create(view_distance_chunk_meshes))
+									.clipped(bounds_in_chunk_meshes);
 
 				} else {
 					view_distance_data_blocks = math::ceildiv(state.view_distance_voxels, data_block_size);
@@ -1133,7 +1133,7 @@ void VoxelTerrain::process_viewers() {
 		};
 
 		// New viewers and updates. Removed viewers won't be iterated but are still paired until later.
-		UpdatePairedViewer u{ *this, bounds_in_data_blocks, bounds_in_chunk_meshs, world_to_local_transform,
+		UpdatePairedViewer u{ *this, bounds_in_data_blocks, bounds_in_chunk_meshes, world_to_local_transform,
 			view_distance_scale };
 		VoxelEngine::get_singleton().for_each_viewer(u);
 	}
@@ -1518,7 +1518,7 @@ void VoxelTerrain::process_meshing() {
 	ZN_PROFILE_SCOPE();
 	ProfilingClock profiling_clock;
 
-	_stats.dropped_block_meshs = 0;
+	_stats.dropped_block_meshes = 0;
 
 	// Send mesh updates
 
@@ -1610,7 +1610,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob) {
 	if (block == nullptr) {
 		// print_line("- no longer loaded");
 		// That block is no longer loaded, drop the result
-		++_stats.dropped_block_meshs;
+		++_stats.dropped_block_meshes;
 		return;
 	}
 
@@ -1618,13 +1618,13 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob) {
 		// That block is loaded, but its meshing request was dropped.
 		// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 		ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");
-		++_stats.dropped_block_meshs;
+		++_stats.dropped_block_meshes;
 		return;
 	}
 
 	// There is a slim chance for some updates to come up just after setting the mesher to null. Avoids a crash.
 	if (_mesher.is_null()) {
-		++_stats.dropped_block_meshs;
+		++_stats.dropped_block_meshes;
 		return;
 	}
 

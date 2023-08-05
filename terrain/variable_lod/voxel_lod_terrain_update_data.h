@@ -125,13 +125,13 @@ struct VoxelLodTerrainUpdateData {
 
 		std::vector<Vector3i> blocks_pending_update;
 		Vector3i last_viewer_chunk_mesh_pos;
-		int last_view_distance_chunk_meshs = 0;
+		int last_view_distance_chunk_meshes = 0;
 
 		// Deferred outputs to main thread
-		std::vector<Vector3i> chunk_meshs_to_unload;
-		std::vector<TransitionUpdate> chunk_meshs_to_update_transitions;
-		std::vector<Vector3i> chunk_meshs_to_activate;
-		std::vector<Vector3i> chunk_meshs_to_deactivate;
+		std::vector<Vector3i> chunk_meshes_to_unload;
+		std::vector<TransitionUpdate> chunk_meshes_to_update_transitions;
+		std::vector<Vector3i> chunk_meshes_to_activate;
+		std::vector<Vector3i> chunk_meshes_to_deactivate;
 
 		inline bool has_loading_block(const Vector3i &pos) const {
 			return loading_blocks.find(pos) != loading_blocks.end();

@@ -435,7 +435,7 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 	for (unsigned int i = 0; i < lod_count; ++i) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[i];
 		lod.last_view_distance_data_blocks = 0;
-		lod.last_view_distance_chunk_meshs = 0;
+		lod.last_view_distance_chunk_meshes = 0;
 	}
 
 	update_configuration_warnings();
@@ -815,7 +815,7 @@ void VoxelLodTerrain::reset_mesh_maps() {
 			mesh_map.clear();
 			// Reset view distance cache so blocks will be re-entered due to the difference
 			lod.last_view_distance_data_blocks = 0;
-			lod.last_view_distance_chunk_meshs = 0;
+			lod.last_view_distance_chunk_meshes = 0;
 		} else {
 			mesh_map.clear();
 		}
@@ -823,10 +823,10 @@ void VoxelLodTerrain::reset_mesh_maps() {
 		lod.mesh_map_state.map.clear();
 
 		// Clear temporal lists
-		lod.chunk_meshs_to_activate.clear();
-		lod.chunk_meshs_to_deactivate.clear();
-		lod.chunk_meshs_to_unload.clear();
-		lod.chunk_meshs_to_update_transitions.clear();
+		lod.chunk_meshes_to_activate.clear();
+		lod.chunk_meshes_to_deactivate.clear();
+		lod.chunk_meshes_to_unload.clear();
+		lod.chunk_meshes_to_update_transitions.clear();
 
 		_deferred_collision_updates_per_lod[lod_index].clear();
 	}
@@ -1087,7 +1087,7 @@ void VoxelLodTerrain::process(float delta) {
 	ZN_PROFILE_SCOPE();
 
 	_stats.dropped_block_loads = 0;
-	_stats.dropped_block_meshs = 0;
+	_stats.dropped_block_meshes = 0;
 
 	if (get_lod_count() == 0) {
 		// If there isn't a LOD 0, there is nothing to load
@@ -1185,8 +1185,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 		const int chunk_mesh_size = get_chunk_mesh_size() << lod_index;
 
-		for (unsigned int i = 0; i < lod.chunk_meshs_to_activate.size(); ++i) {
-			const Vector3i bpos = lod.chunk_meshs_to_activate[i];
+		for (unsigned int i = 0; i < lod.chunk_meshes_to_activate.size(); ++i) {
+			const Vector3i bpos = lod.chunk_meshes_to_activate[i];
 			VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
@@ -1204,8 +1204,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			activated_blocks.insert(block);
 		}
 
-		for (unsigned int i = 0; i < lod.chunk_meshs_to_deactivate.size(); ++i) {
-			const Vector3i bpos = lod.chunk_meshs_to_deactivate[i];
+		for (unsigned int i = 0; i < lod.chunk_meshes_to_deactivate.size(); ++i) {
+			const Vector3i bpos = lod.chunk_meshes_to_deactivate[i];
 			VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
@@ -1222,8 +1222,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			set_chunk_mesh_active(*block, false, with_fading);
 		}
 
-		lod.chunk_meshs_to_activate.clear();
-		lod.chunk_meshs_to_deactivate.clear();
+		lod.chunk_meshes_to_activate.clear();
+		lod.chunk_meshes_to_deactivate.clear();
 
 		/*
 #ifdef DEBUG_ENABLED
@@ -1231,8 +1231,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 #endif
 		*/
 
-		for (unsigned int i = 0; i < lod.chunk_meshs_to_unload.size(); ++i) {
-			const Vector3i bpos = lod.chunk_meshs_to_unload[i];
+		for (unsigned int i = 0; i < lod.chunk_meshes_to_unload.size(); ++i) {
+			const Vector3i bpos = lod.chunk_meshes_to_unload[i];
 			mesh_map.remove_block(bpos, BeforeUnloadMeshAction{ _shader_material_pool });
 
 			_fading_blocks_per_lod[lod_index].erase(bpos);
@@ -1249,8 +1249,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			// because it's too expensive to linear-search all blocks for each block
 		}
 
-		for (unsigned int i = 0; i < lod.chunk_meshs_to_update_transitions.size(); ++i) {
-			const VoxelLodTerrainUpdateData::TransitionUpdate tu = lod.chunk_meshs_to_update_transitions[i];
+		for (unsigned int i = 0; i < lod.chunk_meshes_to_update_transitions.size(); ++i) {
+			const VoxelLodTerrainUpdateData::TransitionUpdate tu = lod.chunk_meshes_to_update_transitions[i];
 			VoxelChunkMeshVLT *block = mesh_map.get_block(tu.block_position);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
@@ -1317,8 +1317,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			}
 		}
 
-		lod.chunk_meshs_to_unload.clear();
-		lod.chunk_meshs_to_update_transitions.clear();
+		lod.chunk_meshes_to_unload.clear();
+		lod.chunk_meshes_to_update_transitions.clear();
 	}
 
 	// Remove completed async edits
@@ -1443,12 +1443,12 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 
 	if (ob.lod >= get_lod_count()) {
 		// Sorry, LOD configuration changed, drop that mesh
-		++_stats.dropped_block_meshs;
+		++_stats.dropped_block_meshes;
 		return;
 	}
 	// There is a slim chance for some updates to come up just after setting the mesher to null. Avoids a crash.
 	if (_mesher.is_null()) {
-		++_stats.dropped_block_meshs;
+		++_stats.dropped_block_meshes;
 		return;
 	}
 
@@ -1460,14 +1460,14 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 		auto chunk_mesh_state_it = lod.mesh_map_state.map.find(ob.position);
 		if (chunk_mesh_state_it == lod.mesh_map_state.map.end()) {
 			// That block is no longer loaded in the update map, drop the result
-			++_stats.dropped_block_meshs;
+			++_stats.dropped_block_meshes;
 			return;
 		}
 		if (ob.type == VoxelEngine::BlockMeshOutput::TYPE_DROPPED) {
 			// That block is loaded, but its meshing request was dropped.
 			// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 			ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");
-			++_stats.dropped_block_meshs;
+			++_stats.dropped_block_meshes;
 			return;
 		}
 
@@ -2064,7 +2064,7 @@ Dictionary VoxelLodTerrain::_b_get_statistics() const {
 
 	// Process
 	d["dropped_block_loads"] = _stats.dropped_block_loads;
-	d["dropped_block_meshs"] = _stats.dropped_block_meshs;
+	d["dropped_block_meshes"] = _stats.dropped_block_meshes;
 
 	return d;
 }

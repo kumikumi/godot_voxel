@@ -171,7 +171,7 @@ public:
 		// How many data blocks were rejected this frame (due to loading too late for example).
 		uint32_t dropped_block_loads = 0;
 		// How many mesh blocks were rejected this frame (due to loading too late for example).
-		uint32_t dropped_block_meshs = 0;
+		uint32_t dropped_block_meshes = 0;
 		// Time spent in the last update unloading unused blocks and detecting required ones, in microseconds
 		uint32_t time_detect_required_blocks = 0;
 		// Time spent in the last update requesting data blocks, in microseconds

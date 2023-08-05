@@ -124,7 +124,7 @@
 					"time_process_update_responses": int,
 					"remaining_main_thread_blocks": int,
 					"dropped_block_loads": int,
-					"dropped_block_meshs": int,
+					"dropped_block_meshes": int,
 					"updated_blocks": int,
 					"blocked_lods": int
 				}
