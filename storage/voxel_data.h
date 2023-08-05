@@ -26,12 +26,12 @@ public:
 	// Changing these settings while data is already loaded can be expensive, or cause data to be reset.
 	// If threaded tasks are still working on the data while this happens, they should be cancelled or ignored.
 
-	inline unsigned int get_block_size() const {
-		return _lods[0].map.get_block_size();
+	inline unsigned int get_chunk_size() const {
+		return _lods[0].map.get_chunk_size();
 	}
 
-	inline unsigned int get_block_size_po2() const {
-		return _lods[0].map.get_block_size_pow2();
+	inline unsigned int get_chunk_size_po2() const {
+		return _lods[0].map.get_chunk_size_pow2();
 	}
 
 	inline Vector3i voxel_to_block(Vector3i pos) const {
@@ -149,7 +149,7 @@ public:
 		Lod &lod = _lods[block.get_lod_index()];
 #ifdef DEBUG_ENABLED
 		if (block.has_voxels()) {
-			ZN_ASSERT(block.get_voxels_const().get_size() == Vector3iUtil::create(get_block_size()));
+			ZN_ASSERT(block.get_voxels_const().get_size() == Vector3iUtil::create(get_chunk_size()));
 		}
 #endif
 		RWLockWrite wlock(lod.map_lock);

@@ -31,14 +31,14 @@ bool RegionFormat::validate() const {
 	ERR_FAIL_COND_V(region_size.x < 0 || region_size.x >= static_cast<int>(MAX_BLOCKS_ACROSS), false);
 	ERR_FAIL_COND_V(region_size.y < 0 || region_size.y >= static_cast<int>(MAX_BLOCKS_ACROSS), false);
 	ERR_FAIL_COND_V(region_size.z < 0 || region_size.z >= static_cast<int>(MAX_BLOCKS_ACROSS), false);
-	ERR_FAIL_COND_V(block_size_po2 <= 0, false);
+	ERR_FAIL_COND_V(chunk_size_po2 <= 0, false);
 
 	// Test worst case limits (this does not include arbitrary metadata, so it can't be 100% accurrate...)
 	size_t bytes_per_block = 0;
 	for (unsigned int i = 0; i < channel_depths.size(); ++i) {
 		bytes_per_block += VoxelBufferInternal::get_depth_bit_count(channel_depths[i]) / 8;
 	}
-	bytes_per_block *= Vector3iUtil::get_volume(Vector3iUtil::create(1 << block_size_po2));
+	bytes_per_block *= Vector3iUtil::get_volume(Vector3iUtil::create(1 << chunk_size_po2));
 	const size_t sectors_per_block = (bytes_per_block - 1) / sector_size + 1;
 	ERR_FAIL_COND_V(sectors_per_block > RegionBlockInfo::MAX_SECTOR_COUNT, false);
 	const size_t max_potential_sectors = Vector3iUtil::get_volume(region_size) * sectors_per_block;
@@ -48,7 +48,7 @@ bool RegionFormat::validate() const {
 }
 
 bool RegionFormat::verify_block(const VoxelBufferInternal &block) const {
-	ERR_FAIL_COND_V(block.get_size() != Vector3iUtil::create(1 << block_size_po2), false);
+	ERR_FAIL_COND_V(block.get_size() != Vector3iUtil::create(1 << chunk_size_po2), false);
 	for (unsigned int i = 0; i < VoxelBufferInternal::MAX_CHANNELS; ++i) {
 		ERR_FAIL_COND_V(block.get_channel_depth(i) != channel_depths[i], false);
 	}
@@ -69,7 +69,7 @@ static bool save_header(
 	store_buffer(f, Span<const uint8_t>(reinterpret_cast<const uint8_t *>(FORMAT_REGION_MAGIC), 4));
 	f.store_8(version);
 
-	f.store_8(format.block_size_po2);
+	f.store_8(format.chunk_size_po2);
 
 	f.store_8(format.region_size.x);
 	f.store_8(format.region_size.y);
@@ -120,7 +120,7 @@ static bool load_header(
 	const uint8_t version = f.get_8();
 
 	if (version == FORMAT_VERSION) {
-		out_format.block_size_po2 = f.get_8();
+		out_format.chunk_size_po2 = f.get_8();
 
 		out_format.region_size.x = f.get_8();
 		out_format.region_size.y = f.get_8();
@@ -170,7 +170,7 @@ static bool load_header(
 
 RegionFile::RegionFile() {
 	// Defaults
-	_header.format.block_size_po2 = 4;
+	_header.format.chunk_size_po2 = 4;
 	_header.format.region_size = Vector3i(16, 16, 16);
 	fill(_header.format.channel_depths, VoxelBufferInternal::DEPTH_8_BIT);
 	_header.format.sector_size = 512;
@@ -561,7 +561,7 @@ bool RegionFile::migrate_from_v2_to_v3(FileAccess &f, RegionFormat &format) {
 	ZN_PRINT_VERBOSE(zylann::format("Migrating region file {} from v2 to v3", _file_path));
 
 	// We can migrate if we know in advance what format the file should contain.
-	ERR_FAIL_COND_V_MSG(format.block_size_po2 == 0, false, "Cannot migrate without knowing the correct format");
+	ERR_FAIL_COND_V_MSG(format.chunk_size_po2 == 0, false, "Cannot migrate without knowing the correct format");
 
 	// Which file offset blocks data is starting
 	// magic + version + blockinfos

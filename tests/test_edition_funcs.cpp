@@ -45,7 +45,7 @@ void test_run_blocky_random_tick() {
 		// All blocks of this map will be the same,
 		// an interleaving of all block types
 		VoxelBufferInternal model_buffer;
-		model_buffer.create(Vector3iUtil::create(data.get_block_size()));
+		model_buffer.create(Vector3iUtil::create(data.get_chunk_size()));
 		for (int z = 0; z < model_buffer.get_size().z; ++z) {
 			for (int x = 0; x < model_buffer.get_size().x; ++x) {
 				for (int y = 0; y < model_buffer.get_size().y; ++y) {

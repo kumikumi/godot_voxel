@@ -84,7 +84,7 @@ public:
 
 	unsigned int get_chunk_size_pow2() const;
 	unsigned int get_chunk_size() const;
-	// void set_chunk_size_po2(unsigned int p_block_size_po2);
+	// void set_chunk_size_po2(unsigned int p_chunk_size_po2);
 
 	unsigned int get_chunk_mesh_size_pow2() const;
 	unsigned int get_chunk_mesh_size() const;

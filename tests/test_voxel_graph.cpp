@@ -50,13 +50,13 @@ bool check_graph_results_are_equal(VoxelGeneratorGraph &generator1, VoxelGenerat
 		}
 	}
 
-	const Vector3i block_size(16, 16, 16);
+	const Vector3i chunk_size(16, 16, 16);
 
 	VoxelBufferInternal block1;
-	block1.create(block_size);
+	block1.create(chunk_size);
 
 	VoxelBufferInternal block2;
-	block2.create(block_size);
+	block2.create(chunk_size);
 
 	// Note, not every graph configuration can be considered invalid when inequal.
 	// SDF clipping does create differences that are supposed to be irrelevant for our use cases.
@@ -72,7 +72,7 @@ bool check_graph_results_are_equal(VoxelGeneratorGraph &generator1, VoxelGenerat
 
 	const math::Interval range1 = get_sdf_range(block1);
 	const math::Interval range2 = get_sdf_range(block2);
-	ZN_PRINT_ERROR(format("When testing box ", Box3i(origin, block_size)));
+	ZN_PRINT_ERROR(format("When testing box ", Box3i(origin, chunk_size)));
 	ZN_PRINT_ERROR(format("Block1 range: ", range1));
 	ZN_PRINT_ERROR(format("Block2 range: ", range2));
 	return false;
@@ -689,7 +689,7 @@ void print_sdf_as_ascii(const VoxelBufferInternal &vb) {
 }*/
 
 void test_voxel_graph_generate_chunk_with_input_sdf() {
-	static const int BLOCK_SIZE = 16;
+	static const int CHUNK_SIZE = 16;
 	static const float SPHERE_RADIUS = 6;
 
 	struct L {
@@ -712,7 +712,7 @@ void test_voxel_graph_generate_chunk_with_input_sdf() {
 
 			// Create buffer containing part of a sphere
 			VoxelBufferInternal buffer;
-			buffer.create(Vector3i(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE));
+			buffer.create(Vector3i(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE));
 			const VoxelBufferInternal::ChannelId channel = VoxelBufferInternal::CHANNEL_SDF;
 			const VoxelBufferInternal::Depth depth = buffer.get_channel_depth(channel);
 			const float sd_scale = VoxelBufferInternal::get_sdf_quantization_scale(depth);
@@ -752,8 +752,8 @@ void test_voxel_graph_generate_chunk_with_input_sdf() {
 		}
 	};
 
-	L::test(false, BLOCK_SIZE / 2);
-	L::test(true, BLOCK_SIZE / 2);
+	L::test(false, CHUNK_SIZE / 2);
+	L::test(true, CHUNK_SIZE / 2);
 }
 
 Ref<VoxelGraphFunction> create_pass_through_function() {
@@ -1420,13 +1420,13 @@ void test_voxel_graph_unused_single_texture_output() {
 	}
 
 	VoxelBufferInternal voxels;
-	const int BLOCK_SIZE = 16;
+	const int CHUNK_SIZE = 16;
 	const int MIN_MARGIN = 1;
 	const int MAX_MARGIN = 2;
-	voxels.create(Vector3iUtil::create(BLOCK_SIZE + MIN_MARGIN + MAX_MARGIN));
+	voxels.create(Vector3iUtil::create(CHUNK_SIZE + MIN_MARGIN + MAX_MARGIN));
 
 	for (const Vector3i bpos : block_positions) {
-		const Vector3i origin_in_voxels = bpos * BLOCK_SIZE - Vector3iUtil::create(MIN_MARGIN);
+		const Vector3i origin_in_voxels = bpos * CHUNK_SIZE - Vector3iUtil::create(MIN_MARGIN);
 		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
 
 		if (bpos.y <= -2) {
@@ -1666,12 +1666,12 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 		}
 	};
 
-	const int BLOCK_SIZE = 16;
+	const int CHUNK_SIZE = 16;
 
 	VoxelBufferInternal voxels1;
-	voxels1.create(Vector3iUtil::create(BLOCK_SIZE));
+	voxels1.create(Vector3iUtil::create(CHUNK_SIZE));
 	VoxelBufferInternal voxels2;
-	voxels2.create(Vector3iUtil::create(BLOCK_SIZE));
+	voxels2.create(Vector3iUtil::create(CHUNK_SIZE));
 
 	// First do a run without the optimization
 	generator->set_use_optimized_execution_map(false);
@@ -1688,9 +1688,9 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 	}
 
 	VoxelBufferInternal voxels3;
-	voxels3.create(Vector3iUtil::create(BLOCK_SIZE));
+	voxels3.create(Vector3iUtil::create(CHUNK_SIZE));
 	VoxelBufferInternal voxels4;
-	voxels4.create(Vector3iUtil::create(BLOCK_SIZE));
+	voxels4.create(Vector3iUtil::create(CHUNK_SIZE));
 
 	// Now do a run with the optimization, results must be the same
 	generator->set_use_optimized_execution_map(true);
@@ -1720,7 +1720,7 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 		Vector3i bpos;
 		for (bpos.z = -4; bpos.z < 4; ++bpos.z) {
 			for (bpos.x = -4; bpos.x < 4; ++bpos.x) {
-				const Vector3i origin = bpos * BLOCK_SIZE;
+				const Vector3i origin = bpos * CHUNK_SIZE;
 				generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin, 0 });
 				block_tests.push_back(BlockTest{ origin, L::has_spot(voxels) });
 			}

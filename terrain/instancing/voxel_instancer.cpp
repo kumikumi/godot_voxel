@@ -163,7 +163,7 @@ void VoxelInstancer::_notification(int p_what) {
 			}
 
 			const Transform3D parent_transform = get_global_transform();
-			const int base_block_size_po2 = _parent_chunk_mesh_size_po2;
+			const int base_chunk_size_po2 = _parent_chunk_mesh_size_po2;
 			// print_line(String("IP: {0}").format(varray(parent_transform.origin)));
 
 			for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
@@ -172,8 +172,8 @@ void VoxelInstancer::_notification(int p_what) {
 					// The block exists as an empty block (if it did not exist, it would get generated)
 					continue;
 				}
-				const int block_size_po2 = base_block_size_po2 + block.lod_index;
-				const Vector3 block_local_pos(block.grid_position << block_size_po2);
+				const int chunk_size_po2 = base_chunk_size_po2 + block.lod_index;
+				const Vector3 block_local_pos(block.grid_position << chunk_size_po2);
 				// The local block transform never has rotation or scale so we can take a shortcut
 				const Transform3D block_transform(parent_transform.basis, parent_transform.xform(block_local_pos));
 				block.multimesh_instance.set_transform(block_transform);
@@ -272,12 +272,12 @@ void VoxelInstancer::process_generator_results() {
 void VoxelInstancer::process_gizmos() {
 	struct L {
 		static inline void draw_box(DebugRenderer &dr, const Transform3D parent_transform, Vector3i bpos,
-				unsigned int lod_index, unsigned int base_block_size_po2, Color8 color) {
-			const int block_size_po2 = base_block_size_po2 + lod_index;
-			const int block_size = 1 << block_size_po2;
-			const Vector3 block_local_pos(bpos << block_size_po2);
+				unsigned int lod_index, unsigned int base_chunk_size_po2, Color8 color) {
+			const int chunk_size_po2 = base_chunk_size_po2 + lod_index;
+			const int chunk_size = 1 << chunk_size_po2;
+			const Vector3 block_local_pos(bpos << chunk_size_po2);
 			const Transform3D box_transform(
-					parent_transform.basis * (Basis().scaled(Vector3(block_size, block_size, block_size))),
+					parent_transform.basis * (Basis().scaled(Vector3(chunk_size, chunk_size, chunk_size))),
 					parent_transform.xform(block_local_pos));
 			dr.draw_box_mm(box_transform, color);
 		}
@@ -362,7 +362,7 @@ void VoxelInstancer::process_mesh_lods() {
 	const Vector3 cam_pos_local = (gtrans.affine_inverse() * camera->get_global_transform()).origin;
 
 	ERR_FAIL_COND(_parent == nullptr);
-	const int block_size = 1 << _parent_chunk_mesh_size_po2;
+	const int chunk_size = 1 << _parent_chunk_mesh_size_po2;
 
 	{
 		// Hardcoded LOD thresholds for now.
@@ -416,9 +416,9 @@ void VoxelInstancer::process_mesh_lods() {
 
 		const Lod &lod = _lods[lod_index];
 
-		const int lod_block_size = block_size << lod_index;
-		const int hs = lod_block_size >> 1;
-		const Vector3 block_center_local(block.grid_position * lod_block_size + Vector3i(hs, hs, hs));
+		const int lod_chunk_size = chunk_size << lod_index;
+		const int hs = lod_chunk_size >> 1;
+		const Vector3 block_center_local(block.grid_position * lod_chunk_size + Vector3i(hs, hs, hs));
 		const float distance_squared = cam_pos_local.distance_squared_to(block_center_local);
 
 		if (block.current_mesh_lod + 1 < mesh_lod_count &&
@@ -567,14 +567,14 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		}
 
 		static inline void extract_octant_transforms(
-				const Block &render_block, std::vector<Transform3f> &dst, uint8_t octant_mask, int render_block_size) {
+				const Block &render_block, std::vector<Transform3f> &dst, uint8_t octant_mask, int render_chunk_size) {
 			if (!render_block.multimesh_instance.is_valid()) {
 				return;
 			}
 			Ref<MultiMesh> multimesh = render_block.multimesh_instance.get_multimesh();
 			ERR_FAIL_COND(multimesh.is_null());
 			const int instance_count = get_visible_instance_count(**multimesh);
-			const float h = render_block_size / 2;
+			const float h = render_chunk_size / 2;
 			for (int i = 0; i < instance_count; ++i) {
 				// TODO This is terrible in MT mode! Think about keeping a local copy...
 				const Transform3D t = multimesh->get_instance_transform(i);
@@ -632,10 +632,10 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		}
 
 		const int chunk_mesh_size = 1 << _parent_chunk_mesh_size_po2;
-		const int lod_block_size = chunk_mesh_size << lod_index;
+		const int lod_chunk_size = chunk_mesh_size << lod_index;
 
 		item->get_generator()->generate_transforms(transform_cache, block.grid_position, block.lod_index, layer_id,
-				surface_arrays, static_cast<VoxelInstanceGenerator::UpMode>(_up_mode), octant_mask, lod_block_size);
+				surface_arrays, static_cast<VoxelInstanceGenerator::UpMode>(_up_mode), octant_mask, lod_chunk_size);
 
 		if (render_to_data_factor == 2 && octant_mask != 0xff) {
 			// Complete transforms with edited ones
@@ -644,7 +644,7 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 			// We may setup a local transform list as well since it's expensive to get it from VisualServer
 		}
 
-		const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_block_size));
+		const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_chunk_size));
 		const Transform3D block_transform = parent_transform * block_local_transform;
 
 		update_block_from_transforms(block_index, to_span_const(transform_cache), block.grid_position, layer, **item,
@@ -1305,9 +1305,9 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 	const int render_to_data_factor = (1 << _parent_chunk_mesh_size_po2) / (1 << _parent_chunk_size_po2);
 	ERR_FAIL_COND_V_MSG(render_to_data_factor < 1 || render_to_data_factor > 2, nullptr, "Unsupported block size");
 
-	const int render_block_size_base = (1 << _parent_chunk_mesh_size_po2);
-	const int render_block_size = render_block_size_base << lod_index;
-	const int half_render_block_size = render_block_size / 2;
+	const int render_chunk_size_base = (1 << _parent_chunk_mesh_size_po2);
+	const int render_chunk_size = render_chunk_size_base << lod_index;
+	const int half_render_chunk_size = render_chunk_size / 2;
 	const Vector3i render_block_pos = math::floordiv(data_grid_pos, render_to_data_factor);
 
 	const int octant_index =
@@ -1377,7 +1377,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 					// TODO Optimize: This is terrible in MT mode! Think about keeping a local copy...
 					const Transform3D rendered_instance_transform = multimesh->get_instance_transform(instance_index);
 					const int instance_octant_index = VoxelInstanceGenerator::get_octant_index(
-							to_vec3f(rendered_instance_transform.origin), half_render_block_size);
+							to_vec3f(rendered_instance_transform.origin), half_render_chunk_size);
 					if (instance_octant_index == octant_index) {
 						InstanceChunkData::InstanceData d;
 						d.transform = to_transform3f(rendered_instance_transform);
@@ -1392,7 +1392,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 			ZN_PROFILE_SCOPE();
 			const unsigned int instance_count = render_block.scene_instances.size();
 
-			const Vector3 render_block_origin = render_block_pos * render_block_size;
+			const Vector3 render_block_origin = render_block_pos * render_chunk_size;
 
 			if (render_to_data_factor == 1) {
 				layer_data.instances.resize(instance_count);
@@ -1411,7 +1411,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 					Transform3D t = instance.root->get_transform();
 					t.origin -= render_block_origin;
 					const int instance_octant_index =
-							VoxelInstanceGenerator::get_octant_index(to_vec3f(t.origin), half_render_block_size);
+							VoxelInstanceGenerator::get_octant_index(to_vec3f(t.origin), half_render_chunk_size);
 					if (instance_octant_index == octant_index) {
 						InstanceChunkData::InstanceData d;
 						d.transform = to_transform3f(t);
@@ -1449,7 +1449,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 }
 
 void VoxelInstancer::remove_floating_multimesh_instances(Block &block, const Transform3D &parent_transform,
-		Box3i p_voxel_box, const VoxelTool &voxel_tool, int block_size_po2) {
+		Box3i p_voxel_box, const VoxelTool &voxel_tool, int chunk_size_po2) {
 	if (!block.multimesh_instance.is_valid()) {
 		// Empty block
 		return;
@@ -1462,7 +1462,7 @@ void VoxelInstancer::remove_floating_multimesh_instances(Block &block, const Tra
 	int instance_count = initial_instance_count;
 
 	const Transform3D block_global_transform =
-			Transform3D(parent_transform.basis, parent_transform.xform(block.grid_position << block_size_po2));
+			Transform3D(parent_transform.basis, parent_transform.xform(block.grid_position << chunk_size_po2));
 
 	// Let's check all instances one by one
 	// Note: the fact we have to query VisualServer in and out is pretty bad though.
@@ -1537,12 +1537,12 @@ void VoxelInstancer::remove_floating_multimesh_instances(Block &block, const Tra
 }
 
 void VoxelInstancer::remove_floating_scene_instances(Block &block, const Transform3D &parent_transform,
-		Box3i p_voxel_box, const VoxelTool &voxel_tool, int block_size_po2) {
+		Box3i p_voxel_box, const VoxelTool &voxel_tool, int chunk_size_po2) {
 	const unsigned int initial_instance_count = block.scene_instances.size();
 	unsigned int instance_count = initial_instance_count;
 
 	const Transform3D block_global_transform =
-			Transform3D(parent_transform.basis, parent_transform.xform(block.grid_position << block_size_po2));
+			Transform3D(parent_transform.basis, parent_transform.xform(block.grid_position << chunk_size_po2));
 
 	// Let's check all instances one by one
 	// Note: the fact we have to query VisualServer in and out is pretty bad though.
@@ -1599,7 +1599,7 @@ void VoxelInstancer::remove_floating_scene_instances(Block &block, const Transfo
 void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND(_parent == nullptr);
-	const int render_block_size = 1 << _parent_chunk_mesh_size_po2;
+	const int render_chunk_size = 1 << _parent_chunk_mesh_size_po2;
 	const int chunk_size = 1 << _parent_chunk_size_po2;
 
 	Ref<VoxelTool> maybe_voxel_tool = _parent->get_voxel_tool();
@@ -1608,7 +1608,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 	voxel_tool.set_channel(VoxelBufferInternal::CHANNEL_SDF);
 
 	const Transform3D parent_transform = get_global_transform();
-	const int base_block_size_po2 = _parent_chunk_mesh_size_po2;
+	const int base_chunk_size_po2 = _parent_chunk_mesh_size_po2;
 
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
@@ -1617,15 +1617,15 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 			continue;
 		}
 
-		const Box3i render_blocks_box = p_voxel_box.downscaled(render_block_size << lod_index);
+		const Box3i render_blocks_box = p_voxel_box.downscaled(render_chunk_size << lod_index);
 		const Box3i chunks_box = p_voxel_box.downscaled(chunk_size << lod_index);
 
 		for (auto layer_it = lod.layers.begin(); layer_it != lod.layers.end(); ++layer_it) {
 			const Layer &layer = get_layer(*layer_it);
 			const std::vector<UniquePtr<Block>> &blocks = _blocks;
-			const int block_size_po2 = base_block_size_po2 + layer.lod_index;
+			const int chunk_size_po2 = base_chunk_size_po2 + layer.lod_index;
 
-			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, block_size_po2,
+			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
 													&lod, chunks_box](Vector3i block_pos) {
 				const auto block_it = layer.blocks.find(block_pos);
 				if (block_it == layer.blocks.end()) {
@@ -1636,10 +1636,10 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 				Block &block = *blocks[block_it->second];
 
 				if (block.scene_instances.size() > 0) {
-					remove_floating_scene_instances(block, parent_transform, p_voxel_box, voxel_tool, block_size_po2);
+					remove_floating_scene_instances(block, parent_transform, p_voxel_box, voxel_tool, chunk_size_po2);
 				} else {
 					remove_floating_multimesh_instances(
-							block, parent_transform, p_voxel_box, voxel_tool, block_size_po2);
+							block, parent_transform, p_voxel_box, voxel_tool, chunk_size_po2);
 				}
 
 				// All instances have to be frozen as edited.
@@ -1797,7 +1797,7 @@ Node *VoxelInstancer::debug_dump_as_nodes() const {
 	// For each layer
 	for (auto layer_it = _layers.begin(); layer_it != _layers.end(); ++layer_it) {
 		const Layer &layer = layer_it->second;
-		const int lod_block_size = chunk_mesh_size << layer.lod_index;
+		const int lod_chunk_size = chunk_mesh_size << layer.lod_index;
 
 		Node3D *layer_node = memnew(Node3D);
 		layer_node->set_name(String("Layer{0}").format(varray(layer_it->first)));
@@ -1810,7 +1810,7 @@ Node *VoxelInstancer::debug_dump_as_nodes() const {
 			const Block &block = *_blocks[block_index];
 
 			if (block.multimesh_instance.is_valid()) {
-				const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_block_size));
+				const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_chunk_size));
 
 				Ref<MultiMesh> multimesh = block.multimesh_instance.get_multimesh();
 				ERR_CONTINUE(multimesh.is_null());

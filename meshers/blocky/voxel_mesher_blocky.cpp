@@ -56,25 +56,25 @@ std::vector<int> &get_tls_index_offsets() {
 template <typename Type_T>
 void generate_blocky_mesh(std::vector<VoxelMesherBlocky::Arrays> &out_arrays_per_material,
 		VoxelMesher::Output::CollisionSurface *collision_surface, const Span<Type_T> type_buffer,
-		const Vector3i block_size, const VoxelBlockyLibraryBase::BakedData &library, bool bake_occlusion,
+		const Vector3i chunk_size, const VoxelBlockyLibraryBase::BakedData &library, bool bake_occlusion,
 		float baked_occlusion_darkness) {
 	// TODO Optimization: not sure if this mandates a template function. There is so much more happening in this
 	// function other than reading voxels, although reading is on the hottest path. It needs to be profiled. If
 	// changing makes no difference, we could use a function pointer or switch inside instead to reduce executable size.
 
-	ERR_FAIL_COND(block_size.x < static_cast<int>(2 * VoxelMesherBlocky::PADDING) ||
-			block_size.y < static_cast<int>(2 * VoxelMesherBlocky::PADDING) ||
-			block_size.z < static_cast<int>(2 * VoxelMesherBlocky::PADDING));
+	ERR_FAIL_COND(chunk_size.x < static_cast<int>(2 * VoxelMesherBlocky::PADDING) ||
+			chunk_size.y < static_cast<int>(2 * VoxelMesherBlocky::PADDING) ||
+			chunk_size.z < static_cast<int>(2 * VoxelMesherBlocky::PADDING));
 
 	// Build lookup tables so to speed up voxel access.
 	// These are values to add to an address in order to get given neighbor.
 
-	const int row_size = block_size.y;
-	const int deck_size = block_size.x * row_size;
+	const int row_size = chunk_size.y;
+	const int deck_size = chunk_size.x * row_size;
 
 	// Data must be padded, hence the off-by-one
 	const Vector3i min = Vector3iUtil::create(VoxelMesherBlocky::PADDING);
-	const Vector3i max = block_size - Vector3iUtil::create(VoxelMesherBlocky::PADDING);
+	const Vector3i max = chunk_size - Vector3iUtil::create(VoxelMesherBlocky::PADDING);
 
 	std::vector<int> &index_offsets = get_tls_index_offsets();
 	index_offsets.clear();
@@ -524,7 +524,7 @@ void VoxelMesherBlocky::build(VoxelMesher::Output &output, const VoxelMesher::In
 		return;
 	}
 
-	const Vector3i block_size = voxels.get_size();
+	const Vector3i chunk_size = voxels.get_size();
 	const VoxelBufferInternal::Depth channel_depth = voxels.get_channel_depth(channel);
 
 	VoxelMesher::Output::CollisionSurface *collision_surface = nullptr;
@@ -546,13 +546,13 @@ void VoxelMesherBlocky::build(VoxelMesher::Output &output, const VoxelMesher::In
 
 		switch (channel_depth) {
 			case VoxelBufferInternal::DEPTH_8_BIT:
-				generate_blocky_mesh(arrays_per_material, collision_surface, raw_channel, block_size,
+				generate_blocky_mesh(arrays_per_material, collision_surface, raw_channel, chunk_size,
 						library_baked_data, params.bake_occlusion, baked_occlusion_darkness);
 				break;
 
 			case VoxelBufferInternal::DEPTH_16_BIT:
 				generate_blocky_mesh(arrays_per_material, collision_surface,
-						raw_channel.reinterpret_cast_to<uint16_t>(), block_size, library_baked_data,
+						raw_channel.reinterpret_cast_to<uint16_t>(), chunk_size, library_baked_data,
 						params.bake_occlusion, baked_occlusion_darkness);
 				break;
 

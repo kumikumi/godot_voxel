@@ -9,9 +9,9 @@ namespace zylann::voxel::tests {
 
 void test_block_serializer() {
 	// Create an example buffer
-	const Vector3i block_size(8, 9, 10);
+	const Vector3i chunk_size(8, 9, 10);
 	VoxelBufferInternal voxel_buffer;
-	voxel_buffer.create(block_size);
+	voxel_buffer.create(chunk_size);
 	voxel_buffer.fill_area(42, Vector3i(1, 2, 3), Vector3i(5, 5, 5), 0);
 	voxel_buffer.fill_area(43, Vector3i(2, 3, 4), Vector3i(6, 6, 6), 0);
 	voxel_buffer.fill_area(44, Vector3i(1, 2, 3), Vector3i(5, 5, 5), 1);
@@ -51,10 +51,10 @@ void test_block_serializer() {
 
 void test_block_serializer_stream_peer() {
 	// Create an example buffer
-	const Vector3i block_size(8, 9, 10);
+	const Vector3i chunk_size(8, 9, 10);
 	Ref<gd::VoxelBuffer> voxel_buffer;
 	voxel_buffer.instantiate();
-	voxel_buffer->create(block_size.x, block_size.y, block_size.z);
+	voxel_buffer->create(chunk_size.x, chunk_size.y, chunk_size.z);
 	voxel_buffer->fill_area(42, Vector3i(1, 2, 3), Vector3i(5, 5, 5), 0);
 	voxel_buffer->fill_area(43, Vector3i(2, 3, 4), Vector3i(6, 6, 6), 0);
 	voxel_buffer->fill_area(44, Vector3i(1, 2, 3), Vector3i(5, 5, 5), 1);

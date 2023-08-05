@@ -16,10 +16,10 @@ void test_octree_update() {
 	static const float lod_distance = 80;
 	const float view_distance = 1024;
 	static const int lod_count = 6;
-	static const int block_size = 16;
-	const Vector3 block_size_v(block_size, block_size, block_size);
+	static const int chunk_size = 16;
+	const Vector3 chunk_size_v(chunk_size, chunk_size, chunk_size);
 	Vector3 viewer_pos = Vector3(100, 50, 200);
-	const int octree_size = block_size << (lod_count - 1);
+	const int octree_size = chunk_size << (lod_count - 1);
 
 	// Testing as an octree forest, as it is the way they are used in VoxelLodTerrain
 	std::map<Vector3i, LodOctree> octrees;
@@ -76,11 +76,11 @@ void test_octree_update() {
 
 		const Vector3i block_pos_maxlod = it->first;
 		const Vector3i block_offset_lod0 = block_pos_maxlod << (lod_count - 1);
-		const Vector3 relative_viewer_pos = viewer_pos - block_size_v * Vector3(block_offset_lod0);
+		const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(block_offset_lod0);
 
 		OctreeActions actions;
-		actions.viewer_pos_octree_space = viewer_pos / block_size;
-		actions.lod_distance_octree_space = lod_distance / block_size;
+		actions.viewer_pos_octree_space = viewer_pos / chunk_size;
+		actions.lod_distance_octree_space = lod_distance / chunk_size;
 		octree.update(actions);
 
 		initial_block_count += actions.created_count;
@@ -111,11 +111,11 @@ void test_octree_update() {
 
 			const Vector3i block_pos_maxlod = it->first;
 			const Vector3i block_offset_lod0 = block_pos_maxlod << (lod_count - 1);
-			const Vector3 relative_viewer_pos = viewer_pos - block_size_v * Vector3(block_offset_lod0);
+			const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(block_offset_lod0);
 
 			OctreeActions actions;
-			actions.viewer_pos_octree_space = viewer_pos / block_size;
-			actions.lod_distance_octree_space = lod_distance / block_size;
+			actions.viewer_pos_octree_space = viewer_pos / chunk_size;
+			actions.lod_distance_octree_space = lod_distance / chunk_size;
 			octree.update(actions);
 
 			created_block_count += actions.created_count;
@@ -153,7 +153,7 @@ void test_octree_update() {
 
 void test_octree_find_in_box() {
 	const int blocks_across = 32;
-	const int block_size = 16;
+	const int chunk_size = 16;
 	int lods = 0;
 	{
 		int diameter = blocks_across;

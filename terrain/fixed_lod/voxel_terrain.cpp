@@ -186,12 +186,12 @@ Ref<VoxelGenerator> VoxelTerrain::get_generator() const {
 	return _data->get_generator();
 }
 
-// void VoxelTerrain::_set_block_size_po2(int p_block_size_po2) {
+// void VoxelTerrain::_set_chunk_size_po2(int p_chunk_size_po2) {
 // 	_data_map.create(0);
 // }
 
 unsigned int VoxelTerrain::get_chunk_size_pow2() const {
-	return _data->get_block_size_po2();
+	return _data->get_chunk_size_po2();
 }
 
 unsigned int VoxelTerrain::get_chunk_mesh_size_pow2() const {
@@ -199,7 +199,7 @@ unsigned int VoxelTerrain::get_chunk_mesh_size_pow2() const {
 }
 
 void VoxelTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
-	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_BLOCK_SIZE);
+	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_CHUNK_SIZE);
 
 	unsigned int po2;
 	switch (chunk_mesh_size) {
@@ -244,7 +244,7 @@ void VoxelTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 		viewer.prev_state.mesh_box = Box3i();
 	}
 
-	// VoxelEngine::get_singleton().set_volume_render_block_size(_volume_id, chunk_mesh_size);
+	// VoxelEngine::get_singleton().set_volume_render_chunk_size(_volume_id, chunk_mesh_size);
 
 	// No update on bounds because we can support a mismatch, as long as it is a multiple of data block size
 	// set_bounds(_bounds_in_voxels);
@@ -259,8 +259,8 @@ void VoxelTerrain::_on_stream_params_changed() {
 	stop_updater();
 
 	// if (_stream.is_valid()) {
-	// 	const int stream_block_size_po2 = _stream->get_block_size_po2();
-	// 	_set_block_size_po2(stream_block_size_po2);
+	// 	const int stream_chunk_size_po2 = _stream->get_chunk_size_po2();
+	// 	_set_chunk_size_po2(stream_chunk_size_po2);
 	// }
 
 	// The whole map might change, so regenerate it
@@ -641,7 +641,7 @@ void VoxelTerrain::generate_chunk_async(Vector3i block_position) {
 	// }
 
 	LoadingBlock new_loading_block;
-	const Box3i block_box(_data->block_to_voxel(block_position), Vector3iUtil::create(_data->get_block_size()));
+	const Box3i block_box(_data->block_to_voxel(block_position), Vector3iUtil::create(_data->get_chunk_size()));
 	for (size_t i = 0; i < _paired_viewers.size(); ++i) {
 		const PairedViewer &viewer = _paired_viewers[i];
 		if (viewer.state.data_box.intersects(block_box)) {
@@ -822,10 +822,10 @@ inline Vector3i get_block_center(Vector3i pos, int bs) {
 	return pos * bs + Vector3iUtil::create(bs / 2);
 }
 
-static void init_sparse_grid_priority_dependency(PriorityDependency &dep, Vector3i block_position, int block_size,
+static void init_sparse_grid_priority_dependency(PriorityDependency &dep, Vector3i block_position, int chunk_size,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, const Transform3D &volume_transform) {
-	const Vector3i voxel_pos = get_block_center(block_position, block_size);
-	const float block_radius = block_size / 2;
+	const Vector3i voxel_pos = get_block_center(block_position, chunk_size);
+	const float block_radius = chunk_size / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);
 	const float transformed_block_radius =
@@ -848,7 +848,7 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		use_gpu = false;
 	}
 
-	const unsigned int chunk_size = voxel_data->get_block_size();
+	const unsigned int chunk_size = voxel_data->get_chunk_size();
 
 	if (stream_dependency->stream.is_valid()) {
 		PriorityDependency priority_dependency;
@@ -868,7 +868,7 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		task->volume_id = volume_id;
 		task->position = block_pos;
 		task->lod_index = 0;
-		task->block_size = chunk_size;
+		task->chunk_size = chunk_size;
 		task->stream_dependency = stream_dependency;
 		task->use_gpu = use_gpu;
 		task->data = voxel_data;
@@ -1424,7 +1424,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	// Viewers will be set only if the block doesn't already exist
 	block.viewers = loading_block.viewers;
 
-	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_block_size())) {
+	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
 		// Voxel block size is incorrect, drop it
 		ZN_PRINT_ERROR("Block is different from expected size");
 		++_stats.dropped_block_loads;
@@ -1466,11 +1466,11 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND_V(voxel_data == nullptr, false);
 
-	const Vector3i expected_block_size = Vector3iUtil::create(_data->get_block_size());
-	ERR_FAIL_COND_V_MSG(voxel_data->get_size() != expected_block_size, false,
+	const Vector3i expected_chunk_size = Vector3iUtil::create(_data->get_chunk_size());
+	ERR_FAIL_COND_V_MSG(voxel_data->get_size() != expected_chunk_size, false,
 			String("Block size is different from expected size. "
 				   "Expected {0}, got {1}")
-					.format(varray(expected_block_size, voxel_data->get_size())));
+					.format(varray(expected_chunk_size, voxel_data->get_size())));
 
 	// Setup viewers count intersecting with this block
 	RefCount refcount;

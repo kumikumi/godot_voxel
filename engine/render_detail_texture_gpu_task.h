@@ -65,7 +65,7 @@ public:
 	std::shared_ptr<DetailTextureOutput> output;
 	DetailTextureData edited_tiles_texture_data;
 	Vector3i block_position;
-	Vector3i block_size;
+	Vector3i chunk_size;
 	VolumeID volume_id;
 	uint8_t lod_index;
 

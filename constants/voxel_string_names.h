@@ -43,7 +43,7 @@ public:
 	StringName u_voxel_normalmap_atlas;
 	StringName u_voxel_cell_lookup;
 	StringName u_voxel_cell_size;
-	StringName u_voxel_block_size;
+	StringName u_voxel_chunk_size;
 	StringName u_voxel_virtual_texture_fade;
 	StringName u_voxel_virtual_texture_tile_size;
 	StringName u_voxel_virtual_texture_offset_scale;

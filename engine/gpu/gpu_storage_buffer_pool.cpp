@@ -153,9 +153,9 @@ void GPUStorageBufferPool::debug_print() const {
 		if (pool.buffers.capacity() == 0) {
 			continue;
 		}
-		const unsigned int block_size = _pool_sizes[i];
+		const unsigned int chunk_size = _pool_sizes[i];
 		s += String("Pool[{0}] block size: {1}, pooled buffers: {2}, capacity: {3}\n")
-					 .format(varray(i, block_size, ZN_SIZE_T_TO_VARIANT(pool.buffers.size()),
+					 .format(varray(i, chunk_size, ZN_SIZE_T_TO_VARIANT(pool.buffers.size()),
 							 ZN_SIZE_T_TO_VARIANT(pool.buffers.capacity())));
 	}
 	s += "----";

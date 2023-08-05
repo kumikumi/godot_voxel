@@ -6,7 +6,7 @@ layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 layout (set = 0, binding = 0, std430) restrict readonly buffer Params {
 	vec3 origin_in_voxels;
 	float voxel_size;
-	ivec3 block_size;
+	ivec3 chunk_size;
 	int buffer_offset;
 } u_params;
 
@@ -50,7 +50,7 @@ void main() {
 
 	// The output buffer might not have a 3D size multiple of our group size.
 	// Some of the parallel executions will not do anything.
-	if (rpos.x >= u_params.block_size.x || rpos.y >= u_params.block_size.y || rpos.z >= u_params.block_size.z) {
+	if (rpos.x >= u_params.chunk_size.x || rpos.y >= u_params.chunk_size.y || rpos.z >= u_params.chunk_size.z) {
 		return;
 	}
 
@@ -58,7 +58,7 @@ void main() {
 
 	pos = (u_base_modifier_params.world_to_model * vec4(pos, 1.0)).xyz;
 
-	const int index = get_zxy_index(rpos, u_params.block_size) + u_params.buffer_offset;
+	const int index = get_zxy_index(rpos, u_params.chunk_size) + u_params.buffer_offset;
 
 	float sd = u_inout_sd.values[index];
 

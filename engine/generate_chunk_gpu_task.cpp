@@ -79,14 +79,14 @@ void GenerateBlockGPUTask::prepare(GPUTaskContext &ctx) {
 		struct Params {
 			Vector3f origin_in_voxels;
 			float voxel_size;
-			Vector3i block_size;
+			Vector3i chunk_size;
 			int output_buffer_start;
 		};
 
 		Params params;
 		params.origin_in_voxels = to_vec3f((box.pos << lod_index) + origin_in_voxels);
 		params.voxel_size = 1 << lod_index;
-		params.block_size = buffer_resolution;
+		params.chunk_size = buffer_resolution;
 		params.output_buffer_start = (ctx.shared_output_buffer_begin / sizeof(float)) + out_offset_elements;
 
 		out_offset_elements += buffer_volume * generator_shader_outputs->outputs.size();

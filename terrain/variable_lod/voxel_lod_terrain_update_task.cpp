@@ -24,7 +24,7 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	static thread_local std::vector<Vector3i> tls_modified_lod0_blocks;
 	static thread_local std::vector<VoxelData::BlockLocation> tls_updated_block_locations;
 
-	const int chunk_size = data.get_block_size();
+	const int chunk_size = data.get_chunk_size();
 	const int data_to_mesh_factor = chunk_mesh_size / chunk_size;
 
 	{
@@ -61,8 +61,8 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 	// TODO Could it actually be enough to have a rolling update on all blocks?
 
 	// This should be the same distance relatively to each LOD
-	const int chunk_size = data.get_block_size();
-	const int chunk_size_po2 = data.get_block_size_po2();
+	const int chunk_size = data.get_chunk_size();
+	const int chunk_size_po2 = data.get_chunk_size_po2();
 	const int chunk_region_extent =
 			VoxelEngine::get_octree_lod_block_region_extent(settings.lod_distance, chunk_size);
 	const Box3i bounds_in_voxels = data.get_bounds();
@@ -84,13 +84,13 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 		// Each LOD keeps a box of loaded blocks, and only some of the blocks will get polygonized.
 		// The player can edit them so changes can be propagated to lower lods.
 
-		const unsigned int block_size_po2 = chunk_size_po2 + lod_index;
+		const unsigned int chunk_size_po2 = chunk_size_po2 + lod_index;
 		const Vector3i viewer_block_pos_within_lod =
-				VoxelDataMap::voxel_to_block_b(math::floor_to_int(p_viewer_pos), block_size_po2);
+				VoxelDataMap::voxel_to_block_b(math::floor_to_int(p_viewer_pos), chunk_size_po2);
 
 		const Box3i bounds_in_blocks = Box3i( //
-				bounds_in_voxels.pos >> block_size_po2, //
-				bounds_in_voxels.size >> block_size_po2);
+				bounds_in_voxels.pos >> chunk_size_po2, //
+				bounds_in_voxels.size >> chunk_size_po2);
 
 		const Box3i new_box =
 				Box3i::from_center_extents(viewer_block_pos_within_lod, Vector3iUtil::create(chunk_region_extent));
@@ -169,12 +169,12 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 		ZN_PROFILE_SCOPE();
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
 
-		unsigned int block_size_po2 = chunk_mesh_size_po2 + lod_index;
-		const Vector3i viewer_block_pos_within_lod = math::floor_to_int(p_viewer_pos) >> block_size_po2;
+		unsigned int chunk_size_po2 = chunk_mesh_size_po2 + lod_index;
+		const Vector3i viewer_block_pos_within_lod = math::floor_to_int(p_viewer_pos) >> chunk_size_po2;
 
 		const Box3i bounds_in_blocks = Box3i( //
-				bounds_in_voxels.pos >> block_size_po2, //
-				bounds_in_voxels.size >> block_size_po2);
+				bounds_in_voxels.pos >> chunk_size_po2, //
+				bounds_in_voxels.size >> chunk_size_po2);
 
 		const Box3i new_box =
 				Box3i::from_center_extents(viewer_block_pos_within_lod, Vector3iUtil::create(chunk_mesh_region_extent));
@@ -328,7 +328,7 @@ void process_octrees_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector
 	state.last_octree_region_box = new_box;
 }
 
-inline bool check_block_sizes(int chunk_size, int chunk_mesh_size) {
+inline bool check_chunk_sizes(int chunk_size, int chunk_mesh_size) {
 	return (chunk_size == 16 || chunk_size == 32) && (chunk_mesh_size == 16 || chunk_mesh_size == 32) &&
 			chunk_mesh_size >= chunk_size;
 }
@@ -349,9 +349,9 @@ bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const Vox
 			bool surrounded = true;
 			if (data.is_streaming_enabled()) {
 				const int chunk_mesh_size = 1 << settings.chunk_mesh_size_po2;
-				const int chunk_size = data.get_block_size();
+				const int chunk_size = data.get_chunk_size();
 #ifdef DEBUG_ENABLED
-				ERR_FAIL_COND_V(!check_block_sizes(chunk_size, chunk_mesh_size), false);
+				ERR_FAIL_COND_V(!check_chunk_sizes(chunk_size, chunk_mesh_size), false);
 #endif
 				// TODO Why are we only checking neighbors?
 				// This is also redundant when called from `check_block_loaded_and_meshed`
@@ -442,10 +442,10 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 
 	if (data.is_streaming_enabled()) {
 		const int chunk_mesh_size = 1 << settings.chunk_mesh_size_po2;
-		const int chunk_size = data.get_block_size();
+		const int chunk_size = data.get_chunk_size();
 
 #ifdef DEBUG_ENABLED
-		ERR_FAIL_COND_V(!check_block_sizes(chunk_size, chunk_mesh_size), false);
+		ERR_FAIL_COND_V(!check_chunk_sizes(chunk_size, chunk_mesh_size), false);
 #endif
 		// We want to know everything about the data intersecting this mesh block.
 		// This is not known in advance when we stream it, it has to be requested.
@@ -862,7 +862,7 @@ static void request_block_generate(VolumeID volume_id, unsigned int chunk_size,
 	task->volume_id = volume_id;
 	task->position = block_pos;
 	task->lod_index = lod;
-	task->block_size = chunk_size;
+	task->chunk_size = chunk_size;
 	task->stream_dependency = stream_dependency;
 	task->tracker = tracker;
 	task->drop_beyond_max_distance = allow_drop;
@@ -973,7 +973,7 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 	ZN_ASSERT(data_ptr != nullptr);
 	const VoxelData &data = *data_ptr;
 
-	const int chunk_size = data.get_block_size();
+	const int chunk_size = data.get_chunk_size();
 	const int chunk_mesh_size = 1 << settings.chunk_mesh_size_po2;
 	const int render_to_data_factor = chunk_mesh_size / chunk_size;
 	const unsigned int lod_count = data.get_lod_count();
@@ -1071,7 +1071,7 @@ static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerra
 
 	std::vector<TaskArguments> todo;
 
-	const unsigned int chunk_size = data.get_block_size();
+	const unsigned int chunk_size = data.get_chunk_size();
 	const unsigned int lod_count = data.get_lod_count();
 
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
@@ -1300,7 +1300,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 		ZN_PROFILE_SCOPE_NAMED("IO requests");
 		// It's possible the user didn't set a stream yet, or it is turned off
 		if (stream_enabled) {
-			const unsigned int chunk_size = data.get_block_size();
+			const unsigned int chunk_size = data.get_chunk_size();
 
 			if (stream.is_null() && !settings.cache_generated_blocks) {
 				// TODO Optimization: not ideal because a bit delayed. It requires a second update cycle for meshes to

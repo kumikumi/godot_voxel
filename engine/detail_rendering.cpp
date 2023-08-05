@@ -266,7 +266,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 
 	{
 		const Box3i voxel_box = Box3i::from_min_max(query_min_pos_i, query_max_pos_i);
-		const Vector3i block_box_size = voxel_box.size >> constants::DEFAULT_BLOCK_SIZE_PO2;
+		const Vector3i block_box_size = voxel_box.size >> constants::DEFAULT_CHUNK_SIZE_PO2;
 		const int64_t block_volume = Vector3iUtil::get_volume(block_box_size);
 		// TODO Don't hardcode block size (even though for now I have no plan to make it configurable)
 		if (block_volume > math::cubed(MAX_EDITED_BLOCKS_ACROSS)) {
@@ -607,10 +607,10 @@ void compute_detail_texture_data(ICellIterator &cell_iterator, Span<const Vector
 	}
 }
 
-Ref<Image> store_lookup_to_image(const std::vector<DetailTextureData::Tile> &tiles, Vector3i block_size) {
+Ref<Image> store_lookup_to_image(const std::vector<DetailTextureData::Tile> &tiles, Vector3i chunk_size) {
 	ZN_PROFILE_SCOPE();
 
-	const unsigned int sqri = get_square_grid_size_from_item_count(Vector3iUtil::get_volume(block_size));
+	const unsigned int sqri = get_square_grid_size_from_item_count(Vector3iUtil::get_volume(chunk_size));
 
 	PackedByteArray bytes;
 	{
@@ -620,7 +620,7 @@ Ref<Image> store_lookup_to_image(const std::vector<DetailTextureData::Tile> &til
 		uint8_t *bytes_w = bytes.ptrw();
 		memset(bytes_w, 0, bytes.size());
 
-		const unsigned int deck_size = block_size.x * block_size.y;
+		const unsigned int deck_size = chunk_size.x * chunk_size.y;
 #ifdef DEBUG_ENABLED
 		bool tile_index_overflow = false;
 #endif
@@ -636,7 +636,7 @@ Ref<Image> store_lookup_to_image(const std::vector<DetailTextureData::Tile> &til
 				ZN_PRINT_VERBOSE("Tile index overflow");
 			}
 #endif
-			const unsigned int pi = pixel_size * (tile.x + tile.y * block_size.x + tile.z * deck_size);
+			const unsigned int pi = pixel_size * (tile.x + tile.y * chunk_size.x + tile.z * deck_size);
 			ZN_ASSERT(int(pi) < bytes.size());
 			bytes_w[pi] = r;
 			bytes_w[pi + 1] = g;
@@ -709,7 +709,7 @@ Ref<Image> store_atlas_to_image(const std::vector<uint8_t> &normals, unsigned in
 }
 
 DetailImages store_normalmap_data_to_images(
-		const DetailTextureData &data, unsigned int tile_resolution, Vector3i block_size, bool octahedral_encoding) {
+		const DetailTextureData &data, unsigned int tile_resolution, Vector3i chunk_size, bool octahedral_encoding) {
 	ZN_PROFILE_SCOPE();
 
 	DetailImages images;
@@ -718,7 +718,7 @@ DetailImages store_normalmap_data_to_images(
 #else
 	images.atlas = store_atlas_to_image(data.normals, tile_resolution, data.tiles.size(), octahedral_encoding);
 #endif
-	images.lookup = store_lookup_to_image(data.tiles, block_size);
+	images.lookup = store_lookup_to_image(data.tiles, chunk_size);
 	return images;
 }
 

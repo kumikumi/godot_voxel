@@ -47,13 +47,13 @@ public:
 	inline unsigned int get_chunk_size() const {
 		return 1 << get_chunk_size_pow2();
 	}
-	// void set_chunk_size_po2(unsigned int p_block_size_po2);
+	// void set_chunk_size_po2(unsigned int p_chunk_size_po2);
 
 	unsigned int get_chunk_mesh_size_pow2() const;
 	inline unsigned int get_chunk_mesh_size() const {
 		return 1 << get_chunk_mesh_size_pow2();
 	}
-	void set_chunk_mesh_size(unsigned int p_block_size);
+	void set_chunk_mesh_size(unsigned int p_chunk_size);
 
 	void post_edit_voxel(Vector3i pos);
 	void post_edit_area(Box3i box_in_voxels, bool update_mesh);
@@ -179,7 +179,7 @@ private:
 	void apply_chunk_response(VoxelEngine::ChunkDataOutput &ob);
 
 	void _on_stream_params_changed();
-	// void _set_block_size_po2(int p_block_size_po2);
+	// void _set_chunk_size_po2(int p_chunk_size_po2);
 	// void make_all_view_dirty();
 	void start_updater();
 	void stop_updater();
@@ -268,7 +268,7 @@ private:
 
 	// Mesh storage
 	VoxelMeshMap<VoxelChunkMeshVT> _mesh_map;
-	uint32_t _chunk_mesh_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	uint32_t _chunk_mesh_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	unsigned int _max_view_distance_voxels = 128;
 

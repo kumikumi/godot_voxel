@@ -10,8 +10,8 @@ namespace zylann::voxel::constants {
 static const float MINIMUM_LOD_DISTANCE = 16.f;
 static const float MAXIMUM_LOD_DISTANCE = 128.f;
 
-static const unsigned int MIN_BLOCK_SIZE = 16;
-static const unsigned int MAX_BLOCK_SIZE = 32;
+static const unsigned int MIN_CHUNK_SIZE = 16;
+static const unsigned int MAX_CHUNK_SIZE = 32;
 
 static const unsigned int MAX_BLOCK_COUNT_PER_REQUEST = 4 * 4 * 4;
 
@@ -38,7 +38,7 @@ static const float QUANTIZED_SDF_8_BITS_SCALE_INV = 1.f / 0.1f;
 static const float QUANTIZED_SDF_16_BITS_SCALE = 0.002f;
 static const float QUANTIZED_SDF_16_BITS_SCALE_INV = 1.f / 0.002f;
 
-static const unsigned int DEFAULT_BLOCK_SIZE_PO2 = 4;
+static const unsigned int DEFAULT_CHUNK_SIZE_PO2 = 4;
 
 static const float DEFAULT_COLLISION_MARGIN = 0.04f;
 

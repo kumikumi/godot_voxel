@@ -209,8 +209,8 @@ public:
 		return po;
 	}
 
-	static inline unsigned int get_octree_size_po2(unsigned int block_size_po2, unsigned int lod_count) {
-		return block_size_po2 + lod_count - 1;
+	static inline unsigned int get_octree_size_po2(unsigned int chunk_size_po2, unsigned int lod_count) {
+		return chunk_size_po2 + lod_count - 1;
 	}
 
 private:

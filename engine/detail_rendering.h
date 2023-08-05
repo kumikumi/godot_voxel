@@ -122,10 +122,10 @@ struct DetailTextures {
 	Ref<Texture2D> lookup;
 };
 
-Ref<Image> store_lookup_to_image(const std::vector<DetailTextureData::Tile> &tiles, Vector3i block_size);
+Ref<Image> store_lookup_to_image(const std::vector<DetailTextureData::Tile> &tiles, Vector3i chunk_size);
 
 DetailImages store_normalmap_data_to_images(
-		const DetailTextureData &data, unsigned int tile_resolution, Vector3i block_size, bool octahedral_encoding);
+		const DetailTextureData &data, unsigned int tile_resolution, Vector3i chunk_size, bool octahedral_encoding);
 
 // Converts normalmap data into textures. They can be used in a shader to apply normals and obtain extra visual details.
 // This may not be allowed to run in a different thread than the main thread if the renderer is not using Vulkan.

@@ -15,12 +15,12 @@ namespace voxel {
 class SaveChunkDataTask : public IThreadedTask {
 public:
 	// For saving voxels only
-	SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+	SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
 			std::shared_ptr<VoxelBufferInternal> p_voxels, std::shared_ptr<StreamingDependency> p_stream_dependency,
 			std::shared_ptr<AsyncDependencyTracker> p_tracker);
 
 	// For saving instances only
-	SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+	SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
 			UniquePtr<InstanceChunkData> p_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 			std::shared_ptr<AsyncDependencyTracker> p_tracker);
 
@@ -43,7 +43,7 @@ private:
 	Vector3i _position; // In data blocks of the specified lod
 	VolumeID _volume_id;
 	uint8_t _lod;
-	uint8_t _block_size;
+	uint8_t _chunk_size;
 	bool _has_run = false;
 	bool _save_instances = false;
 	bool _save_voxels = false;

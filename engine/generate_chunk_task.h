@@ -37,7 +37,7 @@ public:
 	Vector3i position;
 	VolumeID volume_id;
 	uint8_t lod_index;
-	uint8_t block_size;
+	uint8_t chunk_size;
 	bool has_run = false;
 	bool too_far = false;
 	bool max_lod_hint = false;

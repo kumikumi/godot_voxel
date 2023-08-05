@@ -90,11 +90,11 @@ Ref<Mesh> VoxelMesher::build_mesh(
 					detail_texture_settings.octahedral_encoding_enabled,
 					math::deg_to_rad(float(detail_texture_settings.max_deviation_degrees)), false);
 
-			const Vector3i block_size =
+			const Vector3i chunk_size =
 					input.voxels.get_size() - Vector3iUtil::create(get_minimum_padding() + get_maximum_padding());
 
 			DetailImages images = store_normalmap_data_to_images(nm_data, detail_texture_settings.tile_resolution_min,
-					block_size, detail_texture_settings.octahedral_encoding_enabled);
+					chunk_size, detail_texture_settings.octahedral_encoding_enabled);
 
 			const DetailTextures textures = store_normalmap_data_to_textures(images);
 			// That should be in return value, but for now I just want this for testing with GDScript, so it gotta go

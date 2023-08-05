@@ -263,11 +263,11 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 }
 
 unsigned int VoxelLodTerrain::get_chunk_size() const {
-	return _data->get_block_size();
+	return _data->get_chunk_size();
 }
 
 unsigned int VoxelLodTerrain::get_chunk_size_pow2() const {
-	return _data->get_block_size_po2();
+	return _data->get_chunk_size_po2();
 }
 
 unsigned int VoxelLodTerrain::get_chunk_mesh_size_pow2() const {
@@ -397,8 +397,8 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 	Ref<VoxelStream> stream = get_stream();
 
 	if (stream.is_valid()) {
-		// const int stream_block_size_po2 = _stream->get_block_size_po2();
-		//_set_block_size_po2(stream_block_size_po2);
+		// const int stream_chunk_size_po2 = _stream->get_chunk_size_po2();
+		//_set_chunk_size_po2(stream_chunk_size_po2);
 
 		// TODO We have to figure out streams that have a LOD requirement
 		// const int stream_lod_count = _stream->get_lod_count();
@@ -417,7 +417,7 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 	reset_maps();
 	// TODO Size other than 16 is not really supported though.
 	// also this code isn't right, it doesn't update the other lods
-	//_data->lods[0].map.create(p_block_size_po2, 0);
+	//_data->lods[0].map.create(p_chunk_size_po2, 0);
 
 	Ref<VoxelGenerator> generator = get_generator();
 
@@ -443,7 +443,7 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 
 void VoxelLodTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 	// Mesh block size cannot be smaller than data block size, for now
-	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_BLOCK_SIZE);
+	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_CHUNK_SIZE);
 
 	// Only these sizes are allowed at the moment. This stuff is still not supported in a generic way yet,
 	// some code still exploits the fact it's a multiple of data block size, for performance
@@ -1078,7 +1078,7 @@ Vector3 VoxelLodTerrain::get_local_viewer_pos() const {
 	return pos;
 }
 
-inline bool check_block_sizes(int chunk_size, int chunk_mesh_size) {
+inline bool check_chunk_sizes(int chunk_size, int chunk_mesh_size) {
 	return (chunk_size == 16 || chunk_size == 32) && (chunk_mesh_size == 16 || chunk_mesh_size == 32) &&
 			chunk_mesh_size >= chunk_size;
 }
@@ -1403,7 +1403,7 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	VoxelChunkData block(ob.voxels, ob.lod_index);
 	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
 
-	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_block_size())) {
+	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
 		// Voxel block size is incorrect, drop it
 		ZN_PRINT_ERROR("Block is different from expected size");
 		++_stats.dropped_block_loads;
@@ -1676,7 +1676,7 @@ static void try_apply_parent_virtual_texture_to_block(VoxelChunkMeshVLT &block, 
 	const int cell_size = 1 << block.lod_index;
 	material.set_shader_parameter(sn.u_voxel_cell_size, cell_size);
 
-	material.set_shader_parameter(sn.u_voxel_block_size, chunk_mesh_size);
+	material.set_shader_parameter(sn.u_voxel_chunk_size, chunk_mesh_size);
 
 	const Vector4 parent_offset_and_scale =
 			parent_material->get_shader_parameter(sn.u_voxel_virtual_texture_offset_scale);
@@ -1745,7 +1745,7 @@ void VoxelLodTerrain::apply_detail_texture_update_to_block(
 		material->set_shader_parameter(sn.u_voxel_cell_lookup, normalmap_textures.lookup);
 		const int cell_size = 1 << lod_index;
 		material->set_shader_parameter(sn.u_voxel_cell_size, cell_size);
-		material->set_shader_parameter(sn.u_voxel_block_size, get_chunk_mesh_size());
+		material->set_shader_parameter(sn.u_voxel_chunk_size, get_chunk_mesh_size());
 		material->set_shader_parameter(sn.u_voxel_virtual_texture_offset_scale, Vector4(0, 0, 0, 1));
 
 		if (!had_texture) {

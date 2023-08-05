@@ -559,7 +559,7 @@ void RenderDetailTextureGPUTask::collect(GPUTaskContext &ctx) {
 		task->output_textures = output;
 		task->volume_id = volume_id;
 		task->chunk_mesh_position = block_position;
-		task->chunk_mesh_size = block_size;
+		task->chunk_mesh_size = chunk_size;
 		task->atlas_width = texture_width;
 		task->atlas_height = texture_height;
 		task->lod_index = lod_index;

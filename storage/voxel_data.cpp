@@ -140,7 +140,7 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 		return defval;
 	}
 
-	Vector3i block_pos = pos >> get_block_size_po2();
+	Vector3i block_pos = pos >> get_chunk_size_po2();
 	bool generate = false;
 
 	if (!_streaming_enabled) {
@@ -209,7 +209,7 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 
 // TODO Piggyback on `paste`? The implementation is quite complex, and it's not supposed to be an efficient use case
 bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel_index) {
-	const Vector3i block_pos_lod0 = pos >> get_block_size_po2();
+	const Vector3i block_pos_lod0 = pos >> get_chunk_size_po2();
 	Lod &data_lod0 = _lods[0];
 	const Vector3i block_pos = data_lod0.map.voxel_to_block(pos);
 
@@ -223,7 +223,7 @@ bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel
 		Ref<VoxelGenerator> generator = get_generator();
 		if (generator.is_valid()) {
 			voxels = make_shared_instance<VoxelBufferInternal>();
-			voxels->create(Vector3iUtil::create(get_block_size()));
+			voxels->create(Vector3iUtil::create(get_chunk_size()));
 			VoxelGenerator::VoxelQueryData q{ *voxels, pos, 0 };
 			generator->generate_chunk(q);
 
@@ -263,7 +263,7 @@ void VoxelData::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsigned
 
 	Ref<VoxelGenerator> generator = get_generator();
 
-	const Box3i blocks_box = Box3i(min_pos, dst_buffer.get_size()).downscaled(data_lod0.map.get_block_size());
+	const Box3i blocks_box = Box3i(min_pos, dst_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
 	VoxelSpatialLockRead srlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
 
 	if (is_streaming_enabled() || generator.is_null()) {
@@ -299,7 +299,7 @@ void VoxelData::paste(
 
 	Lod &data_lod0 = _lods[0];
 
-	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_block_size());
+	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
 	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
 
 	if (create_new_blocks) {
@@ -317,7 +317,7 @@ void VoxelData::paste_masked(Vector3i min_pos, const VoxelBufferInternal &src_bu
 
 	Lod &data_lod0 = _lods[0];
 
-	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_block_size());
+	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
 	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
 
 	if (create_new_blocks) {
@@ -393,13 +393,13 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 		count_per_lod.push_back(todo.size() - prev_size);
 	}
 
-	const Vector3i block_size = Vector3iUtil::create(chunk_size);
+	const Vector3i chunk_size_vec = Vector3iUtil::create(chunk_size);
 
 	// Generate
 	for (unsigned int i = 0; i < todo.size(); ++i) {
 		Task &task = todo[i];
 		task.voxels = make_shared_instance<VoxelBufferInternal>();
-		task.voxels->create(block_size);
+		task.voxels->create(chunk_size_vec);
 		// TODO Format?
 		if (generator.is_valid()) {
 			ZN_PROFILE_SCOPE_NAMED("Generate");
@@ -439,7 +439,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 }
 
 void VoxelData::pre_generate_box(Box3i voxel_box) {
-	const unsigned int chunk_size = get_block_size();
+	const unsigned int chunk_size = get_chunk_size();
 	const bool streaming = is_streaming_enabled();
 	const unsigned int lod_count = get_lod_count();
 	pre_generate_box(voxel_box, to_span(_lods), chunk_size, streaming, lod_count, get_generator(), _modifiers);
@@ -452,7 +452,7 @@ void VoxelData::clear_cached_blocks_in_voxel_area(Box3i p_voxel_box) {
 		Lod &lod = _lods[lod_index];
 		RWLockRead rlock(lod.map_lock);
 
-		const Box3i blocks_box = p_voxel_box.downscaled(lod.map.get_block_size() << lod_index);
+		const Box3i blocks_box = p_voxel_box.downscaled(lod.map.get_chunk_size() << lod_index);
 		blocks_box.for_each_cell_zxy([&lod](const Vector3i bpos) {
 			VoxelChunkData *block = lod.map.get_block(bpos);
 			if (block == nullptr || block->is_edited() || block->is_modified()) {
@@ -465,7 +465,7 @@ void VoxelData::clear_cached_blocks_in_voxel_area(Box3i p_voxel_box) {
 
 void VoxelData::mark_area_modified(
 		Box3i p_voxel_box, std::vector<Vector3i> *lod0_new_blocks_to_lod, bool require_lod_updates) {
-	const Box3i bbox = p_voxel_box.downscaled(get_block_size());
+	const Box3i bbox = p_voxel_box.downscaled(get_chunk_size());
 
 	Lod &data_lod0 = _lods[0];
 	{
@@ -515,7 +515,7 @@ bool VoxelData::has_block(Vector3i bpos, unsigned int lod_index) const {
 
 bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
 	ZN_PROFILE_SCOPE();
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_block_size());
+	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
 	chunks_box = chunks_box.clipped(bounds_in_blocks);
 
 	const Lod &data_lod = _lods[0];
@@ -546,8 +546,8 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 	// i.e there is no way for a block to be loaded if its parent LOD isn't loaded already.
 	// In the future we may implement storing of edits to be applied later if blocks can't be found.
 
-	const int chunk_size = get_block_size();
-	const int chunk_size_po2 = get_block_size_po2();
+	const int chunk_size = get_chunk_size();
+	const int chunk_size_po2 = get_chunk_size_po2();
 	const unsigned int lod_count = get_lod_count();
 	const bool streaming_enabled = is_streaming_enabled();
 	Ref<VoxelGenerator> generator = get_generator();
@@ -757,7 +757,7 @@ void VoxelData::get_missing_blocks(
 		Box3i p_blocks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const {
 	const Lod &data_lod = _lods[lod_index];
 
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_block_size());
+	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
 	const Box3i blocks_box = p_blocks_box.clipped(bounds_in_blocks);
 
 	RWLockRead rlock(data_lod.map_lock);
@@ -795,7 +795,7 @@ void VoxelData::get_blocks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsign
 	ZN_PROFILE_SCOPE();
 	const Lod &data_lod = _lods[lod_index];
 	RWLockRead rlock(data_lod.map_lock);
-	const int bs = data_lod.map.get_block_size() << lod_index;
+	const int bs = data_lod.map.get_chunk_size() << lod_index;
 	const Box3i box_in_blocks = box_in_voxels.downscaled(bs);
 	grid.reference_area_block_coords(data_lod.map, box_in_blocks, &data_lod.spatial_lock);
 }
@@ -809,7 +809,7 @@ bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	ZN_PROFILE_SCOPE();
 
 	// Find the highest LOD level to query first
-	const Vector3i box_size_in_blocks = box_in_voxels.size >> get_block_size_po2();
+	const Vector3i box_size_in_blocks = box_in_voxels.size >> get_chunk_size_po2();
 	const int box_size_in_blocks_longest_axis =
 			math::max(box_size_in_blocks.x, math::max(box_size_in_blocks.y, box_size_in_blocks.z));
 	const int top_lod_index =
@@ -819,7 +819,7 @@ bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	const Lod &mip_data_lod = _lods[top_lod_index];
 	{
 		// Ideally this box shouldn't intersect more than 8 blocks if the box is cubic.
-		const Box3i mip_blocks_box = box_in_voxels.downscaled(mip_data_lod.map.get_block_size() << top_lod_index);
+		const Box3i mip_blocks_box = box_in_voxels.downscaled(mip_data_lod.map.get_chunk_size() << top_lod_index);
 
 		RWLockRead rlock(mip_data_lod.map_lock);
 
@@ -842,7 +842,7 @@ bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 void VoxelData::view_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
 		std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks) {
 	ZN_PROFILE_SCOPE();
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_block_size());
+	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
 	blocks_box = blocks_box.clipped(bounds_in_blocks);
 
 	Lod &lod = _lods[0];
@@ -863,7 +863,7 @@ void VoxelData::view_area(Box3i blocks_box, std::vector<Vector3i> &missing_block
 void VoxelData::unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
 		std::vector<Vector3i> &found_blocks, std::vector<BlockToSave> *to_save) {
 	ZN_PROFILE_SCOPE();
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_block_size());
+	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
 	blocks_box = blocks_box.clipped(bounds_in_blocks);
 
 	Lod &lod = _lods[0];

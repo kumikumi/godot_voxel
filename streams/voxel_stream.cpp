@@ -65,8 +65,8 @@ bool VoxelStream::get_save_generator_output() const {
 	return _parameters.save_generator_output;
 }
 
-int VoxelStream::get_block_size_po2() const {
-	return constants::DEFAULT_BLOCK_SIZE_PO2;
+int VoxelStream::get_chunk_size_po2() const {
+	return constants::DEFAULT_CHUNK_SIZE_PO2;
 }
 
 int VoxelStream::get_lod_count() const {
@@ -106,8 +106,8 @@ int VoxelStream::_b_get_used_channels_mask() const {
 	return get_used_channels_mask();
 }
 
-Vector3 VoxelStream::_b_get_block_size() const {
-	return Vector3iUtil::create(1 << get_block_size_po2());
+Vector3 VoxelStream::_b_get_chunk_size() const {
+	return Vector3iUtil::create(1 << get_chunk_size_po2());
 }
 
 void VoxelStream::_bind_methods() {
@@ -126,7 +126,7 @@ void VoxelStream::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_save_generator_output", "enabled"), &VoxelStream::set_save_generator_output);
 	ClassDB::bind_method(D_METHOD("get_save_generator_output"), &VoxelStream::get_save_generator_output);
 
-	ClassDB::bind_method(D_METHOD("get_block_size"), &VoxelStream::_b_get_block_size);
+	ClassDB::bind_method(D_METHOD("get_chunk_size"), &VoxelStream::_b_get_chunk_size);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "save_generator_output"), "set_save_generator_output",
 			"get_save_generator_output");

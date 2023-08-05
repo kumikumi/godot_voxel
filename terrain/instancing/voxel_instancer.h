@@ -171,10 +171,10 @@ private:
 	struct Block;
 
 	static void remove_floating_multimesh_instances(Block &block, const Transform3D &parent_transform,
-			Box3i p_voxel_box, const VoxelTool &voxel_tool, int block_size_po2);
+			Box3i p_voxel_box, const VoxelTool &voxel_tool, int chunk_size_po2);
 
 	static void remove_floating_scene_instances(Block &block, const Transform3D &parent_transform, Box3i p_voxel_box,
-			const VoxelTool &voxel_tool, int block_size_po2);
+			const VoxelTool &voxel_tool, int chunk_size_po2);
 
 	Dictionary _b_debug_get_instance_counts() const;
 
@@ -251,8 +251,8 @@ private:
 	Ref<VoxelInstanceLibrary> _library;
 
 	VoxelNode *_parent = nullptr;
-	unsigned int _parent_chunk_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
-	unsigned int _parent_chunk_mesh_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	unsigned int _parent_chunk_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
+	unsigned int _parent_chunk_mesh_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 	float _mesh_lod_distance = 0.f;
 
 	std::shared_ptr<VoxelInstancerGeneratorTaskOutputQueue> _generator_results;

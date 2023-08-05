@@ -74,7 +74,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 		ERR_FAIL_COND_MSG(
 				Vector3iUtil::all_members_equal(central_buffer->get_size()) == false, "Central buffer must be cubic");
 	}
-	const int chunk_size = voxel_data.get_block_size();
+	const int chunk_size = voxel_data.get_chunk_size();
 	const int chunk_mesh_size = chunk_size * area_info.chunk_mesh_size_factor;
 	const int padded_chunk_mesh_size = chunk_mesh_size + min_padding + max_padding;
 

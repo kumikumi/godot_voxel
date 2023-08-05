@@ -98,9 +98,9 @@ struct ReuseTransitionCell {
 
 class Cache {
 public:
-	void reset_reuse_cells(Vector3i p_block_size) {
-		_block_size = p_block_size;
-		const unsigned int deck_area = _block_size.x * _block_size.y;
+	void reset_reuse_cells(Vector3i p_chunk_size) {
+		_chunk_size = p_chunk_size;
+		const unsigned int deck_area = _chunk_size.x * _chunk_size.y;
 		for (unsigned int i = 0; i < _cache.size(); ++i) {
 			std::vector<ReuseCell> &deck = _cache[i];
 			deck.resize(deck_area);
@@ -110,10 +110,10 @@ public:
 		}
 	}
 
-	void reset_reuse_cells_2d(Vector3i p_block_size) {
+	void reset_reuse_cells_2d(Vector3i p_chunk_size) {
 		for (unsigned int i = 0; i < _cache_2d.size(); ++i) {
 			std::vector<ReuseTransitionCell> &row = _cache_2d[i];
-			row.resize(p_block_size.x);
+			row.resize(p_chunk_size.x);
 			for (size_t j = 0; j < row.size(); ++j) {
 				fill(row[j].vertices, -1);
 			}
@@ -122,7 +122,7 @@ public:
 
 	ReuseCell &get_reuse_cell(Vector3i pos) {
 		unsigned int j = pos.z & 1;
-		unsigned int i = pos.y * _block_size.x + pos.x;
+		unsigned int i = pos.y * _chunk_size.x + pos.x;
 		ZN_ASSERT(i < _cache[j].size());
 		return _cache[j][i];
 	}
@@ -137,7 +137,7 @@ public:
 private:
 	FixedArray<std::vector<ReuseCell>, 2> _cache;
 	FixedArray<std::vector<ReuseTransitionCell>, 2> _cache_2d;
-	Vector3i _block_size;
+	Vector3i _chunk_size;
 };
 
 // This is only to re-use some data computed for regular mesh into transition meshes

@@ -16,7 +16,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="get_block_size_po2" qualifiers="const">
+		<method name="get_chunk_size_po2" qualifiers="const">
 			<return type="int" />
 			<description>
 			</description>
@@ -28,7 +28,7 @@
 		</method>
 	</methods>
 	<members>
-		<member name="block_size_po2" type="int" setter="set_block_size_po2" getter="get_region_size_po2" default="4">
+		<member name="chunk_size_po2" type="int" setter="set_chunk_size_po2" getter="get_region_size_po2" default="4">
 		</member>
 		<member name="directory" type="String" setter="set_directory" getter="get_directory" default="&quot;&quot;">
 			Directory under which the data is saved.

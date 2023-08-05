@@ -37,7 +37,7 @@ void GenerateBlockTask::run(zylann::ThreadedTaskContext &ctx) {
 
 	if (voxels == nullptr) {
 		voxels = make_shared_instance<VoxelBufferInternal>();
-		voxels->create(block_size, block_size, block_size);
+		voxels->create(chunk_size, chunk_size, chunk_size);
 	}
 
 	if (use_gpu) {
@@ -66,7 +66,7 @@ void GenerateBlockTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 	std::shared_ptr<ComputeShader> generator_shader = generator->get_block_rendering_shader();
 	ERR_FAIL_COND(generator_shader == nullptr);
 
-	const Vector3i origin_in_voxels = (position << lod_index) * block_size;
+	const Vector3i origin_in_voxels = (position << lod_index) * chunk_size;
 
 	ZN_ASSERT(voxels != nullptr);
 	VoxelGenerator::VoxelQueryData generator_query{ *voxels, origin_in_voxels, lod_index };
@@ -75,7 +75,7 @@ void GenerateBlockTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 		return;
 	}
 
-	const Vector3i resolution = Vector3iUtil::create(block_size);
+	const Vector3i resolution = Vector3iUtil::create(chunk_size);
 
 	GenerateBlockGPUTask *gpu_task = memnew(GenerateBlockGPUTask);
 	gpu_task->boxes_to_generate.push_back(Box3i(Vector3i(), resolution));
@@ -114,7 +114,7 @@ void GenerateBlockTask::run_gpu_conversion() {
 }
 
 void GenerateBlockTask::run_cpu_generation() {
-	const Vector3i origin_in_voxels = (position << lod_index) * block_size;
+	const Vector3i origin_in_voxels = (position << lod_index) * chunk_size;
 
 	Ref<VoxelGenerator> generator = stream_dependency->generator;
 
@@ -146,7 +146,7 @@ void GenerateBlockTask::run_stream_saving_and_finish() {
 			// No priority data, saving doesn't need sorting.
 
 			SaveChunkDataTask *save_task = memnew(SaveChunkDataTask(
-					volume_id, position, lod_index, block_size, voxels_copy, stream_dependency, nullptr));
+					volume_id, position, lod_index, chunk_size, voxels_copy, stream_dependency, nullptr));
 
 			VoxelEngine::get_singleton().push_async_io_task(save_task);
 		}

@@ -62,7 +62,7 @@ public:
 			int layer_id, Array surface_arrays, UpMode up_mode,
 			// When generating a 2x2x2 data block area, bits in `octant_mask` tell which octant should be generated.
 			// Bits set to zero will cause all instances in the corresponding octant to not be generated.
-			uint8_t octant_mask, float block_size);
+			uint8_t octant_mask, float chunk_size);
 
 	void set_density(float d);
 	float get_density() const;
@@ -114,8 +114,8 @@ public:
 	void set_noise_on_scale(float amount);
 	float get_noise_on_scale() const;
 
-	static inline int get_octant_index(const Vector3f pos, float half_block_size) {
-		return get_octant_index(pos.x > half_block_size, pos.y > half_block_size, pos.z > half_block_size);
+	static inline int get_octant_index(const Vector3f pos, float half_chunk_size) {
+		return get_octant_index(pos.x > half_chunk_size, pos.y > half_chunk_size, pos.z > half_chunk_size);
 	}
 
 	static inline int get_octant_index(bool x, bool y, bool z) {

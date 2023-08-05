@@ -230,7 +230,7 @@ bool VoxelStreamSQLiteInternal::open(const char *fpath) {
 		// Setup database
 		meta.version = VERSION;
 		// Defaults
-		meta.block_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+		meta.block_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 		for (unsigned int i = 0; i < meta.channels.size(); ++i) {
 			Meta::Channel &channel = meta.channels[i];
 			channel.used = true;
@@ -698,7 +698,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 	ZN_PROFILE_SCOPE();
 
 	// TODO Get block size from database
-	const int bs_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// Check the cache first
 	std::vector<unsigned int> blocks_to_load;
@@ -763,7 +763,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 
 void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
 	// TODO Get block size from database
-	const int bs_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// First put in cache
 	for (unsigned int i = 0; i < p_blocks.size(); ++i) {
@@ -795,7 +795,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 	ZN_PROFILE_SCOPE();
 
 	// TODO Get block size from database
-	// const int bs_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// Check the cache first
 	std::vector<unsigned int> blocks_to_load;
@@ -862,7 +862,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 
 void VoxelStreamSQLite::save_instance_blocks(Span<VoxelStream::InstancesQueryData> p_blocks) {
 	// TODO Get block size from database
-	// const int bs_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// First put in cache
 	for (size_t i = 0; i < p_blocks.size(); ++i) {

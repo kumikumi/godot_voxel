@@ -103,7 +103,7 @@ public:
 	// Gets which block size this stream will provide, as a power of two.
 	// File streams are likely to impose a specific block size,
 	// and changing it can be very expensive so the API is usually specific too
-	virtual int get_block_size_po2() const;
+	virtual int get_chunk_size_po2() const;
 
 	// Gets at how many levels of details blocks can be queried.
 	virtual int get_lod_count() const;
@@ -120,7 +120,7 @@ private:
 	ResultCode _b_load_voxel_chunk(Ref<gd::VoxelBuffer> out_buffer, Vector3i origin_in_voxels, int lod);
 	void _b_save_voxel_chunk(Ref<gd::VoxelBuffer> buffer, Vector3i origin_in_voxels, int lod);
 	int _b_get_used_channels_mask() const;
-	Vector3 _b_get_block_size() const;
+	Vector3 _b_get_chunk_size() const;
 	// Deprecated
 	ResultCode _b_emerge_block(Ref<gd::VoxelBuffer> out_buffer, Vector3 origin_in_voxels, int lod);
 	void _b_immerge_block(Ref<gd::VoxelBuffer> buffer, Vector3 origin_in_voxels, int lod);

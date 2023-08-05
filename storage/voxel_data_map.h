@@ -24,28 +24,28 @@ class VoxelGenerator;
 //
 class VoxelDataMap {
 public:
-	// This is block size in VOXELS. To convert to space units, use `block_size << lod_index`.
-	static const unsigned int BLOCK_SIZE_PO2 = constants::DEFAULT_BLOCK_SIZE_PO2;
-	static const unsigned int BLOCK_SIZE = 1 << BLOCK_SIZE_PO2;
-	static const unsigned int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
+	// This is block size in VOXELS. To convert to space units, use `chunk_size << lod_index`.
+	static const unsigned int CHUNK_SIZE_PO2 = constants::DEFAULT_CHUNK_SIZE_PO2;
+	static const unsigned int CHUNK_SIZE = 1 << CHUNK_SIZE_PO2;
+	static const unsigned int CHUNK_SIZE_MASK = CHUNK_SIZE - 1;
 
 	// Converts voxel coordinates into block coordinates.
 	// Don't use division because it introduces an offset in negative coordinates.
-	static inline Vector3i voxel_to_block_b(Vector3i pos, int block_size_pow2) {
-		return pos >> block_size_pow2;
+	static inline Vector3i voxel_to_block_b(Vector3i pos, int chunk_size_pow2) {
+		return pos >> chunk_size_pow2;
 	}
 
 	inline Vector3i voxel_to_block(Vector3i pos) const {
-		return voxel_to_block_b(pos, BLOCK_SIZE_PO2);
+		return voxel_to_block_b(pos, CHUNK_SIZE_PO2);
 	}
 
 	inline Vector3i to_local(Vector3i pos) const {
-		return Vector3i(pos.x & BLOCK_SIZE_MASK, pos.y & BLOCK_SIZE_MASK, pos.z & BLOCK_SIZE_MASK);
+		return Vector3i(pos.x & CHUNK_SIZE_MASK, pos.y & CHUNK_SIZE_MASK, pos.z & CHUNK_SIZE_MASK);
 	}
 
 	// Converts block coordinates into voxel coordinates.
 	inline Vector3i block_to_voxel(Vector3i bpos) const {
-		return bpos * BLOCK_SIZE;
+		return bpos * CHUNK_SIZE;
 	}
 
 	VoxelDataMap();
@@ -53,14 +53,14 @@ public:
 
 	void create(unsigned int lod_index);
 
-	inline unsigned int get_block_size() const {
-		return BLOCK_SIZE;
+	inline unsigned int get_chunk_size() const {
+		return CHUNK_SIZE;
 	}
-	inline unsigned int get_block_size_pow2() const {
-		return BLOCK_SIZE_PO2;
+	inline unsigned int get_chunk_size_pow2() const {
+		return CHUNK_SIZE_PO2;
 	}
-	inline unsigned int get_block_size_mask() const {
-		return BLOCK_SIZE_MASK;
+	inline unsigned int get_chunk_size_mask() const {
+		return CHUNK_SIZE_MASK;
 	}
 
 	void set_lod_index(int lod_index);
@@ -137,18 +137,18 @@ public:
 	// D F(Vector3i pos, D value)
 	template <typename F, typename G>
 	void write_box(const Box3i &voxel_box, unsigned int channel, F action, G gen_func) {
-		const Box3i block_box = voxel_box.downscaled(get_block_size());
-		const Vector3i block_size = Vector3iUtil::create(get_block_size());
-		block_box.for_each_cell_zxy([this, action, voxel_box, channel, block_size, gen_func](Vector3i block_pos) {
+		const Box3i block_box = voxel_box.downscaled(get_chunk_size());
+		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
+		block_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i block_pos) {
 			VoxelChunkData *block = get_block(block_pos);
 			if (block == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
 				block = create_default_block(block_pos);
-				gen_func(block->get_voxels(), block_pos << get_block_size_pow2());
+				gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 			}
 			const Vector3i block_origin = block_to_voxel(block_pos);
 			Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
-			local_box.clip(Box3i(Vector3i(), block_size));
+			local_box.clip(Box3i(Vector3i(), chunk_size));
 			block->get_voxels().write_box(local_box, channel, action, block_origin);
 		});
 	}
@@ -161,18 +161,18 @@ public:
 	// void F(Vector3i pos, D0 &value, D1 &value)
 	template <typename F, typename G>
 	void write_box_2(const Box3i &voxel_box, unsigned int channel0, unsigned int channel1, F action, G gen_func) {
-		const Box3i block_box = voxel_box.downscaled(get_block_size());
-		const Vector3i block_size = Vector3iUtil::create(get_block_size());
+		const Box3i block_box = voxel_box.downscaled(get_chunk_size());
+		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
 		block_box.for_each_cell_zxy(
-				[this, action, voxel_box, channel0, channel1, block_size, gen_func](Vector3i block_pos) {
+				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i block_pos) {
 					VoxelChunkData *block = get_block(block_pos);
 					if (block == nullptr) {
 						block = create_default_block(block_pos);
-						gen_func(block->get_voxels(), block_pos << get_block_size_pow2());
+						gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 					}
 					const Vector3i block_origin = block_to_voxel(block_pos);
 					Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
-					local_box.clip(Box3i(Vector3i(), block_size));
+					local_box.clip(Box3i(Vector3i(), chunk_size));
 					block->get_voxels().write_box_2_template<F, uint16_t, uint16_t>(
 							local_box, channel0, channel1, action, block_origin);
 				});
@@ -183,7 +183,7 @@ private:
 	VoxelChunkData *get_or_create_block_at_voxel_pos(Vector3i pos);
 	VoxelChunkData *create_default_block(Vector3i bpos);
 
-	// void set_block_size_pow2(unsigned int p);
+	// void set_chunk_size_pow2(unsigned int p);
 
 private:
 	// Blocks stored with a spatial hash in all 3D directions.

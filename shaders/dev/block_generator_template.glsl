@@ -6,7 +6,7 @@ layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 layout (set = 0, binding = 0, std430) restrict readonly buffer Params {
 	vec3 origin_in_voxels;
 	float voxel_size;
-	ivec3 block_size;
+	ivec3 chunk_size;
 	int buffer_offset;
 } u_params;
 
@@ -34,14 +34,14 @@ void main() {
 	const ivec3 rpos = ivec3(gl_GlobalInvocationID.xyz);
 	// The output buffer might not have a 3D size multiple of our group size.
 	// Some of the parallel executions will not do anything.
-	if (rpos.x >= u_params.block_size.x || rpos.y >= u_params.block_size.y || rpos.z >= u_params.block_size.z) {
+	if (rpos.x >= u_params.chunk_size.x || rpos.y >= u_params.chunk_size.y || rpos.z >= u_params.chunk_size.z) {
 		return;
 	}
 
-	const int out_index = get_zxy_index(rpos, u_params.block_size) + u_params.buffer_offset;
+	const int out_index = get_zxy_index(rpos, u_params.chunk_size) + u_params.buffer_offset;
 
 	// May be used by generated code for generators that have more than one output
-	const int volume = get_volume(u_params.block_size);
+	const int volume = get_volume(u_params.chunk_size);
 
 	const vec3 wpos = u_params.origin_in_voxels + vec3(rpos) * u_params.voxel_size;
 	// float sd = get_sd(wpos);

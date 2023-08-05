@@ -13,7 +13,7 @@ class VoxelData;
 
 class LoadChunkDataTask : public IThreadedTask {
 public:
-	LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+	LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
 			bool p_request_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 			PriorityDependency p_priority_dependency, bool generate_cache_data, bool generator_use_gpu,
 			const std::shared_ptr<VoxelData> &vdata);
@@ -38,7 +38,7 @@ private:
 	Vector3i _position; // In data blocks of the specified lod
 	VolumeID _volume_id;
 	uint8_t _lod_index;
-	uint8_t _block_size;
+	uint8_t _chunk_size;
 	bool _has_run = false;
 	bool _too_far = false;
 	bool _request_instances = false;

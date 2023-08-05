@@ -36,7 +36,7 @@ inline float get_triangle_area(Vector3 p0, Vector3 p1, Vector3 p2) {
 }
 
 void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_transforms, Vector3i grid_position,
-		int lod_index, int layer_id, Array surface_arrays, UpMode up_mode, uint8_t octant_mask, float block_size) {
+		int lod_index, int layer_id, Array surface_arrays, UpMode up_mode, uint8_t octant_mask, float chunk_size) {
 	ZN_PROFILE_SCOPE();
 
 	if (surface_arrays.size() < ArrayMesh::ARRAY_VERTEX && surface_arrays.size() < ArrayMesh::ARRAY_NORMAL &&
@@ -169,7 +169,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 				// Does not assume triangles have the same size, so instead a "unit size" is used,
 				// and more instances will be placed in triangles larger than this.
 				// This is roughly the size of one voxel's triangle
-				// const float unit_area = 0.5f * squared(block_size / 32.f);
+				// const float unit_area = 0.5f * squared(chunk_size / 32.f);
 
 				float accumulator = 0.f;
 				const float inv_density = 1.f / _density;
@@ -224,7 +224,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 	// because mesh size may not necessarily match data block size
 	if ((octant_mask & 0xff) != 0xff) {
 		ZN_PROFILE_SCOPE_NAMED("octant filter");
-		const float h = block_size / 2.f;
+		const float h = chunk_size / 2.f;
 		for (unsigned int i = 0; i < vertex_cache.size(); ++i) {
 			const Vector3f &pos = vertex_cache[i];
 			const uint8_t octant_index = get_octant_index(pos, h);
@@ -242,7 +242,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 	if (_noise.is_valid()) {
 		// Position of the block relative to the instancer node.
 		// Use full-precision here because we deal with potentially large coordinates
-		const Vector3 chunk_mesh_origin_d = grid_position * block_size;
+		const Vector3 chunk_mesh_origin_d = grid_position * chunk_size;
 		ZN_PROFILE_SCOPE_NAMED("noise filter");
 
 		noise_cache.clear();
@@ -296,7 +296,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 
 	const Vector3f fixed_look_axis = up_mode == UP_MODE_POSITIVE_Y ? Vector3f(1, 0, 0) : Vector3f(0, 1, 0);
 	const Vector3f fixed_look_axis_alternative = up_mode == UP_MODE_POSITIVE_Y ? Vector3f(0, 1, 0) : Vector3f(1, 0, 0);
-	const Vector3f chunk_mesh_origin = to_vec3f(grid_position * block_size);
+	const Vector3f chunk_mesh_origin = to_vec3f(grid_position * chunk_size);
 
 	// Calculate orientations and scales
 	for (size_t vertex_index = 0; vertex_index < vertex_cache.size(); ++vertex_index) {

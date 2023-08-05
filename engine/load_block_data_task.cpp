@@ -13,7 +13,7 @@ namespace {
 std::atomic_int g_debug_load_block_tasks_count = { 0 };
 }
 
-LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
 		bool p_request_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		PriorityDependency p_priority_dependency, bool generate_cache_data, bool generator_use_gpu,
 		const std::shared_ptr<VoxelData> &vdata) :
@@ -21,7 +21,7 @@ LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos,
 		_position(p_block_pos),
 		_volume_id(p_volume_id),
 		_lod_index(p_lod),
-		_block_size(p_block_size),
+		_chunk_size(p_chunk_size),
 		_request_instances(p_request_instances),
 		_generate_cache_data(generate_cache_data),
 		_generator_use_gpu(generator_use_gpu),
@@ -48,11 +48,11 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	Ref<VoxelStream> stream = _stream_dependency->stream;
 	CRASH_COND(stream.is_null());
 
-	const Vector3i origin_in_voxels = (_position << _lod_index) * _block_size;
+	const Vector3i origin_in_voxels = (_position << _lod_index) * _chunk_size;
 
 	ERR_FAIL_COND(_voxels != nullptr);
 	_voxels = make_shared_instance<VoxelBufferInternal>();
-	_voxels->create(_block_size, _block_size, _block_size);
+	_voxels->create(_chunk_size, _chunk_size, _chunk_size);
 
 	// TODO We should consider batching this again, but it needs to be done carefully.
 	// Each task is one block, and priority depends on distance to closest viewer.
@@ -76,7 +76,7 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 				task->volume_id = _volume_id;
 				task->position = _position;
 				task->lod_index = _lod_index;
-				task->block_size = _block_size;
+				task->chunk_size = _chunk_size;
 				task->stream_dependency = _stream_dependency;
 				task->priority_dependency = _priority_dependency;
 				task->use_gpu = _generator_use_gpu;

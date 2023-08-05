@@ -7,8 +7,8 @@
 namespace zylann::voxel::tests {
 
 void test_region_file() {
-	const int block_size_po2 = 4;
-	const int block_size = 1 << block_size_po2;
+	const int chunk_size_po2 = 4;
+	const int chunk_size = 1 << chunk_size_po2;
 	const char *region_file_name = "test_region_file.vxr";
 	zylann::testing::TestDirectory test_dir;
 	ZN_TEST_ASSERT(test_dir.is_valid());
@@ -18,7 +18,7 @@ void test_region_file() {
 		RandomPCG rng;
 
 		void generate(VoxelBufferInternal &buffer) {
-			buffer.create(Vector3iUtil::create(block_size));
+			buffer.create(Vector3iUtil::create(chunk_size));
 			buffer.set_channel_depth(0, VoxelBufferInternal::DEPTH_16_BIT);
 
 			// Make a block with enough data to take some significant space even if compressed
@@ -43,7 +43,7 @@ void test_region_file() {
 
 		// Configure region format
 		RegionFormat region_format = region_file.get_format();
-		region_format.block_size_po2 = block_size_po2;
+		region_format.chunk_size_po2 = chunk_size_po2;
 		for (unsigned int channel_index = 0; channel_index < VoxelBufferInternal::MAX_CHANNELS; ++channel_index) {
 			region_format.channel_depths[channel_index] = voxel_buffer.get_channel_depth(channel_index);
 		}
@@ -137,22 +137,22 @@ void test_region_file() {
 
 // Test based on an issue from `I am the Carl` on Discord. It should only not crash or cause errors.
 void test_voxel_stream_region_files() {
-	const int block_size_po2 = 4;
-	const int block_size = 1 << block_size_po2;
+	const int chunk_size_po2 = 4;
+	const int chunk_size = 1 << chunk_size_po2;
 
 	zylann::testing::TestDirectory test_dir;
 	ZN_TEST_ASSERT(test_dir.is_valid());
 
 	Ref<VoxelStreamRegionFiles> stream;
 	stream.instantiate();
-	stream->set_block_size_po2(block_size_po2);
+	stream->set_chunk_size_po2(chunk_size_po2);
 	stream->set_directory(test_dir.get_path());
 
 	RandomPCG rng;
 
 	for (int cycle = 0; cycle < 1000; ++cycle) {
 		VoxelBufferInternal buffer;
-		buffer.create(block_size, block_size, block_size);
+		buffer.create(chunk_size, chunk_size, chunk_size);
 
 		// Make a block with enough data to take some significant space even if compressed
 		for (int z = 0; z < buffer.get_size().z; ++z) {

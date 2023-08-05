@@ -20,7 +20,7 @@ struct RegionFormat {
 			CHANNEL_COUNT == VoxelBufferInternal::MAX_CHANNELS, "This format doesn't support variable channel count");
 
 	// How many voxels in a cubic block, as power of two
-	uint8_t block_size_po2 = 0;
+	uint8_t chunk_size_po2 = 0;
 	// How many blocks across all dimensions (stored as 3 bytes)
 	Vector3i region_size;
 	FixedArray<VoxelBufferInternal::Depth, CHANNEL_COUNT> channel_depths;

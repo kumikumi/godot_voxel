@@ -56,9 +56,9 @@ void test_normalmap_render_gpu() {
 	Ref<VoxelMesherTransvoxel> mesher;
 	mesher.instantiate();
 
-	const int block_size = 16;
+	const int chunk_size = 16;
 	VoxelBufferInternal voxels;
-	voxels.create(Vector3iUtil::create(block_size + mesher->get_minimum_padding() + mesher->get_maximum_padding()));
+	voxels.create(Vector3iUtil::create(chunk_size + mesher->get_minimum_padding() + mesher->get_maximum_padding()));
 
 	const Vector3i origin_in_voxels;
 	const uint8_t lod_index = 0;
@@ -96,7 +96,7 @@ void test_normalmap_render_gpu() {
 	nm_task.mesh_indices = mesh_arrays.indices;
 	nm_task.generator = generator;
 	nm_task.voxel_data = nullptr;
-	nm_task.chunk_mesh_size = Vector3iUtil::create(block_size);
+	nm_task.chunk_mesh_size = Vector3iUtil::create(chunk_size);
 	nm_task.lod_index = lod_index;
 	nm_task.chunk_mesh_position = Vector3i();
 	nm_task.output_textures = detail_textures;

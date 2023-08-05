@@ -16,7 +16,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="get_block_size" qualifiers="const">
+		<method name="get_chunk_size" qualifiers="const">
 			<return type="Vector3" />
 			<description>
 			</description>

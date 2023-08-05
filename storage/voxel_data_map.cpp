@@ -11,7 +11,7 @@ namespace zylann::voxel {
 
 VoxelDataMap::VoxelDataMap() {
 	// This is not planned to change at runtime at the moment.
-	// set_block_size_pow2(constants::DEFAULT_BLOCK_SIZE_PO2);
+	// set_chunk_size_pow2(constants::DEFAULT_CHUNK_SIZE_PO2);
 }
 
 VoxelDataMap::~VoxelDataMap() {
@@ -21,17 +21,17 @@ VoxelDataMap::~VoxelDataMap() {
 void VoxelDataMap::create(unsigned int lod_index) {
 	ZN_ASSERT(lod_index < constants::MAX_LOD);
 	clear();
-	// set_block_size_pow2(block_size_po2);
+	// set_chunk_size_pow2(chunk_size_po2);
 	set_lod_index(lod_index);
 }
 
-// void VoxelDataMap::set_block_size_pow2(unsigned int p) {
+// void VoxelDataMap::set_chunk_size_pow2(unsigned int p) {
 // 	ZN_ASSERT_RETURN_MSG(p >= 1, "Block size is too small");
 // 	ZN_ASSERT_RETURN_MSG(p <= 8, "Block size is too big");
 
-// 	_block_size_pow2 = p;
-// 	_block_size = 1 << _block_size_pow2;
-// 	_block_size_mask = _block_size - 1;
+// 	_chunk_size_pow2 = p;
+// 	_chunk_size = 1 << _chunk_size_pow2;
+// 	_chunk_size_mask = _chunk_size - 1;
 // }
 
 void VoxelDataMap::set_lod_index(int lod_index) {
@@ -56,7 +56,7 @@ int VoxelDataMap::get_voxel(Vector3i pos, unsigned int c) const {
 
 VoxelChunkData *VoxelDataMap::create_default_block(Vector3i bpos) {
 	std::shared_ptr<VoxelBufferInternal> buffer = make_shared_instance<VoxelBufferInternal>();
-	buffer->create(get_block_size(), get_block_size(), get_block_size());
+	buffer->create(get_chunk_size(), get_chunk_size(), get_chunk_size());
 	// buffer->set_default_values(_default_voxel);
 #ifdef DEBUG_ENABLED
 	ZN_ASSERT_RETURN_V(!has_block(bpos), nullptr);
@@ -192,7 +192,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 	const Vector3i min_block_pos = voxel_to_block(min_pos);
 	const Vector3i max_block_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
 
-	const Vector3i block_size_v(get_block_size(), get_block_size(), get_block_size());
+	const Vector3i chunk_size_v(get_chunk_size(), get_chunk_size(), get_chunk_size());
 
 	unsigned int channels_count;
 	FixedArray<uint8_t, VoxelBufferInternal::MAX_CHANNELS> channels =
@@ -217,7 +217,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 					}
 
 				} else if (gen_func != nullptr) {
-					const Box3i box = Box3i(bpos << get_block_size_pow2(), block_size_v)
+					const Box3i box = Box3i(bpos << get_chunk_size_pow2(), chunk_size_v)
 											  .clipped(Box3i(min_pos, dst_buffer.get_size()));
 
 					// TODO Format?
@@ -235,7 +235,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 						// For now, inexistent blocks default to hardcoded defaults, corresponding to "empty space".
 						// If we want to change this, we may have to add an API for that.
 						dst_buffer.fill_area(VoxelBufferInternal::get_default_value_static(channel),
-								src_block_origin - min_pos, src_block_origin - min_pos + block_size_v, channel);
+								src_block_origin - min_pos, src_block_origin - min_pos + chunk_size_v, channel);
 					}
 				}
 			}
@@ -322,7 +322,7 @@ int VoxelDataMap::get_block_count() const {
 }
 
 bool VoxelDataMap::is_area_fully_loaded(const Box3i voxels_box) const {
-	Box3i block_box = voxels_box.downscaled(get_block_size());
+	Box3i block_box = voxels_box.downscaled(get_chunk_size());
 	return block_box.all_cells_match([this](Vector3i pos) { //
 		return has_block(pos);
 	});

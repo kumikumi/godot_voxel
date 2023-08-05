@@ -13,14 +13,14 @@ namespace {
 std::atomic_int g_debug_save_block_tasks_count = { 0 };
 }
 
-SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
 		std::shared_ptr<VoxelBufferInternal> p_voxels, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		std::shared_ptr<AsyncDependencyTracker> p_tracker) :
 		_voxels(p_voxels),
 		_position(p_block_pos),
 		_volume_id(p_volume_id),
 		_lod(p_lod),
-		_block_size(p_block_size),
+		_chunk_size(p_chunk_size),
 		_save_instances(false),
 		_save_voxels(true),
 		_stream_dependency(p_stream_dependency),
@@ -29,14 +29,14 @@ SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos,
 	++g_debug_save_block_tasks_count;
 }
 
-SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
 		UniquePtr<InstanceChunkData> p_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		std::shared_ptr<AsyncDependencyTracker> p_tracker) :
 		_instances(std::move(p_instances)),
 		_position(p_block_pos),
 		_volume_id(p_volume_id),
 		_lod(p_lod),
-		_block_size(p_block_size),
+		_chunk_size(p_chunk_size),
 		_save_instances(true),
 		_save_voxels(false),
 		_stream_dependency(p_stream_dependency),
@@ -76,7 +76,7 @@ void SaveChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 		// request
 		_voxels->duplicate_to(voxels_copy, true);
 		_voxels = nullptr;
-		const Vector3i origin_in_voxels = (_position << _lod) * _block_size;
+		const Vector3i origin_in_voxels = (_position << _lod) * _chunk_size;
 		VoxelStream::VoxelQueryData q{ voxels_copy, origin_in_voxels, _lod, VoxelStream::RESULT_ERROR };
 		stream->save_voxel_chunk(q);
 	}

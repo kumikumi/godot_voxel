@@ -286,11 +286,11 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	ERR_FAIL_COND(!math::is_valid_size(voxel_box.size));
 	ERR_FAIL_COND(callback == nullptr);
 
-	const unsigned int block_size = data.get_block_size();
-	const Box3i block_box = voxel_box.downscaled(block_size);
+	const unsigned int chunk_size = data.get_chunk_size();
+	const Box3i block_box = voxel_box.downscaled(chunk_size);
 
 	const int block_count = voxel_count / batch_count;
-	// const int bs_mask = map.get_block_size_mask();
+	// const int bs_mask = map.get_chunk_size_mask();
 	const VoxelBufferInternal::ChannelId channel = VoxelBufferInternal::CHANNEL_TYPE;
 
 	struct Pick {
@@ -300,7 +300,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	static thread_local std::vector<Pick> picks;
 	picks.reserve(batch_count);
 
-	const float block_volume = math::cubed(block_size);
+	const float block_volume = math::cubed(chunk_size);
 	CRASH_COND(block_volume < 0.1f);
 
 	struct L {
@@ -346,7 +346,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 					}
 				}
 
-				const Box3i block_voxel_box(block_origin, Vector3iUtil::create(block_size));
+				const Box3i block_voxel_box(block_origin, Vector3iUtil::create(chunk_size));
 				Box3i local_voxel_box = voxel_box.clipped(block_voxel_box);
 				local_voxel_box.pos -= block_origin;
 				const float volume_ratio = Vector3iUtil::get_volume(local_voxel_box.size) / block_volume;
@@ -460,7 +460,7 @@ void VoxelToolTerrain::for_each_voxel_metadata_in_area(AABB voxel_area, const Ca
 			return;
 		}
 
-		const Vector3i block_origin = block_pos * data.get_block_size();
+		const Vector3i block_origin = block_pos * data.get_chunk_size();
 		const Box3i rel_voxel_box(voxel_box.pos - block_origin, voxel_box.size);
 		// TODO Worth it locking blocks for metadata?
 

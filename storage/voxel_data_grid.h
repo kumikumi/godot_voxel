@@ -15,13 +15,13 @@ public:
 	// WARNING: the given box is in voxels RELATIVE to the passed map. It that map is not LOD0, you may downscale the
 	// box if you expect LOD0 coordinates.
 	inline void reference_area(const VoxelDataMap &map, Box3i voxel_box, VoxelSpatialLock *sl) {
-		const Box3i blocks_box = voxel_box.downscaled(map.get_block_size());
+		const Box3i blocks_box = voxel_box.downscaled(map.get_chunk_size());
 		reference_area_block_coords(map, blocks_box, sl);
 	}
 
 	inline void reference_area_block_coords(const VoxelDataMap &map, Box3i blocks_box, VoxelSpatialLock *sl) {
 		ZN_PROFILE_SCOPE();
-		create(blocks_box.size, map.get_block_size());
+		create(blocks_box.size, map.get_chunk_size());
 		_offset_in_blocks = blocks_box.pos;
 		if (sl != nullptr) {
 			sl->lock_read(blocks_box);
@@ -105,7 +105,7 @@ public:
 #ifdef DEBUG_ENABLED
 		ZN_ASSERT(_locked);
 #endif
-		const Vector3i bpos = (pos >> _block_size_po2) - _offset_in_blocks;
+		const Vector3i bpos = (pos >> _chunk_size_po2) - _offset_in_blocks;
 		if (!is_valid_relative_block_position(bpos)) {
 			return false;
 		}
@@ -114,7 +114,7 @@ public:
 		if (voxels == nullptr) {
 			return false;
 		}
-		const unsigned int mask = (1 << _block_size_po2) - 1;
+		const unsigned int mask = (1 << _chunk_size_po2) - 1;
 		const Vector3i rpos = pos & mask;
 		out_value = voxels->get_voxel_f(rpos, channel);
 		return true;
@@ -166,14 +166,14 @@ public:
 	}
 
 private:
-	inline unsigned int get_block_size() const {
-		return _block_size;
+	inline unsigned int get_chunk_size() const {
+		return _chunk_size;
 	}
 
 	template <typename Block_F>
 	inline void _box_loop(Box3i voxel_box, Block_F block_action) {
 		Vector3i block_rpos;
-		const Vector3i area_origin_in_voxels = _offset_in_blocks * _block_size;
+		const Vector3i area_origin_in_voxels = _offset_in_blocks * _chunk_size;
 		unsigned int index = 0;
 		for (block_rpos.z = 0; block_rpos.z < _size_in_blocks.z; ++block_rpos.z) {
 			for (block_rpos.x = 0; block_rpos.x < _size_in_blocks.x; ++block_rpos.x) {
@@ -184,21 +184,21 @@ private:
 					if (block == nullptr) {
 						continue;
 					}
-					const Vector3i block_origin = block_rpos * _block_size + area_origin_in_voxels;
+					const Vector3i block_origin = block_rpos * _chunk_size + area_origin_in_voxels;
 					Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
-					local_box.clip(Box3i(Vector3i(), Vector3iUtil::create(_block_size)));
+					local_box.clip(Box3i(Vector3i(), Vector3iUtil::create(_chunk_size)));
 					block_action(*block, local_box, block_origin);
 				}
 			}
 		}
 	}
 
-	inline void create(Vector3i size, unsigned int block_size) {
+	inline void create(Vector3i size, unsigned int chunk_size) {
 		ZN_PROFILE_SCOPE();
 		_blocks.clear();
 		_blocks.resize(Vector3iUtil::get_volume(size));
 		_size_in_blocks = size;
-		_block_size = block_size;
+		_chunk_size = chunk_size;
 	}
 
 	inline bool is_valid_relative_block_position(Vector3i pos) const {
@@ -239,8 +239,8 @@ private:
 	// of the area in memory so we can keep using the same coordinate space
 	Vector3i _offset_in_blocks;
 	// Size of a block in voxels
-	unsigned int _block_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
-	unsigned int _block_size = 1 << constants::DEFAULT_BLOCK_SIZE_PO2;
+	unsigned int _chunk_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
+	unsigned int _chunk_size = 1 << constants::DEFAULT_CHUNK_SIZE_PO2;
 	// For protecting voxel data against multithreaded accesses. Not owned. Lifetime must be guaranteed by the user, for
 	// example by having a std::shared_ptr<VoxelData> holding the spatial lock.
 	VoxelSpatialLock *_spatial_lock = nullptr;
