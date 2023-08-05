@@ -344,7 +344,7 @@ bool VoxelData::is_area_loaded(const Box3i p_voxels_box) const {
 	}
 }
 
-void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int data_block_size, bool streaming,
+void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int chunk_size, bool streaming,
 		unsigned int lod_count, Ref<VoxelGenerator> generator, VoxelModifierStack &modifiers) {
 	ZN_PROFILE_SCOPE();
 	// ERR_FAIL_COND_MSG(_full_load_mode == false, nullptr, "This function can only be used in full load mode");
@@ -363,7 +363,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int d
 
 	// Find empty slots
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		const Box3i block_box = voxel_box.downscaled(data_block_size << lod_index);
+		const Box3i block_box = voxel_box.downscaled(chunk_size << lod_index);
 
 		// ZN_PRINT_VERBOSE(format("Preloading box {} at lod {} synchronously", block_box, lod_index));
 
@@ -393,7 +393,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int d
 		count_per_lod.push_back(todo.size() - prev_size);
 	}
 
-	const Vector3i block_size = Vector3iUtil::create(data_block_size);
+	const Vector3i block_size = Vector3iUtil::create(chunk_size);
 
 	// Generate
 	for (unsigned int i = 0; i < todo.size(); ++i) {
@@ -404,7 +404,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int d
 		if (generator.is_valid()) {
 			ZN_PROFILE_SCOPE_NAMED("Generate");
 			VoxelGenerator::VoxelQueryData q{ //
-				*task.voxels, task.block_pos * (data_block_size << task.lod_index), task.lod_index
+				*task.voxels, task.block_pos * (chunk_size << task.lod_index), task.lod_index
 			};
 			generator->generate_chunk(q);
 			modifiers.apply(q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << q.lod));
@@ -439,10 +439,10 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int d
 }
 
 void VoxelData::pre_generate_box(Box3i voxel_box) {
-	const unsigned int data_block_size = get_block_size();
+	const unsigned int chunk_size = get_block_size();
 	const bool streaming = is_streaming_enabled();
 	const unsigned int lod_count = get_lod_count();
-	pre_generate_box(voxel_box, to_span(_lods), data_block_size, streaming, lod_count, get_generator(), _modifiers);
+	pre_generate_box(voxel_box, to_span(_lods), chunk_size, streaming, lod_count, get_generator(), _modifiers);
 }
 
 void VoxelData::clear_cached_blocks_in_voxel_area(Box3i p_voxel_box) {
@@ -513,15 +513,15 @@ bool VoxelData::has_block(Vector3i bpos, unsigned int lod_index) const {
 	return data_lod.map.has_block(bpos);
 }
 
-bool VoxelData::has_all_blocks_in_area(Box3i data_blocks_box) const {
+bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_blocks = get_bounds().downscaled(get_block_size());
-	data_blocks_box = data_blocks_box.clipped(bounds_in_blocks);
+	chunks_box = chunks_box.clipped(bounds_in_blocks);
 
 	const Lod &data_lod = _lods[0];
 	RWLockRead rlock(data_lod.map_lock);
 
-	return data_blocks_box.all_cells_match([&data_lod](Vector3i bpos) { //
+	return chunks_box.all_cells_match([&data_lod](Vector3i bpos) { //
 		return data_lod.map.has_block(bpos);
 	});
 }
@@ -546,8 +546,8 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 	// i.e there is no way for a block to be loaded if its parent LOD isn't loaded already.
 	// In the future we may implement storing of edits to be applied later if blocks can't be found.
 
-	const int data_block_size = get_block_size();
-	const int data_block_size_po2 = get_block_size_po2();
+	const int chunk_size = get_block_size();
+	const int chunk_size_po2 = get_block_size_po2();
 	const unsigned int lod_count = get_lod_count();
 	const bool streaming_enabled = is_streaming_enabled();
 	Ref<VoxelGenerator> generator = get_generator();
@@ -567,18 +567,18 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 		std::vector<Vector3i> &blocks_pending_lodding_lod0 = tls_blocks_to_process_per_lod[0];
 
 		for (unsigned int i = 0; i < blocks_pending_lodding_lod0.size(); ++i) {
-			const Vector3i data_block_pos = blocks_pending_lodding_lod0[i];
-			VoxelDataBlock *data_block = data_lod0.map.get_block(data_block_pos);
-			ERR_CONTINUE(data_block == nullptr);
-			data_block->set_needs_lodding(false);
+			const Vector3i chunk_pos = blocks_pending_lodding_lod0[i];
+			VoxelDataBlock *chunk = data_lod0.map.get_block(chunk_pos);
+			ERR_CONTINUE(chunk == nullptr);
+			chunk->set_needs_lodding(false);
 
 			if (out_updated_blocks != nullptr) {
-				out_updated_blocks->push_back(BlockLocation{ data_block_pos, 0 });
+				out_updated_blocks->push_back(BlockLocation{ chunk_pos, 0 });
 			}
 		}
 	}
 
-	const int half_bs = data_block_size >> 1;
+	const int half_bs = chunk_size >> 1;
 
 	// Process downscales upwards in pairs of consecutive LODs.
 	// This ensures we don't process multiple times the same blocks.
@@ -617,10 +617,10 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 					// TODO Doing this on the main thread can be very demanding and cause a stall.
 					// We should find a way to make it asynchronous, not need mips, or not edit outside viewers area.
 					std::shared_ptr<VoxelBufferInternal> voxels = make_shared_instance<VoxelBufferInternal>();
-					voxels->create(Vector3iUtil::create(data_block_size));
+					voxels->create(Vector3iUtil::create(chunk_size));
 					VoxelGenerator::VoxelQueryData q{ //
 						*voxels, //
-						dst_bpos << (dst_lod_index + data_block_size_po2), //
+						dst_bpos << (dst_lod_index + chunk_size_po2), //
 						dst_lod_index
 					};
 					if (generator.is_valid()) {
@@ -780,8 +780,8 @@ void VoxelData::get_blocks_with_voxel_data(
 	unsigned int index = 0;
 
 	// Iteration order matters for thread access.
-	p_blocks_box.for_each_cell_zxy([&index, &data_lod, &out_blocks](Vector3i data_block_pos) {
-		const VoxelDataBlock *nblock = data_lod.map.get_block(data_block_pos);
+	p_blocks_box.for_each_cell_zxy([&index, &data_lod, &out_blocks](Vector3i chunk_pos) {
+		const VoxelDataBlock *nblock = data_lod.map.get_block(chunk_pos);
 		// The block can actually be null on some occasions. Not sure yet if it's that bad
 		// CRASH_COND(nblock == nullptr);
 		if (nblock != nullptr && nblock->has_voxels()) {

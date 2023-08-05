@@ -76,15 +76,15 @@ public:
 	void set_collision_margin(float margin);
 	float get_collision_margin() const;
 
-	int get_data_block_region_extent() const;
+	int get_chunk_region_extent() const;
 	int get_chunk_mesh_region_extent() const;
 
-	Vector3i voxel_to_data_block_position(Vector3 vpos, int lod_index) const;
+	Vector3i voxel_to_chunk_position(Vector3 vpos, int lod_index) const;
 	Vector3i voxel_to_chunk_mesh_position(Vector3 vpos, int lod_index) const;
 
-	unsigned int get_data_block_size_pow2() const;
-	unsigned int get_data_block_size() const;
-	// void set_data_block_size_po2(unsigned int p_block_size_po2);
+	unsigned int get_chunk_size_pow2() const;
+	unsigned int get_chunk_size() const;
+	// void set_chunk_size_po2(unsigned int p_block_size_po2);
 
 	unsigned int get_chunk_mesh_size_pow2() const;
 	unsigned int get_chunk_mesh_size() const;
@@ -193,7 +193,7 @@ public:
 	// Debugging
 
 	Array debug_raycast_chunk_mesh(Vector3 world_origin, Vector3 world_direction) const;
-	Dictionary debug_get_data_block_info(Vector3 fbpos, int lod_index) const;
+	Dictionary debug_get_chunk_info(Vector3 fbpos, int lod_index) const;
 	Dictionary debug_get_chunk_mesh_info(Vector3 fbpos, int lod_index) const;
 	Array debug_get_octree_positions() const;
 	Array debug_get_octrees_detailed() const;
@@ -260,7 +260,7 @@ private:
 	void apply_main_thread_update_tasks();
 
 	void apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob);
-	void apply_data_block_response(VoxelEngine::ChunkDataOutput &ob);
+	void apply_chunk_response(VoxelEngine::ChunkDataOutput &ob);
 	void apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob);
 	void apply_detail_texture_update_to_block(
 			VoxelChunkMeshVLT &block, DetailTextureOutput &ob, unsigned int lod_index);
@@ -299,7 +299,7 @@ private:
 
 	Array _b_debug_print_sdf_top_down(Vector3i center, Vector3i extents);
 	int _b_debug_get_chunk_mesh_count() const;
-	int _b_debug_get_data_block_count() const;
+	int _b_debug_get_chunk_count() const;
 	// TODO GDX: Can't bind functions returning a `godot::Error` enum
 	int /*Error*/ _b_debug_dump_as_scene(String fpath, bool include_instancer) const;
 

@@ -18,7 +18,7 @@ class VoxelInstanceComponent : public Node {
 public:
 	void mark_modified() {
 		ERR_FAIL_COND(_instancer == nullptr);
-		_instancer->on_scene_instance_modified(_data_block_position, _render_block_index);
+		_instancer->on_scene_instance_modified(_chunk_position, _render_block_index);
 	}
 
 	void detach() {
@@ -40,7 +40,7 @@ public:
 	// `unparented` won't happen because the parent is unparented, not the child.
 	void detach_as_removed() {
 		ERR_FAIL_COND_MSG(_instancer == nullptr, "Already detached");
-		_instancer->on_scene_instance_removed(_data_block_position, _render_block_index, _instance_index);
+		_instancer->on_scene_instance_removed(_chunk_position, _render_block_index, _instance_index);
 		_instancer = nullptr;
 	}
 
@@ -58,8 +58,8 @@ public:
 		_instance_index = instance_index;
 	}
 
-	void set_data_block_position(Vector3i data_block_position) {
-		_data_block_position = data_block_position;
+	void set_chunk_position(Vector3i chunk_position) {
+		_chunk_position = chunk_position;
 	}
 
 	void set_render_block_index(unsigned int render_block_index) {
@@ -106,7 +106,7 @@ private:
 	}
 
 	VoxelInstancer *_instancer = nullptr;
-	Vector3i _data_block_position;
+	Vector3i _chunk_position;
 	unsigned int _render_block_index;
 	int _instance_index = -1;
 };

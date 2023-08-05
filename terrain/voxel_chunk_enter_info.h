@@ -1,7 +1,7 @@
-#ifndef VOXEL_DATA_BLOCK_ENTER_INFO_H
-#define VOXEL_DATA_BLOCK_ENTER_INFO_H
+#ifndef VOXEL_CHUNK_ENTER_INFO_H
+#define VOXEL_CHUNK_ENTER_INFO_H
 
-#include "../storage/voxel_data_block.h"
+#include "../storage/voxel_chunk_data.h"
 #include "../util/godot/classes/object.h"
 
 namespace zylann::voxel {
@@ -35,4 +35,4 @@ private:
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_DATA_BLOCK_ENTER_INFO_H
+#endif // VOXEL_CHUNK_ENTER_INFO_H

@@ -1,4 +1,4 @@
-#include "voxel_data_block.h"
+#include "voxel_chunk_data.h"
 #include "../util/log.h"
 #include "../util/string_funcs.h"
 

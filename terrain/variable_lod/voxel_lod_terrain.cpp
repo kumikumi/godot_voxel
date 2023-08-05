@@ -165,7 +165,7 @@ VoxelLodTerrain::VoxelLodTerrain() {
 	};
 	callbacks.data_output_callback = [](void *cb_data, VoxelEngine::ChunkDataOutput &ob) {
 		VoxelLodTerrain *self = reinterpret_cast<VoxelLodTerrain *>(cb_data);
-		self->apply_data_block_response(ob);
+		self->apply_chunk_response(ob);
 	};
 	callbacks.detail_texture_output_callback = [](void *cb_data, VoxelEngine::BlockDetailTextureOutput &ob) {
 		VoxelLodTerrain *self = reinterpret_cast<VoxelLodTerrain *>(cb_data);
@@ -262,11 +262,11 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 	}
 }
 
-unsigned int VoxelLodTerrain::get_data_block_size() const {
+unsigned int VoxelLodTerrain::get_chunk_size() const {
 	return _data->get_block_size();
 }
 
-unsigned int VoxelLodTerrain::get_data_block_size_pow2() const {
+unsigned int VoxelLodTerrain::get_chunk_size_pow2() const {
 	return _data->get_block_size_po2();
 }
 
@@ -434,7 +434,7 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 	const unsigned int lod_count = get_lod_count();
 	for (unsigned int i = 0; i < lod_count; ++i) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[i];
-		lod.last_view_distance_data_blocks = 0;
+		lod.last_view_distance_chunks = 0;
 		lod.last_view_distance_chunk_meshes = 0;
 	}
 
@@ -443,7 +443,7 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 
 void VoxelLodTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 	// Mesh block size cannot be smaller than data block size, for now
-	chunk_mesh_size = math::clamp(chunk_mesh_size, get_data_block_size(), constants::MAX_BLOCK_SIZE);
+	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_BLOCK_SIZE);
 
 	// Only these sizes are allowed at the moment. This stuff is still not supported in a generic way yet,
 	// some code still exploits the fact it's a multiple of data block size, for performance
@@ -814,7 +814,7 @@ void VoxelLodTerrain::reset_mesh_maps() {
 		if (lod_index < lod_count) {
 			mesh_map.clear();
 			// Reset view distance cache so blocks will be re-entered due to the difference
-			lod.last_view_distance_data_blocks = 0;
+			lod.last_view_distance_chunks = 0;
 			lod.last_view_distance_chunk_meshes = 0;
 		} else {
 			mesh_map.clear();
@@ -913,15 +913,15 @@ float VoxelLodTerrain::get_collision_margin() const {
 	return _collision_margin;
 }
 
-int VoxelLodTerrain::get_data_block_region_extent() const {
-	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_data_block_size());
+int VoxelLodTerrain::get_chunk_region_extent() const {
+	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_chunk_size());
 }
 
 int VoxelLodTerrain::get_chunk_mesh_region_extent() const {
 	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_chunk_mesh_size());
 }
 
-Vector3i VoxelLodTerrain::voxel_to_data_block_position(Vector3 vpos, int lod_index) const {
+Vector3i VoxelLodTerrain::voxel_to_chunk_position(Vector3 vpos, int lod_index) const {
 	ERR_FAIL_COND_V(lod_index < 0, Vector3i());
 	ERR_FAIL_COND_V(lod_index >= get_lod_count(), Vector3i());
 	const Vector3i bpos = _data->voxel_to_block(math::floor_to_int(vpos)) >> lod_index;
@@ -1065,7 +1065,7 @@ void VoxelLodTerrain::_notification(int p_what) {
 
 Vector3 VoxelLodTerrain::get_local_viewer_pos() const {
 	// Pick this by default
-	Vector3 pos = _update_data->state.lods[0].last_viewer_data_block_pos << get_data_block_size_pow2();
+	Vector3 pos = _update_data->state.lods[0].last_viewer_chunk_pos << get_chunk_size_pow2();
 
 	// TODO Support for multiple viewers, this is a placeholder implementation
 	VoxelEngine::get_singleton().for_each_viewer( //
@@ -1078,9 +1078,9 @@ Vector3 VoxelLodTerrain::get_local_viewer_pos() const {
 	return pos;
 }
 
-inline bool check_block_sizes(int data_block_size, int chunk_mesh_size) {
-	return (data_block_size == 16 || data_block_size == 32) && (chunk_mesh_size == 16 || chunk_mesh_size == 32) &&
-			chunk_mesh_size >= data_block_size;
+inline bool check_block_sizes(int chunk_size, int chunk_mesh_size) {
+	return (chunk_size == 16 || chunk_size == 32) && (chunk_mesh_size == 16 || chunk_mesh_size == 32) &&
+			chunk_mesh_size >= chunk_size;
 }
 
 void VoxelLodTerrain::process(float delta) {
@@ -1356,7 +1356,7 @@ bool thread_safe_contains(const std::unordered_set<T> &set, T v, BinaryMutex &mu
 	return it != set.end();
 }
 
-void VoxelLodTerrain::apply_data_block_response(VoxelEngine::ChunkDataOutput &ob) {
+void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	ZN_PROFILE_SCOPE();
 
 	if (ob.type == VoxelEngine::ChunkDataOutput::TYPE_SAVED) {
@@ -2035,7 +2035,7 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 
 	// And flush immediately
 	VoxelLodTerrainUpdateTask::send_block_save_requests(
-			_volume_id, to_span(blocks_to_save), _streaming_dependency, get_data_block_size(), task_scheduler);
+			_volume_id, to_span(blocks_to_save), _streaming_dependency, get_chunk_size(), task_scheduler);
 	task_scheduler.flush();
 }
 
@@ -2422,7 +2422,7 @@ Array VoxelLodTerrain::debug_raycast_chunk_mesh(Vector3 world_origin, Vector3 wo
 	return hits;
 }
 
-Dictionary VoxelLodTerrain::debug_get_data_block_info(Vector3 fbpos, int lod_index) const {
+Dictionary VoxelLodTerrain::debug_get_chunk_info(Vector3 fbpos, int lod_index) const {
 	Dictionary d;
 	ERR_FAIL_COND_V(lod_index < 0, d);
 	ERR_FAIL_COND_V(lod_index >= get_lod_count(), d);
@@ -2695,13 +2695,13 @@ void VoxelLodTerrain::update_gizmos() {
 
 	// Edited blocks
 	if (debug_get_draw_flag(DEBUG_DRAW_EDITED_BLOCKS) && _edited_blocks_gizmos_lod_index < lod_count) {
-		const int data_block_size = get_data_block_size() << _edited_blocks_gizmos_lod_index;
-		const Basis basis(Basis().scaled(Vector3(data_block_size, data_block_size, data_block_size)));
+		const int chunk_size = get_chunk_size() << _edited_blocks_gizmos_lod_index;
+		const Basis basis(Basis().scaled(Vector3(chunk_size, chunk_size, chunk_size)));
 
 		_data->for_each_block_at_lod(
-				[&dr, parent_transform, data_block_size, basis](const Vector3i &bpos, const VoxelDataBlock &block) {
+				[&dr, parent_transform, chunk_size, basis](const Vector3i &bpos, const VoxelDataBlock &block) {
 					if (block.is_edited()) {
-						const Transform3D local_transform(basis, bpos * data_block_size);
+						const Transform3D local_transform(basis, bpos * chunk_size);
 						const Transform3D t = parent_transform * local_transform;
 						const Color8 c = block.is_modified() ? Color8(255, 255, 0, 255) : Color8(0, 255, 0, 255);
 						dr.draw_box_mm(t, c);
@@ -2810,7 +2810,7 @@ int VoxelLodTerrain::_b_debug_get_chunk_mesh_count() const {
 	return sum;
 }
 
-int VoxelLodTerrain::_b_debug_get_data_block_count() const {
+int VoxelLodTerrain::_b_debug_get_chunk_count() const {
 	return _data->get_block_count();
 }
 
@@ -2920,8 +2920,8 @@ void VoxelLodTerrain::_bind_methods() {
 
 	// Misc
 
-	ClassDB::bind_method(D_METHOD("voxel_to_data_block_position", "voxel_position", "lod_index"),
-			&VoxelLodTerrain::voxel_to_data_block_position);
+	ClassDB::bind_method(D_METHOD("voxel_to_chunk_position", "voxel_position", "lod_index"),
+			&VoxelLodTerrain::voxel_to_chunk_position);
 	ClassDB::bind_method(D_METHOD("voxel_to_chunk_mesh_position", "voxel_position", "lod_index"),
 			&VoxelLodTerrain::voxel_to_chunk_mesh_position);
 
@@ -2980,8 +2980,8 @@ void VoxelLodTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_chunk_mesh_size"), &VoxelLodTerrain::get_chunk_mesh_size);
 	ClassDB::bind_method(D_METHOD("set_chunk_mesh_size"), &VoxelLodTerrain::set_chunk_mesh_size);
 
-	ClassDB::bind_method(D_METHOD("get_data_block_size"), &VoxelLodTerrain::get_data_block_size);
-	ClassDB::bind_method(D_METHOD("get_data_block_region_extent"), &VoxelLodTerrain::get_data_block_region_extent);
+	ClassDB::bind_method(D_METHOD("get_chunk_size"), &VoxelLodTerrain::get_chunk_size);
+	ClassDB::bind_method(D_METHOD("get_chunk_region_extent"), &VoxelLodTerrain::get_chunk_region_extent);
 
 	ClassDB::bind_method(D_METHOD("set_full_load_mode_enabled"), &VoxelLodTerrain::set_full_load_mode_enabled);
 	ClassDB::bind_method(D_METHOD("is_full_load_mode_enabled"), &VoxelLodTerrain::is_full_load_mode_enabled);
@@ -3003,14 +3003,14 @@ void VoxelLodTerrain::_bind_methods() {
 	ClassDB::bind_method(
 			D_METHOD("debug_raycast_chunk_mesh", "origin", "dir"), &VoxelLodTerrain::debug_raycast_chunk_mesh);
 	ClassDB::bind_method(
-			D_METHOD("debug_get_data_block_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_data_block_info);
+			D_METHOD("debug_get_chunk_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_info);
 	ClassDB::bind_method(
 			D_METHOD("debug_get_chunk_mesh_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_mesh_info);
 	ClassDB::bind_method(D_METHOD("debug_get_octrees_detailed"), &VoxelLodTerrain::debug_get_octrees_detailed);
 	ClassDB::bind_method(
 			D_METHOD("debug_print_sdf_top_down", "center", "extents"), &VoxelLodTerrain::_b_debug_print_sdf_top_down);
 	ClassDB::bind_method(D_METHOD("debug_get_chunk_mesh_count"), &VoxelLodTerrain::_b_debug_get_chunk_mesh_count);
-	ClassDB::bind_method(D_METHOD("debug_get_data_block_count"), &VoxelLodTerrain::_b_debug_get_data_block_count);
+	ClassDB::bind_method(D_METHOD("debug_get_chunk_count"), &VoxelLodTerrain::_b_debug_get_chunk_count);
 	ClassDB::bind_method(
 			D_METHOD("debug_dump_as_scene", "path", "include_instancer"), &VoxelLodTerrain::_b_debug_dump_as_scene);
 	ClassDB::bind_method(D_METHOD("debug_is_draw_enabled"), &VoxelLodTerrain::debug_is_draw_enabled);

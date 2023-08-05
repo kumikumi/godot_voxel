@@ -6,7 +6,7 @@
 #include "../../storage/voxel_data.h"
 #include "../../util/godot/memory.h"
 #include "../../util/math/box3i.h"
-#include "../voxel_data_block_enter_info.h"
+#include "../voxel_chunk_enter_info.h"
 #include "../voxel_mesh_map.h"
 #include "../voxel_node.h"
 #include "voxel_chunk_mesh_vt.h"
@@ -43,11 +43,11 @@ public:
 	void set_mesher(Ref<VoxelMesher> mesher) override;
 	Ref<VoxelMesher> get_mesher() const override;
 
-	unsigned int get_data_block_size_pow2() const;
-	inline unsigned int get_data_block_size() const {
-		return 1 << get_data_block_size_pow2();
+	unsigned int get_chunk_size_pow2() const;
+	inline unsigned int get_chunk_size() const {
+		return 1 << get_chunk_size_pow2();
 	}
-	// void set_data_block_size_po2(unsigned int p_block_size_po2);
+	// void set_chunk_size_po2(unsigned int p_block_size_po2);
 
 	unsigned int get_chunk_mesh_size_pow2() const;
 	inline unsigned int get_chunk_mesh_size() const {
@@ -106,7 +106,7 @@ public:
 	// If no local viewer is actually in range, the data will not be applied and the function returns `false`.
 	bool try_set_block_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data);
 
-	bool has_data_block(Vector3i position) const;
+	bool has_chunk(Vector3i position) const;
 
 	void set_run_stream_in_editor(bool enable);
 	bool is_stream_running_in_editor() const;
@@ -173,10 +173,10 @@ private:
 	void process_viewers();
 	void process_viewer_data_box_change(
 			ViewerID viewer_id, Box3i prev_data_box, Box3i new_data_box, bool can_load_blocks);
-	// void process_received_data_blocks();
+	// void process_received_chunks();
 	void process_meshing();
 	void apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob);
-	void apply_data_block_response(VoxelEngine::ChunkDataOutput &ob);
+	void apply_chunk_response(VoxelEngine::ChunkDataOutput &ob);
 
 	void _on_stream_params_changed();
 	// void _set_block_size_po2(int p_block_size_po2);
@@ -187,13 +187,13 @@ private:
 	void stop_streamer();
 	void reset_map();
 
-	// void view_data_block(Vector3i bpos, uint32_t viewer_id, bool require_notification);
+	// void view_chunk(Vector3i bpos, uint32_t viewer_id, bool require_notification);
 	void view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag);
-	// void unview_data_block(Vector3i bpos);
+	// void unview_chunk(Vector3i bpos);
 	void unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag);
-	// void unload_data_block(Vector3i bpos);
+	// void unload_chunk(Vector3i bpos);
 	void unload_chunk_mesh(Vector3i bpos);
-	// void make_data_block_dirty(Vector3i bpos);
+	// void make_chunk_dirty(Vector3i bpos);
 	void try_schedule_mesh_update(VoxelChunkMeshVT &block);
 	void try_schedule_mesh_update_from_data(const Box3i &box_in_voxels);
 
@@ -211,7 +211,7 @@ private:
 
 	bool try_get_paired_viewer_index(ViewerID id, size_t &out_i) const;
 
-	void notify_data_block_enter(const VoxelDataBlock &block, Vector3i bpos, ViewerID viewer_id);
+	void notify_chunk_enter(const VoxelDataBlock &block, Vector3i bpos, ViewerID viewer_id);
 
 	bool is_area_meshed(const Box3i &box_in_voxels) const;
 
@@ -219,7 +219,7 @@ private:
 	// Called each time a data block enters a viewer's area.
 	// This can be either when the block exists and the viewer gets close enough, or when it gets loaded.
 	// This only happens if data block enter notifications are enabled.
-	GDVIRTUAL1(_on_data_block_entered, VoxelDataBlockEnterInfo *);
+	GDVIRTUAL1(_on_chunk_entered, VoxelDataBlockEnterInfo *);
 
 	// Called each time voxels are edited within a region.
 	GDVIRTUAL2(_on_area_edited, Vector3i, Vector3i);
@@ -230,8 +230,8 @@ private:
 	static void _bind_methods();
 
 	// Bindings
-	Vector3i _b_voxel_to_data_block(Vector3 pos) const;
-	Vector3i _b_data_block_to_voxel(Vector3i pos) const;
+	Vector3i _b_voxel_to_chunk(Vector3 pos) const;
+	Vector3i _b_chunk_to_voxel(Vector3i pos) const;
 	// void _force_load_blocks_binding(Vector3 center, Vector3 extents) { force_load_blocks(center, extents); }
 	Ref<VoxelSaveCompletionTracker> _b_save_modified_blocks();
 	void _b_save_chunk(Vector3i p_block_pos);
@@ -314,7 +314,7 @@ private:
 
 	Ref<Material> _material_override;
 
-	GodotObjectUniquePtr<VoxelDataBlockEnterInfo> _data_block_enter_info_obj;
+	GodotObjectUniquePtr<VoxelDataBlockEnterInfo> _chunk_enter_info_obj;
 
 	// References to external nodes.
 	VoxelInstancer *_instancer = nullptr;

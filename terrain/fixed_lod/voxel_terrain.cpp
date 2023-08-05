@@ -29,7 +29,7 @@
 #include "../../util/string_funcs.h"
 #include "../../util/tasks/async_dependency_tracker.h"
 #include "../instancing/voxel_instancer.h"
-#include "../voxel_data_block_enter_info.h"
+#include "../voxel_chunk_enter_info.h"
 #include "../voxel_save_completion_tracker.h"
 #include "voxel_terrain_multiplayer_synchronizer.h"
 
@@ -84,7 +84,7 @@ VoxelTerrain::VoxelTerrain() {
 	};
 	callbacks.data_output_callback = [](void *cb_data, VoxelEngine::ChunkDataOutput &ob) {
 		VoxelTerrain *self = reinterpret_cast<VoxelTerrain *>(cb_data);
-		self->apply_data_block_response(ob);
+		self->apply_chunk_response(ob);
 	};
 
 	_volume_id = VoxelEngine::get_singleton().add_volume(callbacks);
@@ -190,7 +190,7 @@ Ref<VoxelGenerator> VoxelTerrain::get_generator() const {
 // 	_data_map.create(0);
 // }
 
-unsigned int VoxelTerrain::get_data_block_size_pow2() const {
+unsigned int VoxelTerrain::get_chunk_size_pow2() const {
 	return _data->get_block_size_po2();
 }
 
@@ -199,7 +199,7 @@ unsigned int VoxelTerrain::get_chunk_mesh_size_pow2() const {
 }
 
 void VoxelTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
-	chunk_mesh_size = math::clamp(chunk_mesh_size, get_data_block_size(), constants::MAX_BLOCK_SIZE);
+	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_BLOCK_SIZE);
 
 	unsigned int po2;
 	switch (chunk_mesh_size) {
@@ -314,7 +314,7 @@ void VoxelTerrain::set_mesher(Ref<VoxelMesher> mesher) {
 }
 
 void VoxelTerrain::get_viewers_in_area(std::vector<ViewerID> &out_viewer_ids, Box3i voxel_box) const {
-	const Box3i block_box = voxel_box.downscaled(get_data_block_size());
+	const Box3i block_box = voxel_box.downscaled(get_chunk_size());
 
 	for (auto it = _paired_viewers.begin(); it != _paired_viewers.end(); ++it) {
 		const PairedViewer &viewer = *it;
@@ -417,7 +417,7 @@ void VoxelTerrain::try_schedule_mesh_update(VoxelChunkMeshVT &chunk_mesh) {
 		return;
 	}
 
-	const int render_to_data_factor = get_chunk_mesh_size() / get_data_block_size();
+	const int render_to_data_factor = get_chunk_mesh_size() / get_chunk_size();
 
 	const Box3i data_box =
 			Box3i(chunk_mesh.position * render_to_data_factor, Vector3iUtil::create(render_to_data_factor)).padded(1);
@@ -848,14 +848,14 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		use_gpu = false;
 	}
 
-	const unsigned int data_block_size = voxel_data->get_block_size();
+	const unsigned int chunk_size = voxel_data->get_block_size();
 
 	if (stream_dependency->stream.is_valid()) {
 		PriorityDependency priority_dependency;
 		init_sparse_grid_priority_dependency(
-				priority_dependency, block_pos, data_block_size, shared_viewers_data, volume_transform);
+				priority_dependency, block_pos, chunk_size, shared_viewers_data, volume_transform);
 
-		LoadChunkDataTask *task = ZN_NEW(LoadChunkDataTask(volume_id, block_pos, 0, data_block_size, request_instances,
+		LoadChunkDataTask *task = ZN_NEW(LoadChunkDataTask(volume_id, block_pos, 0, chunk_size, request_instances,
 				stream_dependency, priority_dependency, true, use_gpu, voxel_data));
 
 		scheduler.push_io_task(task);
@@ -868,13 +868,13 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		task->volume_id = volume_id;
 		task->position = block_pos;
 		task->lod_index = 0;
-		task->block_size = data_block_size;
+		task->block_size = chunk_size;
 		task->stream_dependency = stream_dependency;
 		task->use_gpu = use_gpu;
 		task->data = voxel_data;
 
 		init_sparse_grid_priority_dependency(
-				task->priority_dependency, block_pos, data_block_size, shared_viewers_data, volume_transform);
+				task->priority_dependency, block_pos, chunk_size, shared_viewers_data, volume_transform);
 
 		scheduler.push_main_task(task);
 	}
@@ -908,12 +908,12 @@ void VoxelTerrain::consume_block_data_save_requests(
 
 	// Blocks to save
 	if (get_stream().is_valid()) {
-		const uint8_t data_block_size = get_data_block_size();
+		const uint8_t chunk_size = get_chunk_size();
 		for (const VoxelData::BlockToSave &b : _blocks_to_save) {
 			ZN_PRINT_VERBOSE(format("Requesting save of block {}", b.position));
 
 			SaveChunkDataTask *task = ZN_NEW(SaveChunkDataTask(
-					_volume_id, b.position, 0, data_block_size, b.voxels, _streaming_dependency, saving_tracker));
+					_volume_id, b.position, 0, chunk_size, b.voxels, _streaming_dependency, saving_tracker));
 
 			// No priority data, saving doesn't need sorting.
 			task_scheduler.push_io_task(task);
@@ -979,27 +979,27 @@ bool VoxelTerrain::try_get_paired_viewer_index(ViewerID id, size_t &out_i) const
 }
 
 // TODO It is unclear yet if this API will stay. I have a feeling it might consume a lot of CPU
-void VoxelTerrain::notify_data_block_enter(const VoxelDataBlock &block, Vector3i bpos, ViewerID viewer_id) {
+void VoxelTerrain::notify_chunk_enter(const VoxelDataBlock &block, Vector3i bpos, ViewerID viewer_id) {
 	if (!VoxelEngine::get_singleton().viewer_exists(viewer_id)) {
 		// The viewer might have been removed between the moment we requested the block and the moment we finished
 		// loading it
 		return;
 	}
-	if (_data_block_enter_info_obj == nullptr) {
-		_data_block_enter_info_obj = gd_make_unique<VoxelDataBlockEnterInfo>();
+	if (_chunk_enter_info_obj == nullptr) {
+		_chunk_enter_info_obj = gd_make_unique<VoxelDataBlockEnterInfo>();
 	}
 	const int network_peer_id = VoxelEngine::get_singleton().get_viewer_network_peer_id(viewer_id);
-	_data_block_enter_info_obj->network_peer_id = network_peer_id;
-	_data_block_enter_info_obj->voxel_block = block;
-	_data_block_enter_info_obj->block_position = bpos;
+	_chunk_enter_info_obj->network_peer_id = network_peer_id;
+	_chunk_enter_info_obj->voxel_block = block;
+	_chunk_enter_info_obj->block_position = bpos;
 
 #if defined(ZN_GODOT)
-	if (!GDVIRTUAL_CALL(_on_data_block_entered, _data_block_enter_info_obj.get()) &&
+	if (!GDVIRTUAL_CALL(_on_chunk_entered, _chunk_enter_info_obj.get()) &&
 			_multiplayer_synchronizer == nullptr) {
-		WARN_PRINT_ONCE("VoxelTerrain::_on_data_block_entered is unimplemented!");
+		WARN_PRINT_ONCE("VoxelTerrain::_on_chunk_entered is unimplemented!");
 	}
 #else
-	ERR_PRINT_ONCE("VoxelTerrain::_on_data_block_entered is not supported yet in GDExtension!");
+	ERR_PRINT_ONCE("VoxelTerrain::_on_chunk_entered is not supported yet in GDExtension!");
 #endif
 
 	if (_multiplayer_synchronizer != nullptr && !Engine::get_singleton()->is_editor_hint() &&
@@ -1020,7 +1020,7 @@ void VoxelTerrain::process() {
 	}
 
 	process_viewers();
-	// process_received_data_blocks();
+	// process_received_chunks();
 	process_meshing();
 }
 
@@ -1063,12 +1063,12 @@ void VoxelTerrain::process_viewers() {
 
 		const Box3i bounds_in_voxels = _data->get_bounds();
 
-		const Box3i bounds_in_data_blocks = bounds_in_voxels.downscaled(get_data_block_size());
+		const Box3i bounds_in_chunks = bounds_in_voxels.downscaled(get_chunk_size());
 		const Box3i bounds_in_chunk_meshes = bounds_in_voxels.downscaled(get_chunk_mesh_size());
 
 		struct UpdatePairedViewer {
 			VoxelTerrain &self;
-			const Box3i bounds_in_data_blocks;
+			const Box3i bounds_in_chunks;
 			const Box3i bounds_in_chunk_meshes;
 			const Transform3D world_to_local_transform;
 			const float view_distance_scale;
@@ -1100,40 +1100,40 @@ void VoxelTerrain::process_viewers() {
 
 				// Update data and mesh view boxes
 
-				const int data_block_size = self.get_data_block_size();
+				const int chunk_size = self.get_chunk_size();
 				const int chunk_mesh_size = self.get_chunk_mesh_size();
 
-				int view_distance_data_blocks;
-				Vector3i data_block_pos;
+				int view_distance_chunks;
+				Vector3i chunk_pos;
 
 				if (state.requires_meshes || state.requires_collisions) {
 					const int view_distance_chunk_meshes = math::ceildiv(state.view_distance_voxels, chunk_mesh_size);
-					const int render_to_data_factor = (chunk_mesh_size / data_block_size);
+					const int render_to_data_factor = (chunk_mesh_size / chunk_size);
 					const Vector3i chunk_mesh_pos = math::floordiv(state.local_position_voxels, chunk_mesh_size);
 
 					// Adding one block of padding because meshing requires neighbors
-					view_distance_data_blocks = view_distance_chunk_meshes * render_to_data_factor + 1;
+					view_distance_chunks = view_distance_chunk_meshes * render_to_data_factor + 1;
 
-					data_block_pos = chunk_mesh_pos * render_to_data_factor;
+					chunk_pos = chunk_mesh_pos * render_to_data_factor;
 					state.mesh_box =
 							Box3i::from_center_extents(chunk_mesh_pos, Vector3iUtil::create(view_distance_chunk_meshes))
 									.clipped(bounds_in_chunk_meshes);
 
 				} else {
-					view_distance_data_blocks = math::ceildiv(state.view_distance_voxels, data_block_size);
+					view_distance_chunks = math::ceildiv(state.view_distance_voxels, chunk_size);
 
-					data_block_pos = math::floordiv(state.local_position_voxels, data_block_size);
+					chunk_pos = math::floordiv(state.local_position_voxels, chunk_size);
 					state.mesh_box = Box3i();
 				}
 
 				state.data_box =
-						Box3i::from_center_extents(data_block_pos, Vector3iUtil::create(view_distance_data_blocks))
-								.clipped(bounds_in_data_blocks);
+						Box3i::from_center_extents(chunk_pos, Vector3iUtil::create(view_distance_chunks))
+								.clipped(bounds_in_chunks);
 			}
 		};
 
 		// New viewers and updates. Removed viewers won't be iterated but are still paired until later.
-		UpdatePairedViewer u{ *this, bounds_in_data_blocks, bounds_in_chunk_meshes, world_to_local_transform,
+		UpdatePairedViewer u{ *this, bounds_in_chunks, bounds_in_chunk_meshes, world_to_local_transform,
 			view_distance_scale };
 		VoxelEngine::get_singleton().for_each_viewer(u);
 	}
@@ -1311,7 +1311,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 				(_block_enter_notification_enabled ||
 						(_multiplayer_synchronizer != nullptr && _multiplayer_synchronizer->is_server())) &&
 				VoxelEngine::get_singleton().viewer_exists(viewer_id) && // Could be a destroyed viewer
-				VoxelEngine::get_singleton().is_viewer_requiring_data_block_notifications(viewer_id);
+				VoxelEngine::get_singleton().is_viewer_requiring_chunk_notifications(viewer_id);
 
 		static thread_local std::vector<VoxelDataBlock> tls_found_blocks;
 
@@ -1357,7 +1357,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 			for (unsigned int i = 0; i < tls_found_blocks.size(); ++i) {
 				const Vector3i bpos = tls_found_blocks_positions[i];
 				const VoxelDataBlock &block = tls_found_blocks[i];
-				notify_data_block_enter(block, bpos, viewer_id);
+				notify_chunk_enter(block, bpos, viewer_id);
 			}
 		}
 
@@ -1370,7 +1370,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 	}
 }
 
-void VoxelTerrain::apply_data_block_response(VoxelEngine::ChunkDataOutput &ob) {
+void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	ZN_PROFILE_SCOPE();
 
 	// print_line(String("Receiving {0} blocks").format(varray(output.emerged_blocks.size())));
@@ -1440,14 +1440,14 @@ void VoxelTerrain::apply_data_block_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	for (unsigned int i = 0; i < loading_block.viewers_to_notify.size(); ++i) {
 		const ViewerID viewer_id = loading_block.viewers_to_notify[i];
-		notify_data_block_enter(block, block_pos, viewer_id);
+		notify_chunk_enter(block, block_pos, viewer_id);
 	}
 
 	// The block itself might not be suitable for meshing yet, but blocks surrounding it might be now
 	// TODO Optimize: initial loading can hang for a while here.
 	// Because lots of blocks are loaded at once, which leads to many block queries.
 	try_schedule_mesh_update_from_data(
-			Box3i(_data->block_to_voxel(block_pos), Vector3iUtil::create(get_data_block_size())));
+			Box3i(_data->block_to_voxel(block_pos), Vector3iUtil::create(get_chunk_size())));
 
 	// We might have requested some blocks again (if we got a dropped one while we still need them)
 	// if (stream_enabled) {
@@ -1505,12 +1505,12 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 
 	// The block itself might not be suitable for meshing yet, but blocks surrounding it might be now
 	try_schedule_mesh_update_from_data(
-			Box3i(_data->block_to_voxel(position), Vector3iUtil::create(get_data_block_size())));
+			Box3i(_data->block_to_voxel(position), Vector3iUtil::create(get_chunk_size())));
 
 	return true;
 }
 
-bool VoxelTerrain::has_data_block(Vector3i position) const {
+bool VoxelTerrain::has_chunk(Vector3i position) const {
 	return _data->has_block(position, 0);
 }
 
@@ -1527,7 +1527,7 @@ void VoxelTerrain::process_meshing() {
 			VoxelEngine::get_singleton().get_shared_viewers_data_from_default_world();
 
 	// const int used_channels_mask = get_used_channels_mask();
-	const int mesh_to_data_factor = get_chunk_mesh_size() / get_data_block_size();
+	const int mesh_to_data_factor = get_chunk_mesh_size() / get_chunk_size();
 
 	BufferedTaskScheduler &scheduler = BufferedTaskScheduler::get_for_current_thread();
 
@@ -1734,7 +1734,7 @@ void VoxelTerrain::set_bounds(Box3i box) {
 			box.clipped(Box3i::from_center_extents(Vector3i(), Vector3iUtil::create(constants::MAX_VOLUME_EXTENT)));
 
 	// Round to block size
-	bounds_in_voxels = bounds_in_voxels.snapped(get_data_block_size());
+	bounds_in_voxels = bounds_in_voxels.snapped(get_chunk_size());
 
 	_data->set_bounds(bounds_in_voxels);
 
@@ -1787,11 +1787,11 @@ void VoxelTerrain::get_configuration_warnings(PackedStringArray &warnings) const
 
 #endif
 
-Vector3i VoxelTerrain::_b_voxel_to_data_block(Vector3 pos) const {
+Vector3i VoxelTerrain::_b_voxel_to_chunk(Vector3 pos) const {
 	return _data->voxel_to_block(math::floor_to_int(pos));
 }
 
-Vector3i VoxelTerrain::_b_data_block_to_voxel(Vector3i pos) const {
+Vector3i VoxelTerrain::_b_chunk_to_voxel(Vector3i pos) const {
 	return _data->block_to_voxel(pos);
 }
 
@@ -1893,10 +1893,10 @@ void VoxelTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_collision_margin"), &VoxelTerrain::get_collision_margin);
 	ClassDB::bind_method(D_METHOD("set_collision_margin", "margin"), &VoxelTerrain::set_collision_margin);
 
-	ClassDB::bind_method(D_METHOD("voxel_to_data_block", "voxel_pos"), &VoxelTerrain::_b_voxel_to_data_block);
-	ClassDB::bind_method(D_METHOD("data_block_to_voxel", "block_pos"), &VoxelTerrain::_b_data_block_to_voxel);
+	ClassDB::bind_method(D_METHOD("voxel_to_chunk", "voxel_pos"), &VoxelTerrain::_b_voxel_to_chunk);
+	ClassDB::bind_method(D_METHOD("chunk_to_voxel", "block_pos"), &VoxelTerrain::_b_chunk_to_voxel);
 
-	ClassDB::bind_method(D_METHOD("get_data_block_size"), &VoxelTerrain::get_data_block_size);
+	ClassDB::bind_method(D_METHOD("get_chunk_size"), &VoxelTerrain::get_chunk_size);
 
 	ClassDB::bind_method(D_METHOD("get_chunk_mesh_size"), &VoxelTerrain::get_chunk_mesh_size);
 	ClassDB::bind_method(D_METHOD("set_chunk_mesh_size", "size"), &VoxelTerrain::set_chunk_mesh_size);
@@ -1926,11 +1926,11 @@ void VoxelTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_viewer_network_peer_ids_in_area", "area_origin", "area_size"),
 			&VoxelTerrain::_b_get_viewer_network_peer_ids_in_area);
 
-	ClassDB::bind_method(D_METHOD("has_data_block", "block_position"), &VoxelTerrain::has_data_block);
+	ClassDB::bind_method(D_METHOD("has_chunk", "block_position"), &VoxelTerrain::has_chunk);
 	ClassDB::bind_method(D_METHOD("is_area_meshed", "area_in_voxels"), &VoxelTerrain::_b_is_area_meshed);
 
 #ifdef ZN_GODOT
-	GDVIRTUAL_BIND(_on_data_block_entered, "info");
+	GDVIRTUAL_BIND(_on_chunk_entered, "info");
 	GDVIRTUAL_BIND(_on_area_edited, "area_origin", "area_size");
 #endif
 

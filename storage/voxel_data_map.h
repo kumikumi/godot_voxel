@@ -3,7 +3,7 @@
 
 #include "../util/fixed_array.h"
 #include "../util/profiling.h"
-#include "voxel_data_block.h"
+#include "voxel_chunk_data.h"
 
 #include <unordered_map>
 

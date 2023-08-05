@@ -43,15 +43,15 @@ bool VoxelViewer::is_requiring_collisions() const {
 	return _requires_collisions;
 }
 
-void VoxelViewer::set_requires_data_block_notifications(bool enabled) {
-	_requires_data_block_notifications = enabled;
+void VoxelViewer::set_requires_chunk_notifications(bool enabled) {
+	_requires_chunk_notifications = enabled;
 	if (is_active()) {
-		VoxelEngine::get_singleton().set_viewer_requires_data_block_notifications(_viewer_id, enabled);
+		VoxelEngine::get_singleton().set_viewer_requires_chunk_notifications(_viewer_id, enabled);
 	}
 }
 
-bool VoxelViewer::is_requiring_data_block_notifications() const {
-	return _requires_data_block_notifications;
+bool VoxelViewer::is_requiring_chunk_notifications() const {
+	return _requires_chunk_notifications;
 }
 
 void VoxelViewer::set_network_peer_id(int id) {
@@ -73,8 +73,8 @@ void VoxelViewer::_notification(int p_what) {
 				VoxelEngine::get_singleton().set_viewer_distance(_viewer_id, _view_distance);
 				VoxelEngine::get_singleton().set_viewer_requires_visuals(_viewer_id, _requires_visuals);
 				VoxelEngine::get_singleton().set_viewer_requires_collisions(_viewer_id, _requires_collisions);
-				VoxelEngine::get_singleton().set_viewer_requires_data_block_notifications(
-						_viewer_id, _requires_data_block_notifications);
+				VoxelEngine::get_singleton().set_viewer_requires_chunk_notifications(
+						_viewer_id, _requires_chunk_notifications);
 				VoxelEngine::get_singleton().set_viewer_network_peer_id(_viewer_id, _network_peer_id);
 				const Vector3 pos = get_global_transform().origin;
 				VoxelEngine::get_singleton().set_viewer_position(_viewer_id, pos);
@@ -117,10 +117,10 @@ void VoxelViewer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_requires_collisions", "enabled"), &VoxelViewer::set_requires_collisions);
 	ClassDB::bind_method(D_METHOD("is_requiring_collisions"), &VoxelViewer::is_requiring_collisions);
 
-	ClassDB::bind_method(D_METHOD("set_requires_data_block_notifications", "enabled"),
-			&VoxelViewer::set_requires_data_block_notifications);
+	ClassDB::bind_method(D_METHOD("set_requires_chunk_notifications", "enabled"),
+			&VoxelViewer::set_requires_chunk_notifications);
 	ClassDB::bind_method(
-			D_METHOD("is_requiring_data_block_notifications"), &VoxelViewer::is_requiring_data_block_notifications);
+			D_METHOD("is_requiring_chunk_notifications"), &VoxelViewer::is_requiring_chunk_notifications);
 
 	ClassDB::bind_method(D_METHOD("set_network_peer_id", "id"), &VoxelViewer::set_network_peer_id);
 	ClassDB::bind_method(D_METHOD("get_network_peer_id"), &VoxelViewer::get_network_peer_id);
@@ -129,8 +129,8 @@ void VoxelViewer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "requires_visuals"), "set_requires_visuals", "is_requiring_visuals");
 	ADD_PROPERTY(
 			PropertyInfo(Variant::BOOL, "requires_collisions"), "set_requires_collisions", "is_requiring_collisions");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "requires_data_block_notifications"),
-			"set_requires_data_block_notifications", "is_requiring_data_block_notifications");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "requires_chunk_notifications"),
+			"set_requires_chunk_notifications", "is_requiring_chunk_notifications");
 }
 
 } // namespace zylann::voxel

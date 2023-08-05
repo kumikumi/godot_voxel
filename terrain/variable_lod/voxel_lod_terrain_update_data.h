@@ -118,8 +118,8 @@ struct VoxelLodTerrainUpdateData {
 		BinaryMutex loading_blocks_mutex;
 
 		// These are relative to this LOD, in block coordinates
-		Vector3i last_viewer_data_block_pos;
-		int last_view_distance_data_blocks = 0;
+		Vector3i last_viewer_chunk_pos;
+		int last_view_distance_chunks = 0;
 
 		MeshMapState mesh_map_state;
 

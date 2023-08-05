@@ -77,15 +77,15 @@ public:
 	void on_chunk_mesh_enter(Vector3i render_grid_position, unsigned int lod_index, Array surface_arrays);
 	void on_chunk_mesh_exit(Vector3i render_grid_position, unsigned int lod_index);
 	void on_area_edited(Box3i p_voxel_box);
-	void on_body_removed(Vector3i data_block_position, unsigned int render_block_index, unsigned int instance_index);
+	void on_body_removed(Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index);
 	void on_scene_instance_removed(
-			Vector3i data_block_position, unsigned int render_block_index, unsigned int instance_index);
-	void on_scene_instance_modified(Vector3i data_block_position, unsigned int render_block_index);
+			Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index);
+	void on_scene_instance_modified(Vector3i chunk_position, unsigned int render_block_index);
 
 	// Internal properties
 
 	void set_chunk_mesh_size_po2(unsigned int p_chunk_mesh_size_po2);
-	void set_data_block_size_po2(unsigned int p_data_block_size_po2);
+	void set_chunk_size_po2(unsigned int p_chunk_size_po2);
 	void set_mesh_lod_distance(float p_lod_distance);
 
 	// Debug
@@ -160,7 +160,7 @@ private:
 	};
 
 	SceneInstance create_scene_instance(const VoxelInstanceLibrarySceneItem &scene_item, int instance_index,
-			unsigned int block_index, Transform3D transform, int data_block_size_po2);
+			unsigned int block_index, Transform3D transform, int chunk_size_po2);
 
 	void update_block_from_transforms(int block_index, Span<const Transform3f> transforms, Vector3i grid_position,
 			Layer &layer, const VoxelInstanceLibraryItem &item_base, uint16_t layer_id, World3D &world,
@@ -251,7 +251,7 @@ private:
 	Ref<VoxelInstanceLibrary> _library;
 
 	VoxelNode *_parent = nullptr;
-	unsigned int _parent_data_block_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	unsigned int _parent_chunk_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
 	unsigned int _parent_chunk_mesh_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
 	float _mesh_lod_distance = 0.f;
 

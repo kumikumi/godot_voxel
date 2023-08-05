@@ -74,8 +74,8 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 		ERR_FAIL_COND_MSG(
 				Vector3iUtil::all_members_equal(central_buffer->get_size()) == false, "Central buffer must be cubic");
 	}
-	const int data_block_size = voxel_data.get_block_size();
-	const int chunk_mesh_size = data_block_size * area_info.chunk_mesh_size_factor;
+	const int chunk_size = voxel_data.get_block_size();
+	const int chunk_mesh_size = chunk_size * area_info.chunk_mesh_size_factor;
 	const int padded_chunk_mesh_size = chunk_mesh_size + min_padding + max_padding;
 
 	dst.create(padded_chunk_mesh_size, padded_chunk_mesh_size, padded_chunk_mesh_size);
@@ -111,17 +111,17 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 		// TODO The following logic might as well be simplified and moved to VoxelData.
 		// We are just sampling or generating data in a given area.
 
-		const Vector3i data_block_pos0 = chunk_mesh_pos * area_info.chunk_mesh_size_factor;
+		const Vector3i chunk_pos0 = chunk_mesh_pos * area_info.chunk_mesh_size_factor;
 		VoxelSpatialLockRead srlock(voxel_data.get_spatial_lock(lod_index),
-				BoxBounds3i(data_block_pos0 - Vector3i(1, 1, 1),
-						data_block_pos0 + Vector3iUtil::create(area_info.edge_size)));
+				BoxBounds3i(chunk_pos0 - Vector3i(1, 1, 1),
+						chunk_pos0 + Vector3iUtil::create(area_info.edge_size)));
 
 		// Using ZXY as convention to reconstruct positions with thread locking consistency
 		unsigned int block_index = 0;
 		for (int z = -1; z < area_info.edge_size - 1; ++z) {
 			for (int x = -1; x < area_info.edge_size - 1; ++x) {
 				for (int y = -1; y < area_info.edge_size - 1; ++y) {
-					const Vector3i offset = data_block_size * Vector3i(x, y, z);
+					const Vector3i offset = chunk_size * Vector3i(x, y, z);
 					const std::shared_ptr<VoxelBufferInternal> &src = blocks[block_index];
 					++block_index;
 
@@ -143,7 +143,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 						ZN_PROFILE_SCOPE_NAMED("Box subtract");
 						const unsigned int input_count = boxes_to_generate.size();
 						const Box3i block_box =
-								Box3i(offset, Vector3iUtil::create(data_block_size)).clipped(mesh_data_box);
+								Box3i(offset, Vector3iUtil::create(chunk_size)).clipped(mesh_data_box);
 
 						for (unsigned int box_index = 0; box_index < input_count; ++box_index) {
 							Box3i box = boxes_to_generate[box_index];
@@ -164,7 +164,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	}
 
 	const Vector3i origin_in_voxels =
-			chunk_mesh_pos * (area_info.chunk_mesh_size_factor * data_block_size << lod_index) -
+			chunk_mesh_pos * (area_info.chunk_mesh_size_factor * chunk_size << lod_index) -
 			Vector3iUtil::create(min_padding << lod_index);
 
 	for (Box3i &box : boxes_to_generate) {
@@ -400,7 +400,7 @@ void ChunkMeshTask::gather_voxels_cpu() {
 					std::shared_ptr<VoxelBufferInternal> &cache_buffer = make_shared_instance<VoxelBufferInternal>();
 					cache_buffer->copy_format(voxels);
 					const Vector3i min_src_pos =
-							(bpos - min_bpos) * data_block_size + Vector3iUtil::create(min_padding);
+							(bpos - min_bpos) * chunk_size + Vector3iUtil::create(min_padding);
 					cache_buffer->copy_from(voxels, min_src_pos, min_src_pos + cache_buffer->get_size(), Vector3i());
 					// TODO Where to put voxels? Can't safely write to data at the moment.
 				}

@@ -1,7 +1,7 @@
 #ifndef VOXEL_NETWORK_TERRAIN_SYNC_H
 #define VOXEL_NETWORK_TERRAIN_SYNC_H
 
-#include "../../storage/voxel_data_block.h"
+#include "../../storage/voxel_chunk_data.h"
 #include "../../util/godot/classes/node.h"
 #include <unordered_map>
 #include <vector>
@@ -18,7 +18,7 @@ public:
 
 	bool is_server() const;
 
-	void send_block(int viewer_peer_id, const VoxelDataBlock &data_block, Vector3i bpos);
+	void send_block(int viewer_peer_id, const VoxelDataBlock &chunk, Vector3i bpos);
 	void send_area(Box3i voxel_box);
 
 #ifdef TOOLS_ENABLED

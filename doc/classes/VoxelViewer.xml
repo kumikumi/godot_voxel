@@ -26,7 +26,7 @@
 		<member name="requires_collisions" type="bool" setter="set_requires_collisions" getter="is_requiring_collisions" default="true">
 			If set to [code]true[/code], the engine will generate classic collision shapes around this viewer.
 		</member>
-		<member name="requires_data_block_notifications" type="bool" setter="set_requires_data_block_notifications" getter="is_requiring_data_block_notifications" default="false">
+		<member name="requires_chunk_notifications" type="bool" setter="set_requires_chunk_notifications" getter="is_requiring_chunk_notifications" default="false">
 		</member>
 		<member name="requires_visuals" type="bool" setter="set_requires_visuals" getter="is_requiring_visuals" default="true">
 			If set to [code]true[/code], the engine will generate meshes around this viewer. This may be enabled for the local player.

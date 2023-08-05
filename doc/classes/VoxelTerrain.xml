@@ -15,20 +15,20 @@
 			<description>
 			</description>
 		</method>
-		<method name="_on_data_block_entered" qualifiers="virtual">
+		<method name="_on_chunk_entered" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="info" type="VoxelDataBlockEnterInfo" />
 			<description>
 			</description>
 		</method>
-		<method name="data_block_to_voxel" qualifiers="const">
+		<method name="chunk_to_voxel" qualifiers="const">
 			<return type="Vector3i" />
 			<param index="0" name="block_pos" type="Vector3i" />
 			<description>
 				Converts data block coordinates into voxel coordinates. Voxel coordinates of a block correspond to its lowest corner.
 			</description>
 		</method>
-		<method name="get_data_block_size" qualifiers="const">
+		<method name="get_chunk_size" qualifiers="const">
 			<return type="int" />
 			<description>
 			</description>
@@ -67,7 +67,7 @@
 				You can keep it in a member variable to avoid creating one again, as long as the node still exists.
 			</description>
 		</method>
-		<method name="has_data_block" qualifiers="const">
+		<method name="has_chunk" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="block_position" type="Vector3i" />
 			<description>
@@ -99,7 +99,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="voxel_to_data_block" qualifiers="const">
+		<method name="voxel_to_chunk" qualifiers="const">
 			<return type="Vector3i" />
 			<param index="0" name="voxel_pos" type="Vector3" />
 			<description>

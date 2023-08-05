@@ -240,14 +240,14 @@ bool VoxelEngine::is_viewer_requiring_collisions(ViewerID viewer_id) const {
 	return viewer.require_collisions;
 }
 
-void VoxelEngine::set_viewer_requires_data_block_notifications(ViewerID viewer_id, bool enabled) {
+void VoxelEngine::set_viewer_requires_chunk_notifications(ViewerID viewer_id, bool enabled) {
 	Viewer &viewer = _world.viewers.get(viewer_id);
-	viewer.requires_data_block_notifications = enabled;
+	viewer.requires_chunk_notifications = enabled;
 }
 
-bool VoxelEngine::is_viewer_requiring_data_block_notifications(ViewerID viewer_id) const {
+bool VoxelEngine::is_viewer_requiring_chunk_notifications(ViewerID viewer_id) const {
 	const Viewer &viewer = _world.viewers.get(viewer_id);
-	return viewer.requires_data_block_notifications;
+	return viewer.requires_chunk_notifications;
 }
 
 void VoxelEngine::set_viewer_network_peer_id(ViewerID viewer_id, int peer_id) {

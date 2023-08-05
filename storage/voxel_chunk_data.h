@@ -1,5 +1,5 @@
-#ifndef VOXEL_DATA_BLOCK_H
-#define VOXEL_DATA_BLOCK_H
+#ifndef VOXEL_CHUNK_H
+#define VOXEL_CHUNK_H
 
 #include "../storage/voxel_buffer_internal.h"
 #include "../util/ref_count.h"
@@ -163,4 +163,4 @@ private:
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_DATA_BLOCK_H
+#endif // VOXEL_CHUNK_H

@@ -449,11 +449,11 @@ void VoxelToolTerrain::for_each_voxel_metadata_in_area(AABB voxel_area, const Ca
 	const Box3i voxel_box = Box3i(math::floor_to_int(voxel_area.position), math::floor_to_int(voxel_area.size));
 	ERR_FAIL_COND(!is_area_editable(voxel_box));
 
-	const Box3i data_block_box = voxel_box.downscaled(_terrain->get_data_block_size());
+	const Box3i chunk_box = voxel_box.downscaled(_terrain->get_chunk_size());
 
 	VoxelData &data = _terrain->get_storage();
 
-	data_block_box.for_each_cell([&data, &callback, voxel_box](Vector3i block_pos) {
+	chunk_box.for_each_cell([&data, &callback, voxel_box](Vector3i block_pos) {
 		std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_block_voxels(block_pos);
 
 		if (voxels_ptr == nullptr) {

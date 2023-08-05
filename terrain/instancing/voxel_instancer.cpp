@@ -120,7 +120,7 @@ void VoxelInstancer::_notification(int p_what) {
 			VoxelLodTerrain *vlt = Object::cast_to<VoxelLodTerrain>(get_parent());
 			if (vlt != nullptr) {
 				_parent = vlt;
-				_parent_data_block_size_po2 = vlt->get_data_block_size_pow2();
+				_parent_chunk_size_po2 = vlt->get_chunk_size_pow2();
 				_parent_chunk_mesh_size_po2 = vlt->get_chunk_mesh_size_pow2();
 				_mesh_lod_distance = vlt->get_lod_distance();
 				vlt->set_instancer(this);
@@ -128,7 +128,7 @@ void VoxelInstancer::_notification(int p_what) {
 				VoxelTerrain *vt = Object::cast_to<VoxelTerrain>(get_parent());
 				if (vt != nullptr) {
 					_parent = vt;
-					_parent_data_block_size_po2 = vt->get_data_block_size_pow2();
+					_parent_chunk_size_po2 = vt->get_chunk_size_pow2();
 					_parent_chunk_mesh_size_po2 = vt->get_chunk_mesh_size_pow2();
 					_mesh_lod_distance = vt->get_max_view_distance();
 					vt->set_instancer(this);
@@ -286,7 +286,7 @@ void VoxelInstancer::process_gizmos() {
 	ERR_FAIL_COND(_parent == nullptr);
 	const Transform3D parent_transform = get_global_transform();
 	const int base_chunk_mesh_size_po2 = _parent_chunk_mesh_size_po2;
-	const int base_data_block_size_po2 = _parent_data_block_size_po2;
+	const int base_chunk_size_po2 = _parent_chunk_size_po2;
 
 	_debug_renderer.begin();
 
@@ -321,12 +321,12 @@ void VoxelInstancer::process_gizmos() {
 			const Color8 unsaved_color(255, 255, 0, 255);
 
 			for (auto it = lod.loaded_instances_data.begin(); it != lod.loaded_instances_data.end(); ++it) {
-				L::draw_box(_debug_renderer, parent_transform, it->first, lod_index, base_data_block_size_po2,
+				L::draw_box(_debug_renderer, parent_transform, it->first, lod_index, base_chunk_size_po2,
 						edited_color);
 			}
 
 			for (auto it = lod.modified_blocks.begin(); it != lod.modified_blocks.end(); ++it) {
-				L::draw_box(_debug_renderer, parent_transform, *it, lod_index, base_data_block_size_po2, unsaved_color);
+				L::draw_box(_debug_renderer, parent_transform, *it, lod_index, base_chunk_size_po2, unsaved_color);
 			}
 		}
 	}
@@ -686,7 +686,7 @@ void VoxelInstancer::update_layer_scenes(int layer_id) {
 	ERR_FAIL_COND(item_base.is_null());
 	VoxelInstanceLibrarySceneItem *item = Object::cast_to<VoxelInstanceLibrarySceneItem>(*item_base);
 	ERR_FAIL_COND(item == nullptr);
-	const int data_block_size_po2 = _parent_data_block_size_po2;
+	const int chunk_size_po2 = _parent_chunk_size_po2;
 
 	for (unsigned int block_index = 0; block_index < _blocks.size(); ++block_index) {
 		Block &block = *_blocks[block_index];
@@ -695,7 +695,7 @@ void VoxelInstancer::update_layer_scenes(int layer_id) {
 			SceneInstance prev_instance = block.scene_instances[instance_index];
 			ERR_CONTINUE(prev_instance.root == nullptr);
 			SceneInstance instance = create_scene_instance(
-					*item, instance_index, block_index, prev_instance.root->get_transform(), data_block_size_po2);
+					*item, instance_index, block_index, prev_instance.root->get_transform(), chunk_size_po2);
 			ERR_CONTINUE(instance.root == nullptr);
 			block.scene_instances[instance_index] = instance;
 			// We just drop the instance without saving, because this function is supposed to occur only in editor,
@@ -870,7 +870,7 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 	const bool can_save = _parent == nullptr || _parent->get_stream().is_valid();
 
 	// Remove data blocks
-	const int render_to_data_factor = 1 << (_parent_chunk_mesh_size_po2 - _parent_data_block_size_po2);
+	const int render_to_data_factor = 1 << (_parent_chunk_mesh_size_po2 - _parent_chunk_size_po2);
 	ERR_FAIL_COND(render_to_data_factor <= 0 || render_to_data_factor > 2);
 	const Vector3i data_min_pos = render_grid_position * render_to_data_factor;
 	const Vector3i data_max_pos = data_min_pos + Vector3iUtil::create(render_to_data_factor);
@@ -934,7 +934,7 @@ void VoxelInstancer::save_all_modified_blocks(
 }
 
 VoxelInstancer::SceneInstance VoxelInstancer::create_scene_instance(const VoxelInstanceLibrarySceneItem &scene_item,
-		int instance_index, unsigned int block_index, Transform3D transform, int data_block_size_po2) {
+		int instance_index, unsigned int block_index, Transform3D transform, int chunk_size_po2) {
 	SceneInstance instance;
 	ERR_FAIL_COND_V_MSG(scene_item.get_scene().is_null(), instance,
 			String("{0} ({1}) is missing an attached scene in {2} ({3})")
@@ -955,7 +955,7 @@ VoxelInstancer::SceneInstance VoxelInstancer::create_scene_instance(const VoxelI
 	instance.component->attach(this);
 	instance.component->set_instance_index(instance_index);
 	instance.component->set_render_block_index(block_index);
-	instance.component->set_data_block_position(math::floor_to_int(transform.origin) >> data_block_size_po2);
+	instance.component->set_chunk_position(math::floor_to_int(transform.origin) >> chunk_size_po2);
 
 	instance.root->set_transform(transform);
 
@@ -1052,7 +1052,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 		if (collision_shapes.size() > 0) {
 			ZN_PROFILE_SCOPE_NAMED("Update multimesh bodies");
 
-			const int data_block_size_po2 = _parent_data_block_size_po2;
+			const int chunk_size_po2 = _parent_chunk_size_po2;
 
 			// Add new bodies
 			for (unsigned int instance_index = 0; instance_index < transforms.size(); ++instance_index) {
@@ -1076,7 +1076,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 					body->attach(this);
 					body->set_instance_index(instance_index);
 					body->set_render_block_index(block_index);
-					body->set_data_block_position(math::floor_to_int(body_transform.origin) >> data_block_size_po2);
+					body->set_chunk_position(math::floor_to_int(body_transform.origin) >> chunk_size_po2);
 
 					for (unsigned int i = 0; i < collision_shapes.size(); ++i) {
 						const VoxelInstanceLibraryMultiMeshItem::CollisionShapeInfo &shape_info = collision_shapes[i];
@@ -1114,7 +1114,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 										VoxelInstancer::get_class_static()),
 								get_path()));
 
-		const int data_block_size_po2 = _parent_data_block_size_po2;
+		const int chunk_size_po2 = _parent_chunk_size_po2;
 
 		// Add new instances
 		for (unsigned int instance_index = 0; instance_index < transforms.size(); ++instance_index) {
@@ -1129,7 +1129,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 
 			} else {
 				instance = create_scene_instance(
-						*scene_item, instance_index, block_index, body_transform, data_block_size_po2);
+						*scene_item, instance_index, block_index, body_transform, chunk_size_po2);
 				ERR_CONTINUE(instance.root == nullptr);
 				block.scene_instances.push_back(instance);
 			}
@@ -1174,14 +1174,14 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 	World3D &world = **maybe_world;
 
 	const int chunk_mesh_size_base = (1 << _parent_chunk_mesh_size_po2);
-	const int data_block_size_base = (1 << _parent_data_block_size_po2);
+	const int chunk_size_base = (1 << _parent_chunk_size_po2);
 	const int chunk_mesh_size = chunk_mesh_size_base << lod_index;
-	const int data_block_size = data_block_size_base << lod_index;
+	const int chunk_size = chunk_size_base << lod_index;
 
 	const Transform3D block_local_transform = Transform3D(Basis(), render_grid_position * chunk_mesh_size);
 	const Transform3D block_global_transform = parent_transform * block_local_transform;
 
-	const int render_to_data_factor = chunk_mesh_size_base / data_block_size_base;
+	const int render_to_data_factor = chunk_mesh_size_base / chunk_size_base;
 	const Vector3i data_min_pos = render_grid_position * render_to_data_factor;
 	const Vector3i data_max_pos = data_min_pos + Vector3iUtil::create(render_to_data_factor);
 
@@ -1230,7 +1230,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 						if (render_to_data_factor != 1) {
 							// Data blocks store instances relative to a smaller grid than render blocks.
 							// So we need to adjust their relative position.
-							const Vector3f rel = to_vec3f((data_grid_pos - data_min_pos) * data_block_size);
+							const Vector3f rel = to_vec3f((data_grid_pos - data_min_pos) * chunk_size);
 							const size_t cache_begin_index = transform_cache.size() - layer_data->instances.size();
 							ZN_ASSERT(cache_begin_index <= transform_cache.size());
 							for (auto it = transform_cache.begin() + cache_begin_index; it != transform_cache.end();
@@ -1299,10 +1299,10 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 	const Lod &lod = _lods[lod_index];
 
 	UniquePtr<InstanceChunkData> block_data = make_unique_instance<InstanceChunkData>();
-	const int data_block_size = (1 << _parent_data_block_size_po2) << lod_index;
-	block_data->position_range = data_block_size;
+	const int chunk_size = (1 << _parent_chunk_size_po2) << lod_index;
+	block_data->position_range = chunk_size;
 
-	const int render_to_data_factor = (1 << _parent_chunk_mesh_size_po2) / (1 << _parent_data_block_size_po2);
+	const int render_to_data_factor = (1 << _parent_chunk_mesh_size_po2) / (1 << _parent_chunk_size_po2);
 	ERR_FAIL_COND_V_MSG(render_to_data_factor < 1 || render_to_data_factor > 2, nullptr, "Unsupported block size");
 
 	const int render_block_size_base = (1 << _parent_chunk_mesh_size_po2);
@@ -1430,7 +1430,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 		if (render_to_data_factor == 2) {
 			// Data blocks are on a smaller grid than render blocks so we may convert the relative position
 			// of the instances
-			const Vector3f rel = to_vec3f(data_block_size * (data_grid_pos - render_block_pos * render_to_data_factor));
+			const Vector3f rel = to_vec3f(chunk_size * (data_grid_pos - render_block_pos * render_to_data_factor));
 			for (InstanceChunkData::InstanceData &d : layer_data.instances) {
 				d.transform.origin -= rel;
 			}
@@ -1443,7 +1443,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 	ZN_ASSERT(stream_dependency != nullptr);
 
 	SaveChunkDataTask *task = ZN_NEW(SaveChunkDataTask(
-			volume_id, data_grid_pos, lod_index, data_block_size, std::move(block_data), stream_dependency, tracker));
+			volume_id, data_grid_pos, lod_index, chunk_size, std::move(block_data), stream_dependency, tracker));
 
 	return task;
 }
@@ -1600,7 +1600,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND(_parent == nullptr);
 	const int render_block_size = 1 << _parent_chunk_mesh_size_po2;
-	const int data_block_size = 1 << _parent_data_block_size_po2;
+	const int chunk_size = 1 << _parent_chunk_size_po2;
 
 	Ref<VoxelTool> maybe_voxel_tool = _parent->get_voxel_tool();
 	ERR_FAIL_COND(maybe_voxel_tool.is_null());
@@ -1618,7 +1618,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 		}
 
 		const Box3i render_blocks_box = p_voxel_box.downscaled(render_block_size << lod_index);
-		const Box3i data_blocks_box = p_voxel_box.downscaled(data_block_size << lod_index);
+		const Box3i chunks_box = p_voxel_box.downscaled(chunk_size << lod_index);
 
 		for (auto layer_it = lod.layers.begin(); layer_it != lod.layers.end(); ++layer_it) {
 			const Layer &layer = get_layer(*layer_it);
@@ -1626,7 +1626,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 			const int block_size_po2 = base_block_size_po2 + layer.lod_index;
 
 			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, block_size_po2,
-													&lod, data_blocks_box](Vector3i block_pos) {
+													&lod, chunks_box](Vector3i block_pos) {
 				const auto block_it = layer.blocks.find(block_pos);
 				if (block_it == layer.blocks.end()) {
 					// No instancing block here
@@ -1645,8 +1645,8 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 				// All instances have to be frozen as edited.
 				// Because even if none of them were removed or added, the ground on which they can spawn has changed,
 				// and at the moment we don't want unexpected instances to generate when loading back this area.
-				data_blocks_box.for_each_cell([&lod](Vector3i data_block_pos) { //
-					lod.modified_blocks.insert(data_block_pos);
+				chunks_box.for_each_cell([&lod](Vector3i chunk_pos) { //
+					lod.modified_blocks.insert(chunk_pos);
 				});
 			});
 		}
@@ -1655,7 +1655,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 
 // This is called if a user destroys or unparents the body node while it's still attached to the ground
 void VoxelInstancer::on_body_removed(
-		Vector3i data_block_position, unsigned int render_block_index, unsigned int instance_index) {
+		Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index) {
 	Block &block = *_blocks[render_block_index];
 	ERR_FAIL_INDEX(instance_index, block.bodies.size());
 
@@ -1688,11 +1688,11 @@ void VoxelInstancer::on_body_removed(
 	// Mark data block as modified
 	const Layer &layer = get_layer(block.layer_id);
 	Lod &lod = _lods[layer.lod_index];
-	lod.modified_blocks.insert(data_block_position);
+	lod.modified_blocks.insert(chunk_position);
 }
 
 void VoxelInstancer::on_scene_instance_removed(
-		Vector3i data_block_position, unsigned int render_block_index, unsigned int instance_index) {
+		Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index) {
 	Block &block = *_blocks[render_block_index];
 	ERR_FAIL_INDEX(instance_index, block.scene_instances.size());
 
@@ -1710,24 +1710,24 @@ void VoxelInstancer::on_scene_instance_removed(
 	// Mark data block as modified
 	const Layer &layer = get_layer(block.layer_id);
 	Lod &lod = _lods[layer.lod_index];
-	lod.modified_blocks.insert(data_block_position);
+	lod.modified_blocks.insert(chunk_position);
 }
 
-void VoxelInstancer::on_scene_instance_modified(Vector3i data_block_position, unsigned int render_block_index) {
+void VoxelInstancer::on_scene_instance_modified(Vector3i chunk_position, unsigned int render_block_index) {
 	Block &block = *_blocks[render_block_index];
 
 	// Mark data block as modified
 	const Layer &layer = get_layer(block.layer_id);
 	Lod &lod = _lods[layer.lod_index];
-	lod.modified_blocks.insert(data_block_position);
+	lod.modified_blocks.insert(chunk_position);
 }
 
 void VoxelInstancer::set_chunk_mesh_size_po2(unsigned int p_chunk_mesh_size_po2) {
 	_parent_chunk_mesh_size_po2 = p_chunk_mesh_size_po2;
 }
 
-void VoxelInstancer::set_data_block_size_po2(unsigned int p_data_block_size_po2) {
-	_parent_data_block_size_po2 = p_data_block_size_po2;
+void VoxelInstancer::set_chunk_size_po2(unsigned int p_chunk_size_po2) {
+	_parent_chunk_size_po2 = p_chunk_size_po2;
 }
 
 void VoxelInstancer::set_mesh_lod_distance(float p_lod_distance) {

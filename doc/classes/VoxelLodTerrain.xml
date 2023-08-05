@@ -16,12 +16,12 @@
 			<description>
 			</description>
 		</method>
-		<method name="debug_get_data_block_count" qualifiers="const">
+		<method name="debug_get_chunk_count" qualifiers="const">
 			<return type="int" />
 			<description>
 			</description>
 		</method>
-		<method name="debug_get_data_block_info" qualifiers="const">
+		<method name="debug_get_chunk_info" qualifiers="const">
 			<return type="Dictionary" />
 			<param index="0" name="block_pos" type="Vector3" />
 			<param index="1" name="lod" type="int" />
@@ -83,12 +83,12 @@
 			<description>
 			</description>
 		</method>
-		<method name="get_data_block_region_extent" qualifiers="const">
+		<method name="get_chunk_region_extent" qualifiers="const">
 			<return type="int" />
 			<description>
 			</description>
 		</method>
-		<method name="get_data_block_size" qualifiers="const">
+		<method name="get_chunk_size" qualifiers="const">
 			<return type="int" />
 			<description>
 				Gets the size of one cunic data block in voxels.
@@ -164,7 +164,7 @@
 				Sets which process callback is used to run the main thread update of this node. By default, it uses [code]_process[/code].
 			</description>
 		</method>
-		<method name="voxel_to_data_block_position" qualifiers="const">
+		<method name="voxel_to_chunk_position" qualifiers="const">
 			<return type="Vector3i" />
 			<param index="0" name="voxel_position" type="Vector3" />
 			<param index="1" name="lod_index" type="int" />

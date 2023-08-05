@@ -185,7 +185,7 @@ public:
 	bool has_block(Vector3i bpos, unsigned int lod_index) const;
 
 	// Tests if all blocks in a LOD0 area are loaded. If any isn't, returns false. Otherwise, returns true.
-	bool has_all_blocks_in_area(Box3i data_blocks_box) const;
+	bool has_all_blocks_in_area(Box3i chunks_box) const;
 
 	// Gets the total amount of allocated blocks. This includes blocks having no voxel data.
 	unsigned int get_block_count() const;
@@ -301,7 +301,7 @@ private:
 		mutable VoxelSpatialLock spatial_lock;
 	};
 
-	static void pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int data_block_size, bool streaming,
+	static void pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int chunk_size, bool streaming,
 			unsigned int lod_count, Ref<VoxelGenerator> generator, VoxelModifierStack &modifiers);
 
 	static inline std::shared_ptr<VoxelBufferInternal> try_get_voxel_buffer_with_lock(

@@ -1,4 +1,4 @@
-#include "voxel_data_block_enter_info.h"
+#include "voxel_chunk_enter_info.h"
 #include "../storage/voxel_buffer_gd.h"
 
 namespace zylann::voxel {

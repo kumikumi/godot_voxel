@@ -24,8 +24,8 @@ public:
 	void set_requires_collisions(bool enabled);
 	bool is_requiring_collisions() const;
 
-	void set_requires_data_block_notifications(bool enabled);
-	bool is_requiring_data_block_notifications() const;
+	void set_requires_chunk_notifications(bool enabled);
+	bool is_requiring_chunk_notifications() const;
 
 	void set_network_peer_id(int id);
 	int get_network_peer_id() const;
@@ -42,7 +42,7 @@ private:
 	unsigned int _view_distance = 128;
 	bool _requires_visuals = true;
 	bool _requires_collisions = true;
-	bool _requires_data_block_notifications = false;
+	bool _requires_chunk_notifications = false;
 	int _network_peer_id = -1;
 };
 

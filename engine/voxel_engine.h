@@ -109,7 +109,7 @@ public:
 		unsigned int view_distance = 128;
 		bool require_collisions = true;
 		bool require_visuals = true;
-		bool requires_data_block_notifications = false;
+		bool requires_chunk_notifications = false;
 		int network_peer_id = -1;
 	};
 
@@ -144,8 +144,8 @@ public:
 	bool is_viewer_requiring_visuals(ViewerID viewer_id) const;
 	void set_viewer_requires_collisions(ViewerID viewer_id, bool enabled);
 	bool is_viewer_requiring_collisions(ViewerID viewer_id) const;
-	void set_viewer_requires_data_block_notifications(ViewerID viewer_id, bool enabled);
-	bool is_viewer_requiring_data_block_notifications(ViewerID viewer_id) const;
+	void set_viewer_requires_chunk_notifications(ViewerID viewer_id, bool enabled);
+	bool is_viewer_requiring_chunk_notifications(ViewerID viewer_id) const;
 	void set_viewer_network_peer_id(ViewerID viewer_id, int peer_id);
 	int get_viewer_network_peer_id(ViewerID viewer_id) const;
 	bool viewer_exists(ViewerID viewer_id) const;
