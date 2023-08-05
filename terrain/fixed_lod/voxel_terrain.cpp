@@ -435,7 +435,7 @@ void VoxelTerrain::try_schedule_mesh_update(VoxelMeshBlockVT &mesh_block) {
 	}
 }
 
-void VoxelTerrain::view_mesh_block(Vector3i bpos, bool mesh_flag, bool collision_flag) {
+void VoxelTerrain::view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag) {
 	if (mesh_flag == false && collision_flag == false) {
 		// Why even call the function?
 		return;
@@ -467,7 +467,7 @@ void VoxelTerrain::view_mesh_block(Vector3i bpos, bool mesh_flag, bool collision
 	// They have to be re-created, which may cause world re-load...
 }
 
-void VoxelTerrain::unview_mesh_block(Vector3i bpos, bool mesh_flag, bool collision_flag) {
+void VoxelTerrain::unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag) {
 	VoxelMeshBlockVT *block = _mesh_map.get_block(bpos);
 	// Mesh blocks are created on first view call,
 	// so that would mean we unview one without viewing it in the first place
@@ -1174,7 +1174,7 @@ void VoxelTerrain::process_viewers() {
 					// Unview blocks that just fell out of range
 					prev_mesh_box.difference(new_mesh_box, [this, &viewer](Box3i out_of_range_box) {
 						out_of_range_box.for_each_cell([this, &viewer](Vector3i bpos) {
-							unview_mesh_block(
+							unview_chunk_mesh(
 									bpos, viewer.prev_state.requires_meshes, viewer.prev_state.requires_collisions);
 						});
 					});
@@ -1183,7 +1183,7 @@ void VoxelTerrain::process_viewers() {
 					new_mesh_box.difference(prev_mesh_box, [this, &viewer](Box3i box_to_load) {
 						box_to_load.for_each_cell([this, &viewer](Vector3i bpos) {
 							// Load or update block
-							view_mesh_block(bpos, viewer.state.requires_meshes, viewer.state.requires_collisions);
+							view_chunk_mesh(bpos, viewer.state.requires_meshes, viewer.state.requires_collisions);
 						});
 					});
 				}
@@ -1195,12 +1195,12 @@ void VoxelTerrain::process_viewers() {
 					const Box3i box = new_mesh_box.clipped(prev_mesh_box);
 					if (viewer.state.requires_collisions) {
 						box.for_each_cell([this](Vector3i bpos) { //
-							view_mesh_block(bpos, false, true);
+							view_chunk_mesh(bpos, false, true);
 						});
 
 					} else {
 						box.for_each_cell([this](Vector3i bpos) { //
-							unview_mesh_block(bpos, false, true);
+							unview_chunk_mesh(bpos, false, true);
 						});
 					}
 				}
@@ -1209,12 +1209,12 @@ void VoxelTerrain::process_viewers() {
 					const Box3i box = new_mesh_box.clipped(prev_mesh_box);
 					if (viewer.state.requires_meshes) {
 						box.for_each_cell([this](Vector3i bpos) { //
-							view_mesh_block(bpos, true, false);
+							view_chunk_mesh(bpos, true, false);
 						});
 
 					} else {
 						box.for_each_cell([this](Vector3i bpos) { //
-							unview_mesh_block(bpos, true, false);
+							unview_chunk_mesh(bpos, true, false);
 						});
 					}
 				}

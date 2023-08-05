@@ -188,9 +188,9 @@ private:
 	void reset_map();
 
 	// void view_data_block(Vector3i bpos, uint32_t viewer_id, bool require_notification);
-	void view_mesh_block(Vector3i bpos, bool mesh_flag, bool collision_flag);
+	void view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag);
 	// void unview_data_block(Vector3i bpos);
-	void unview_mesh_block(Vector3i bpos, bool mesh_flag, bool collision_flag);
+	void unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag);
 	// void unload_data_block(Vector3i bpos);
 	void unload_mesh_block(Vector3i bpos);
 	// void make_data_block_dirty(Vector3i bpos);
