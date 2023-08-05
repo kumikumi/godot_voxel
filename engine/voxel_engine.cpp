@@ -66,8 +66,8 @@ VoxelEngine::VoxelEngine(ThreadsConfig threads_config) {
 	// Init world
 	_world.shared_priority_dependency = make_shared_instance<PriorityDependency::ViewersData>();
 
-	ZN_PRINT_VERBOSE(format("Size of LoadBlockDataTask: {}", sizeof(LoadBlockDataTask)));
-	ZN_PRINT_VERBOSE(format("Size of SaveBlockDataTask: {}", sizeof(SaveBlockDataTask)));
+	ZN_PRINT_VERBOSE(format("Size of LoadChunkDataTask: {}", sizeof(LoadChunkDataTask)));
+	ZN_PRINT_VERBOSE(format("Size of SaveChunkDataTask: {}", sizeof(SaveChunkDataTask)));
 	ZN_PRINT_VERBOSE(format("Size of ChunkMeshTask: {}", sizeof(ChunkMeshTask)));
 
 	if (RenderingServer::get_singleton() != nullptr) {
@@ -384,7 +384,7 @@ VoxelEngine::Stats VoxelEngine::get_stats() const {
 	s.general = debug_get_pool_stats(_general_thread_pool);
 	s.generation_tasks = GenerateBlockTask::debug_get_running_count();
 	s.meshing_tasks = ChunkMeshTask::debug_get_running_count();
-	s.streaming_tasks = LoadBlockDataTask::debug_get_running_count() + SaveBlockDataTask::debug_get_running_count();
+	s.streaming_tasks = LoadChunkDataTask::debug_get_running_count() + SaveChunkDataTask::debug_get_running_count();
 	s.main_thread_tasks = _time_spread_task_runner.get_pending_count() + _progressive_task_runner.get_pending_count();
 	return s;
 }

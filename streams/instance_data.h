@@ -7,7 +7,7 @@
 namespace zylann::voxel {
 
 // Stores data to pass around until it either gets saved or turned into actual instances
-struct InstanceBlockData {
+struct InstanceChunkData {
 	struct InstanceData {
 		// Transform of the instance, relative to the origin of the data block.
 		Transform3f transform;
@@ -49,14 +49,14 @@ struct InstanceBlockData {
 	float position_range;
 	std::vector<LayerData> layers;
 
-	void copy_to(InstanceBlockData &dst) const {
+	void copy_to(InstanceChunkData &dst) const {
 		// It's all POD so it should work for now
 		dst = *this;
 	}
 };
 
-bool serialize_instance_block_data(const InstanceBlockData &src, std::vector<uint8_t> &dst);
-bool deserialize_instance_block_data(InstanceBlockData &dst, Span<const uint8_t> src);
+bool serialize_instance_block_data(const InstanceChunkData &src, std::vector<uint8_t> &dst);
+bool deserialize_instance_block_data(InstanceChunkData &dst, Span<const uint8_t> src);
 
 } // namespace zylann::voxel
 

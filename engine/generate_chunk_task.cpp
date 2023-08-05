@@ -145,7 +145,7 @@ void GenerateBlockTask::run_stream_saving_and_finish() {
 			// No instances, generators are not designed to produce them at this stage yet.
 			// No priority data, saving doesn't need sorting.
 
-			SaveBlockDataTask *save_task = memnew(SaveBlockDataTask(
+			SaveChunkDataTask *save_task = memnew(SaveChunkDataTask(
 					volume_id, position, lod_index, block_size, voxels_copy, stream_dependency, nullptr));
 
 			VoxelEngine::get_singleton().push_async_io_task(save_task);
@@ -177,7 +177,7 @@ void GenerateBlockTask::apply_result() {
 		if (stream_dependency->valid) {
 			Ref<VoxelStream> stream = stream_dependency->stream;
 
-			VoxelEngine::BlockDataOutput o;
+			VoxelEngine::ChunkDataOutput o;
 			o.voxels = voxels;
 			o.position = position;
 			o.lod_index = lod_index;
@@ -185,9 +185,9 @@ void GenerateBlockTask::apply_result() {
 			if (stream.is_valid() && stream->get_save_generator_output()) {
 				// We can't consider the block as "generated" since there is no state to tell that once saved,
 				// so it has to be considered an edited block
-				o.type = VoxelEngine::BlockDataOutput::TYPE_LOADED;
+				o.type = VoxelEngine::ChunkDataOutput::TYPE_LOADED;
 			} else {
-				o.type = VoxelEngine::BlockDataOutput::TYPE_GENERATED;
+				o.type = VoxelEngine::ChunkDataOutput::TYPE_GENERATED;
 			}
 			o.max_lod_hint = max_lod_hint;
 			o.initial_load = false;

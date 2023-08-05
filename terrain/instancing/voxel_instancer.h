@@ -36,7 +36,7 @@ class VoxelInstancerRigidBody;
 class VoxelInstanceComponent;
 class VoxelInstanceLibrarySceneItem;
 class VoxelTool;
-class SaveBlockDataTask;
+class SaveChunkDataTask;
 class BufferedTaskScheduler;
 
 // Note: a large part of this node could be made generic to support the sole idea of instancing within octants?
@@ -73,7 +73,7 @@ public:
 
 	// Event handlers
 
-	void on_chunk_data_loaded(Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceBlockData> instances);
+	void on_chunk_data_loaded(Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceChunkData> instances);
 	void on_chunk_mesh_enter(Vector3i render_grid_position, unsigned int lod_index, Array surface_arrays);
 	void on_chunk_mesh_exit(Vector3i render_grid_position, unsigned int lod_index);
 	void on_area_edited(Box3i p_voxel_box);
@@ -137,7 +137,7 @@ private:
 	void clear_blocks_in_layer(int layer_id);
 	void clear_layers();
 	void update_visibility();
-	SaveBlockDataTask *save_chunk(
+	SaveChunkDataTask *save_chunk(
 			Vector3i data_grid_pos, int lod_index, std::shared_ptr<AsyncDependencyTracker> tracker) const;
 
 	// Get a layer assuming it exists
@@ -233,7 +233,7 @@ private:
 		// it will get generated instances.
 		// Keys follows the data block coordinate system.
 		// Can't use Godot's `HashMap` because it lacks move semantics.
-		std::unordered_map<Vector3i, UniquePtr<InstanceBlockData>> loaded_instances_data;
+		std::unordered_map<Vector3i, UniquePtr<InstanceChunkData>> loaded_instances_data;
 
 		FixedArray<MeshLodDistances, VoxelInstanceLibraryMultiMeshItem::MAX_MESH_LODS> mesh_lod_distances;
 	};

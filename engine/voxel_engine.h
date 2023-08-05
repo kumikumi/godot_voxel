@@ -56,7 +56,7 @@ public:
 		std::shared_ptr<DetailTextureOutput> detail_textures;
 	};
 
-	struct BlockDataOutput {
+	struct ChunkDataOutput {
 		enum Type { //
 			TYPE_LOADED,
 			TYPE_GENERATED,
@@ -67,7 +67,7 @@ public:
 		// If voxels are null with TYPE_LOADED, it means no block was found in the stream (if any) and no generator task
 		// was scheduled. This is the case when we don't want to cache blocks of generated data.
 		std::shared_ptr<VoxelBufferInternal> voxels;
-		UniquePtr<InstanceBlockData> instances;
+		UniquePtr<InstanceChunkData> instances;
 		Vector3i position;
 		uint8_t lod_index;
 		bool dropped;
@@ -85,7 +85,7 @@ public:
 
 	struct VolumeCallbacks {
 		void (*mesh_output_callback)(void *, ChunkMeshOutput &) = nullptr;
-		void (*data_output_callback)(void *, BlockDataOutput &) = nullptr;
+		void (*data_output_callback)(void *, ChunkDataOutput &) = nullptr;
 		void (*detail_texture_output_callback)(void *, BlockDetailTextureOutput &) = nullptr;
 		void *data = nullptr;
 

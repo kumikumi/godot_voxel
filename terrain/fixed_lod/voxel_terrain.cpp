@@ -82,7 +82,7 @@ VoxelTerrain::VoxelTerrain() {
 		task->data = std::move(ob);
 		VoxelEngine::get_singleton().push_main_thread_time_spread_task(task);
 	};
-	callbacks.data_output_callback = [](void *cb_data, VoxelEngine::BlockDataOutput &ob) {
+	callbacks.data_output_callback = [](void *cb_data, VoxelEngine::ChunkDataOutput &ob) {
 		VoxelTerrain *self = reinterpret_cast<VoxelTerrain *>(cb_data);
 		self->apply_data_block_response(ob);
 	};
@@ -855,7 +855,7 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		init_sparse_grid_priority_dependency(
 				priority_dependency, block_pos, data_block_size, shared_viewers_data, volume_transform);
 
-		LoadBlockDataTask *task = ZN_NEW(LoadBlockDataTask(volume_id, block_pos, 0, data_block_size, request_instances,
+		LoadChunkDataTask *task = ZN_NEW(LoadChunkDataTask(volume_id, block_pos, 0, data_block_size, request_instances,
 				stream_dependency, priority_dependency, true, use_gpu, voxel_data));
 
 		scheduler.push_io_task(task);
@@ -912,7 +912,7 @@ void VoxelTerrain::consume_block_data_save_requests(
 		for (const VoxelData::BlockToSave &b : _blocks_to_save) {
 			ZN_PRINT_VERBOSE(format("Requesting save of block {}", b.position));
 
-			SaveBlockDataTask *task = ZN_NEW(SaveBlockDataTask(
+			SaveChunkDataTask *task = ZN_NEW(SaveChunkDataTask(
 					_volume_id, b.position, 0, data_block_size, b.voxels, _streaming_dependency, saving_tracker));
 
 			// No priority data, saving doesn't need sorting.
@@ -1370,20 +1370,20 @@ void VoxelTerrain::process_viewer_data_box_change(
 	}
 }
 
-void VoxelTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob) {
+void VoxelTerrain::apply_data_block_response(VoxelEngine::ChunkDataOutput &ob) {
 	ZN_PROFILE_SCOPE();
 
 	// print_line(String("Receiving {0} blocks").format(varray(output.emerged_blocks.size())));
 
-	if (ob.type == VoxelEngine::BlockDataOutput::TYPE_SAVED) {
+	if (ob.type == VoxelEngine::ChunkDataOutput::TYPE_SAVED) {
 		if (ob.dropped) {
 			ERR_PRINT(String("Could not save block {0}").format(varray(ob.position)));
 		}
 		return;
 	}
 
-	CRASH_COND(ob.type != VoxelEngine::BlockDataOutput::TYPE_LOADED &&
-			ob.type != VoxelEngine::BlockDataOutput::TYPE_GENERATED);
+	CRASH_COND(ob.type != VoxelEngine::ChunkDataOutput::TYPE_LOADED &&
+			ob.type != VoxelEngine::ChunkDataOutput::TYPE_GENERATED);
 
 	const Vector3i block_pos = ob.position;
 
@@ -1420,7 +1420,7 @@ void VoxelTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob) {
 	CRASH_COND(ob.voxels == nullptr);
 
 	VoxelDataBlock block(ob.voxels, ob.lod_index);
-	block.set_edited(ob.type == VoxelEngine::BlockDataOutput::TYPE_LOADED);
+	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
 	// Viewers will be set only if the block doesn't already exist
 	block.viewers = loading_block.viewers;
 

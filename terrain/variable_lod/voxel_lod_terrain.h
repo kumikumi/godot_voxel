@@ -260,7 +260,7 @@ private:
 	void apply_main_thread_update_tasks();
 
 	void apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob);
-	void apply_data_block_response(VoxelEngine::BlockDataOutput &ob);
+	void apply_data_block_response(VoxelEngine::ChunkDataOutput &ob);
 	void apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob);
 	void apply_detail_texture_update_to_block(
 			VoxelChunkMeshVLT &block, DetailTextureOutput &ob, unsigned int lod_index);

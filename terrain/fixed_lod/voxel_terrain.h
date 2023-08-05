@@ -176,7 +176,7 @@ private:
 	// void process_received_data_blocks();
 	void process_meshing();
 	void apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob);
-	void apply_data_block_response(VoxelEngine::BlockDataOutput &ob);
+	void apply_data_block_response(VoxelEngine::ChunkDataOutput &ob);
 
 	void _on_stream_params_changed();
 	// void _set_block_size_po2(int p_block_size_po2);

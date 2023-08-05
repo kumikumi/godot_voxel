@@ -16,9 +16,9 @@ enum FormatVersion {
 };
 } //namespace
 
-const float InstanceBlockData::POSITION_RANGE_MINIMUM = 0.01f;
+const float InstanceChunkData::POSITION_RANGE_MINIMUM = 0.01f;
 
-const float InstanceBlockData::SIMPLE_11B_V1_SCALE_RANGE_MINIMUM = 0.01f;
+const float InstanceChunkData::SIMPLE_11B_V1_SCALE_RANGE_MINIMUM = 0.01f;
 
 // TODO Unify with functions from VoxelBuffer?
 
@@ -55,8 +55,8 @@ struct CompressedQuaternion4b {
 	}
 };
 
-bool serialize_instance_block_data(const InstanceBlockData &src, std::vector<uint8_t> &dst) {
-	const uint8_t instance_format = InstanceBlockData::FORMAT_SIMPLE_11B_V1;
+bool serialize_instance_block_data(const InstanceChunkData &src, std::vector<uint8_t> &dst) {
+	const uint8_t instance_format = InstanceChunkData::FORMAT_SIMPLE_11B_V1;
 
 	// TODO Apparently big-endian is dead
 	// I chose it originally to match "network byte order",
@@ -64,7 +64,7 @@ bool serialize_instance_block_data(const InstanceBlockData &src, std::vector<uin
 	zylann::MemoryWriter w(dst, zylann::ENDIANESS_LITTLE_ENDIAN);
 
 	ZN_ASSERT_RETURN_V(src.position_range >= 0.f, false);
-	const float position_range = math::max(src.position_range, InstanceBlockData::POSITION_RANGE_MINIMUM);
+	const float position_range = math::max(src.position_range, InstanceChunkData::POSITION_RANGE_MINIMUM);
 
 	w.store_8(INSTANCE_BLOCK_FORMAT_VERSION_1);
 	w.store_8(src.layers.size());
@@ -75,15 +75,15 @@ bool serialize_instance_block_data(const InstanceBlockData &src, std::vector<uin
 	const float pos_norm_scale = 1.f / position_range;
 
 	for (size_t i = 0; i < src.layers.size(); ++i) {
-		const InstanceBlockData::LayerData &layer = src.layers[i];
+		const InstanceChunkData::LayerData &layer = src.layers[i];
 
 		ZN_ASSERT_RETURN_V(layer.scale_max >= layer.scale_min, false);
 
 		float scale_min = layer.scale_min;
 		float scale_max = layer.scale_max;
-		if (scale_max - scale_min < InstanceBlockData::SIMPLE_11B_V1_SCALE_RANGE_MINIMUM) {
+		if (scale_max - scale_min < InstanceChunkData::SIMPLE_11B_V1_SCALE_RANGE_MINIMUM) {
 			scale_min = layer.scale_min;
-			scale_max = scale_min + InstanceBlockData::SIMPLE_11B_V1_SCALE_RANGE_MINIMUM;
+			scale_max = scale_min + InstanceChunkData::SIMPLE_11B_V1_SCALE_RANGE_MINIMUM;
 		}
 
 		w.store_16(layer.id);
@@ -95,7 +95,7 @@ bool serialize_instance_block_data(const InstanceBlockData &src, std::vector<uin
 		const float scale_norm_scale = 1.f / (scale_max - scale_min);
 
 		for (size_t j = 0; j < layer.instances.size(); ++j) {
-			const InstanceBlockData::InstanceData &instance = layer.instances[j];
+			const InstanceChunkData::InstanceData &instance = layer.instances[j];
 
 			w.store_16(static_cast<uint16_t>(pos_norm_scale * instance.transform.origin.x * 0xffff));
 			w.store_16(static_cast<uint16_t>(pos_norm_scale * instance.transform.origin.y * 0xffff));
@@ -118,9 +118,9 @@ bool serialize_instance_block_data(const InstanceBlockData &src, std::vector<uin
 	return true;
 }
 
-bool deserialize_instance_block_data(InstanceBlockData &dst, Span<const uint8_t> src) {
+bool deserialize_instance_block_data(InstanceChunkData &dst, Span<const uint8_t> src) {
 	const uint8_t expected_version = INSTANCE_BLOCK_FORMAT_VERSION_1;
-	const uint8_t expected_instance_format = InstanceBlockData::FORMAT_SIMPLE_11B_V1;
+	const uint8_t expected_instance_format = InstanceChunkData::FORMAT_SIMPLE_11B_V1;
 
 	zylann::MemoryReader r(src, zylann::ENDIANESS_LITTLE_ENDIAN);
 
@@ -137,7 +137,7 @@ bool deserialize_instance_block_data(InstanceBlockData &dst, Span<const uint8_t>
 	dst.position_range = r.get_float();
 
 	for (size_t i = 0; i < dst.layers.size(); ++i) {
-		InstanceBlockData::LayerData &layer = dst.layers[i];
+		InstanceChunkData::LayerData &layer = dst.layers[i];
 
 		layer.id = r.get_16();
 
@@ -166,7 +166,7 @@ bool deserialize_instance_block_data(InstanceBlockData &dst, Span<const uint8_t>
 			cq.w = r.get_8();
 			const Quaternionf q = cq.to_quaternion();
 
-			InstanceBlockData::InstanceData &instance = layer.instances[j];
+			InstanceChunkData::InstanceData &instance = layer.instances[j];
 			instance.transform = Transform3f(Basis3f(q).scaled(s), Vector3f(x, y, z));
 		}
 	}

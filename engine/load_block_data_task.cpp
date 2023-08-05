@@ -13,7 +13,7 @@ namespace {
 std::atomic_int g_debug_load_block_tasks_count = { 0 };
 }
 
-LoadBlockDataTask::LoadBlockDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
 		bool p_request_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		PriorityDependency p_priority_dependency, bool generate_cache_data, bool generator_use_gpu,
 		const std::shared_ptr<VoxelData> &vdata) :
@@ -32,15 +32,15 @@ LoadBlockDataTask::LoadBlockDataTask(VolumeID p_volume_id, Vector3i p_block_pos,
 	++g_debug_load_block_tasks_count;
 }
 
-LoadBlockDataTask::~LoadBlockDataTask() {
+LoadChunkDataTask::~LoadChunkDataTask() {
 	--g_debug_load_block_tasks_count;
 }
 
-int LoadBlockDataTask::debug_get_running_count() {
+int LoadChunkDataTask::debug_get_running_count() {
 	return g_debug_load_block_tasks_count;
 }
 
-void LoadBlockDataTask::run(zylann::ThreadedTaskContext &ctx) {
+void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
 
@@ -117,7 +117,7 @@ void LoadBlockDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	_has_run = true;
 }
 
-TaskPriority LoadBlockDataTask::get_priority() {
+TaskPriority LoadChunkDataTask::get_priority() {
 	float closest_viewer_distance_sq;
 	const TaskPriority p =
 			_priority_dependency.evaluate(_lod_index, constants::TASK_PRIORITY_LOAD_BAND2, &closest_viewer_distance_sq);
@@ -125,17 +125,17 @@ TaskPriority LoadBlockDataTask::get_priority() {
 	return p;
 }
 
-bool LoadBlockDataTask::is_cancelled() {
+bool LoadChunkDataTask::is_cancelled() {
 	return !_stream_dependency->valid || _too_far;
 }
 
-void LoadBlockDataTask::apply_result() {
+void LoadChunkDataTask::apply_result() {
 	if (VoxelEngine::get_singleton().is_volume_valid(_volume_id)) {
 		// TODO Comparing pointer may not be guaranteed
 		// The request response must match the dependency it would have been requested with.
 		// If it doesn't match, we are no longer interested in the result.
 		if (_stream_dependency->valid && !_requested_generator_task) {
-			VoxelEngine::BlockDataOutput o;
+			VoxelEngine::ChunkDataOutput o;
 			o.voxels = _voxels;
 			o.instances = std::move(_instances);
 			o.position = _position;
@@ -143,7 +143,7 @@ void LoadBlockDataTask::apply_result() {
 			o.dropped = !_has_run;
 			o.max_lod_hint = _max_lod_hint;
 			o.initial_load = false;
-			o.type = VoxelEngine::BlockDataOutput::TYPE_LOADED;
+			o.type = VoxelEngine::ChunkDataOutput::TYPE_LOADED;
 
 			VoxelEngine::VolumeCallbacks callbacks = VoxelEngine::get_singleton().get_volume_callbacks(_volume_id);
 			CRASH_COND(callbacks.data_output_callback == nullptr);

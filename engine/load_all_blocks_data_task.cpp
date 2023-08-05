@@ -39,7 +39,7 @@ void LoadAllBlocksDataTask::apply_result() {
 			for (auto it = _result.blocks.begin(); it != _result.blocks.end(); ++it) {
 				VoxelStream::FullLoadingResult::Block &rb = *it;
 
-				VoxelEngine::BlockDataOutput o;
+				VoxelEngine::ChunkDataOutput o;
 				o.voxels = rb.voxels;
 				o.instances = std::move(rb.instances_data);
 				o.position = rb.position;

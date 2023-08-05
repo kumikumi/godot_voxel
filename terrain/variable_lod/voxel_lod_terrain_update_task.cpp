@@ -890,8 +890,8 @@ static void request_block_load(VolumeID volume_id, unsigned int data_block_size,
 		init_sparse_octree_priority_dependency(priority_dependency, block_pos, lod, data_block_size,
 				shared_viewers_data, volume_transform, settings.lod_distance);
 
-		LoadBlockDataTask *task = memnew(
-				LoadBlockDataTask(volume_id, block_pos, lod, data_block_size, request_instances, stream_dependency,
+		LoadChunkDataTask *task = memnew(
+				LoadChunkDataTask(volume_id, block_pos, lod, data_block_size, request_instances, stream_dependency,
 						priority_dependency, settings.cache_generated_blocks, settings.generator_use_gpu, data));
 
 		task_scheduler.push_io_task(task);
@@ -943,8 +943,8 @@ static void request_voxel_block_save(VolumeID volume_id, std::shared_ptr<VoxelBu
 	CRASH_COND(stream_dependency == nullptr);
 	ERR_FAIL_COND(stream_dependency->stream.is_null());
 
-	SaveBlockDataTask *task =
-			memnew(SaveBlockDataTask(volume_id, block_pos, lod, data_block_size, voxels, stream_dependency, nullptr));
+	SaveChunkDataTask *task =
+			memnew(SaveChunkDataTask(volume_id, block_pos, lod, data_block_size, voxels, stream_dependency, nullptr));
 
 	// No priority data, saving doesn't need sorting.
 

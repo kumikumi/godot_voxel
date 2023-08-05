@@ -843,7 +843,7 @@ void VoxelInstancer::remove_block(unsigned int block_index) {
 }
 
 void VoxelInstancer::on_chunk_data_loaded(
-		Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceBlockData> instances) {
+		Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceChunkData> instances) {
 	ERR_FAIL_COND(lod_index >= _lods.size());
 	Lod &lod = _lods[lod_index];
 	lod.loaded_instances_data.insert(std::make_pair(grid_position, std::move(instances)));
@@ -885,7 +885,7 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 				auto modified_block_it = lod.modified_blocks.find(data_grid_pos);
 				if (modified_block_it != lod.modified_blocks.end()) {
 					if (can_save) {
-						SaveBlockDataTask *task = save_chunk(data_grid_pos, lod_index, nullptr);
+						SaveChunkDataTask *task = save_chunk(data_grid_pos, lod_index, nullptr);
 						if (task != nullptr) {
 							tasks.push_io_task(task);
 						}
@@ -924,7 +924,7 @@ void VoxelInstancer::save_all_modified_blocks(
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
 		for (auto it = lod.modified_blocks.begin(); it != lod.modified_blocks.end(); ++it) {
-			SaveBlockDataTask *task = save_chunk(*it, lod_index, tracker);
+			SaveChunkDataTask *task = save_chunk(*it, lod_index, tracker);
 			if (task != nullptr) {
 				tasks.push_io_task(task);
 			}
@@ -1151,9 +1151,9 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 	}
 }
 
-static const InstanceBlockData::LayerData *find_layer_data(const InstanceBlockData &instances_data, int id) {
+static const InstanceChunkData::LayerData *find_layer_data(const InstanceChunkData &instances_data, int id) {
 	for (size_t i = 0; i < instances_data.layers.size(); ++i) {
-		const InstanceBlockData::LayerData &layer = instances_data.layers[i];
+		const InstanceChunkData::LayerData &layer = instances_data.layers[i];
 		if (layer.id == id) {
 			return &layer;
 		}
@@ -1214,10 +1214,10 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 					if (instances_data_it != lod.loaded_instances_data.end()) {
 						// This area has user-edited instances
 
-						const InstanceBlockData *instances_data = instances_data_it->second.get();
+						const InstanceChunkData *instances_data = instances_data_it->second.get();
 						CRASH_COND(instances_data == nullptr);
 
-						const InstanceBlockData::LayerData *layer_data = find_layer_data(*instances_data, layer_id);
+						const InstanceChunkData::LayerData *layer_data = find_layer_data(*instances_data, layer_id);
 
 						if (layer_data == nullptr) {
 							continue;
@@ -1288,7 +1288,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 	task_scheduler.flush();
 }
 
-SaveBlockDataTask *VoxelInstancer::save_chunk(
+SaveChunkDataTask *VoxelInstancer::save_chunk(
 		Vector3i data_grid_pos, int lod_index, std::shared_ptr<AsyncDependencyTracker> tracker) const {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND_V(_library.is_null(), nullptr);
@@ -1298,7 +1298,7 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 
 	const Lod &lod = _lods[lod_index];
 
-	UniquePtr<InstanceBlockData> block_data = make_unique_instance<InstanceBlockData>();
+	UniquePtr<InstanceChunkData> block_data = make_unique_instance<InstanceChunkData>();
 	const int data_block_size = (1 << _parent_data_block_size_po2) << lod_index;
 	block_data->position_range = data_block_size;
 
@@ -1337,8 +1337,8 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 #endif
 		Block &render_block = *_blocks[render_block_index];
 
-		block_data->layers.push_back(InstanceBlockData::LayerData());
-		InstanceBlockData::LayerData &layer_data = block_data->layers.back();
+		block_data->layers.push_back(InstanceChunkData::LayerData());
+		InstanceChunkData::LayerData &layer_data = block_data->layers.back();
 
 		layer_data.instances.clear();
 		layer_data.id = layer_id;
@@ -1379,7 +1379,7 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 					const int instance_octant_index = VoxelInstanceGenerator::get_octant_index(
 							to_vec3f(rendered_instance_transform.origin), half_render_block_size);
 					if (instance_octant_index == octant_index) {
-						InstanceBlockData::InstanceData d;
+						InstanceChunkData::InstanceData d;
 						d.transform = to_transform3f(rendered_instance_transform);
 						layer_data.instances.push_back(d);
 					}
@@ -1413,7 +1413,7 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 					const int instance_octant_index =
 							VoxelInstanceGenerator::get_octant_index(to_vec3f(t.origin), half_render_block_size);
 					if (instance_octant_index == octant_index) {
-						InstanceBlockData::InstanceData d;
+						InstanceChunkData::InstanceData d;
 						d.transform = to_transform3f(t);
 						layer_data.instances.push_back(d);
 					}
@@ -1422,7 +1422,7 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 			}
 
 			// Make scene transforms relative to render block
-			// for (InstanceBlockData::InstanceData &d : layer_data.instances) {
+			// for (InstanceChunkData::InstanceData &d : layer_data.instances) {
 			// 	d.transform.origin -= render_block_origin;
 			// }
 		}
@@ -1431,7 +1431,7 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 			// Data blocks are on a smaller grid than render blocks so we may convert the relative position
 			// of the instances
 			const Vector3f rel = to_vec3f(data_block_size * (data_grid_pos - render_block_pos * render_to_data_factor));
-			for (InstanceBlockData::InstanceData &d : layer_data.instances) {
+			for (InstanceChunkData::InstanceData &d : layer_data.instances) {
 				d.transform.origin -= rel;
 			}
 		}
@@ -1442,7 +1442,7 @@ SaveBlockDataTask *VoxelInstancer::save_chunk(
 	std::shared_ptr<StreamingDependency> stream_dependency = _parent->get_streaming_dependency();
 	ZN_ASSERT(stream_dependency != nullptr);
 
-	SaveBlockDataTask *task = ZN_NEW(SaveBlockDataTask(
+	SaveChunkDataTask *task = ZN_NEW(SaveChunkDataTask(
 			volume_id, data_grid_pos, lod_index, data_block_size, std::move(block_data), stream_dependency, tracker));
 
 	return task;

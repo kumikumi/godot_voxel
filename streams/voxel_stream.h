@@ -50,7 +50,7 @@ public:
 	};
 
 	struct InstancesQueryData {
-		UniquePtr<InstanceBlockData> data;
+		UniquePtr<InstanceChunkData> data;
 		Vector3i position;
 		uint8_t lod;
 		ResultCode result;
@@ -81,7 +81,7 @@ public:
 	struct FullLoadingResult {
 		struct Block {
 			std::shared_ptr<VoxelBufferInternal> voxels;
-			UniquePtr<InstanceBlockData> instances_data;
+			UniquePtr<InstanceChunkData> instances_data;
 			Vector3i position;
 			unsigned int lod;
 		};

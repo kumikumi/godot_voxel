@@ -844,7 +844,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 				q.result = RESULT_ERROR;
 				continue;
 			}
-			q.data = make_unique_instance<InstanceBlockData>();
+			q.data = make_unique_instance<InstanceChunkData>();
 			if (!deserialize_instance_block_data(*q.data, to_span_const(temp_block_data))) {
 				ERR_PRINT("Failed to deserialize instance block");
 				q.result = RESULT_ERROR;
@@ -925,7 +925,7 @@ void VoxelStreamSQLite::load_all_blocks(FullLoadingResult &result) {
 					ERR_PRINT("Failed to decompress instance block");
 					return;
 				}
-				result_block.instances_data = make_unique_instance<InstanceBlockData>();
+				result_block.instances_data = make_unique_instance<InstanceChunkData>();
 				if (!deserialize_instance_block_data(*result_block.instances_data, to_span_const(temp_block_data))) {
 					ERR_PRINT("Failed to deserialize instance block");
 					return;

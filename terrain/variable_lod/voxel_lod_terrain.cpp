@@ -163,7 +163,7 @@ VoxelLodTerrain::VoxelLodTerrain() {
 			p.first->second.add();
 		}
 	};
-	callbacks.data_output_callback = [](void *cb_data, VoxelEngine::BlockDataOutput &ob) {
+	callbacks.data_output_callback = [](void *cb_data, VoxelEngine::ChunkDataOutput &ob) {
 		VoxelLodTerrain *self = reinterpret_cast<VoxelLodTerrain *>(cb_data);
 		self->apply_data_block_response(ob);
 	};
@@ -1356,10 +1356,10 @@ bool thread_safe_contains(const std::unordered_set<T> &set, T v, BinaryMutex &mu
 	return it != set.end();
 }
 
-void VoxelLodTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob) {
+void VoxelLodTerrain::apply_data_block_response(VoxelEngine::ChunkDataOutput &ob) {
 	ZN_PROFILE_SCOPE();
 
-	if (ob.type == VoxelEngine::BlockDataOutput::TYPE_SAVED) {
+	if (ob.type == VoxelEngine::ChunkDataOutput::TYPE_SAVED) {
 		// That's a save confirmation event.
 		// Note: in the future, if blocks don't get copied before being sent for saving,
 		// we will need to use block versioning to know when we can reset the `modified` flag properly
@@ -1401,7 +1401,7 @@ void VoxelLodTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob
 	}
 
 	VoxelDataBlock block(ob.voxels, ob.lod_index);
-	block.set_edited(ob.type == VoxelEngine::BlockDataOutput::TYPE_LOADED);
+	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
 
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_block_size())) {
 		// Voxel block size is incorrect, drop it

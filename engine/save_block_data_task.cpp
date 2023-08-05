@@ -13,7 +13,7 @@ namespace {
 std::atomic_int g_debug_save_block_tasks_count = { 0 };
 }
 
-SaveBlockDataTask::SaveBlockDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
 		std::shared_ptr<VoxelBufferInternal> p_voxels, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		std::shared_ptr<AsyncDependencyTracker> p_tracker) :
 		_voxels(p_voxels),
@@ -29,8 +29,8 @@ SaveBlockDataTask::SaveBlockDataTask(VolumeID p_volume_id, Vector3i p_block_pos,
 	++g_debug_save_block_tasks_count;
 }
 
-SaveBlockDataTask::SaveBlockDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
-		UniquePtr<InstanceBlockData> p_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
+SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_block_size,
+		UniquePtr<InstanceChunkData> p_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		std::shared_ptr<AsyncDependencyTracker> p_tracker) :
 		_instances(std::move(p_instances)),
 		_position(p_block_pos),
@@ -45,15 +45,15 @@ SaveBlockDataTask::SaveBlockDataTask(VolumeID p_volume_id, Vector3i p_block_pos,
 	++g_debug_save_block_tasks_count;
 }
 
-SaveBlockDataTask::~SaveBlockDataTask() {
+SaveChunkDataTask::~SaveChunkDataTask() {
 	--g_debug_save_block_tasks_count;
 }
 
-int SaveBlockDataTask::debug_get_running_count() {
+int SaveChunkDataTask::debug_get_running_count() {
 	return g_debug_save_block_tasks_count;
 }
 
-void SaveBlockDataTask::run(zylann::ThreadedTaskContext &ctx) {
+void SaveChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_PROFILE_SCOPE();
 
 	CRASH_COND(_stream_dependency == nullptr);
@@ -101,28 +101,28 @@ void SaveBlockDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	_has_run = true;
 }
 
-TaskPriority SaveBlockDataTask::get_priority() {
+TaskPriority SaveChunkDataTask::get_priority() {
 	TaskPriority p;
 	p.band2 = constants::TASK_PRIORITY_SAVE_BAND2;
 	p.band3 = constants::TASK_PRIORITY_BAND3_DEFAULT;
 	return p;
 }
 
-bool SaveBlockDataTask::is_cancelled() {
+bool SaveChunkDataTask::is_cancelled() {
 	return false;
 }
 
-void SaveBlockDataTask::apply_result() {
+void SaveChunkDataTask::apply_result() {
 	if (VoxelEngine::get_singleton().is_volume_valid(_volume_id)) {
 		if (_stream_dependency->valid) {
 			// TODO Perhaps separate save and load callbacks?
-			VoxelEngine::BlockDataOutput o;
+			VoxelEngine::ChunkDataOutput o;
 			o.position = _position;
 			o.lod_index = _lod;
 			o.dropped = !_has_run;
 			o.max_lod_hint = false; // Unused
 			o.initial_load = false; // Unused
-			o.type = VoxelEngine::BlockDataOutput::TYPE_SAVED;
+			o.type = VoxelEngine::ChunkDataOutput::TYPE_SAVED;
 
 			VoxelEngine::VolumeCallbacks callbacks = VoxelEngine::get_singleton().get_volume_callbacks(_volume_id);
 			CRASH_COND(callbacks.data_output_callback == nullptr);
