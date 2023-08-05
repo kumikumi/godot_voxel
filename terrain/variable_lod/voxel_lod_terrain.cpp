@@ -145,7 +145,7 @@ VoxelLodTerrain::VoxelLodTerrain() {
 	// because this kind of task scheduling would otherwise delay the update by 1 frame
 	VoxelEngine::VolumeCallbacks callbacks;
 	callbacks.data = this;
-	callbacks.mesh_output_callback = [](void *cb_data, VoxelEngine::BlockMeshOutput &ob) {
+	callbacks.mesh_output_callback = [](void *cb_data, VoxelEngine::ChunkMeshOutput &ob) {
 		VoxelLodTerrain *self = reinterpret_cast<VoxelLodTerrain *>(cb_data);
 		ApplyMeshUpdateTask *task = memnew(ApplyMeshUpdateTask);
 		task->volume_id = self->get_volume_id();
@@ -1429,7 +1429,7 @@ void VoxelLodTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob
 	}
 }
 
-void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
+void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 	// The following is done on the main thread because Godot doesn't really support everything done here.
 	// Building meshes can be done in the threaded task when using Vulkan, but not OpenGL.
 	// Setting up mesh instances might not be well threaded?
@@ -1463,7 +1463,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 			++_stats.dropped_block_meshes;
 			return;
 		}
-		if (ob.type == VoxelEngine::BlockMeshOutput::TYPE_DROPPED) {
+		if (ob.type == VoxelEngine::ChunkMeshOutput::TYPE_DROPPED) {
 			// That block is loaded, but its meshing request was dropped.
 			// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 			ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");

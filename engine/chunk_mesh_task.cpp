@@ -501,13 +501,13 @@ void ChunkMeshTask::apply_result() {
 		// It is assumed that if a dependency is changed, a new copy of it is made and the old one is marked
 		// invalid.
 		if (meshing_dependency->valid) {
-			VoxelEngine::BlockMeshOutput o;
+			VoxelEngine::ChunkMeshOutput o;
 			// TODO Check for invalidation due to property changes
 
 			if (_has_run) {
-				o.type = VoxelEngine::BlockMeshOutput::TYPE_MESHED;
+				o.type = VoxelEngine::ChunkMeshOutput::TYPE_MESHED;
 			} else {
-				o.type = VoxelEngine::BlockMeshOutput::TYPE_DROPPED;
+				o.type = VoxelEngine::ChunkMeshOutput::TYPE_DROPPED;
 			}
 
 			o.position = chunk_mesh_position;

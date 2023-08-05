@@ -175,7 +175,7 @@ private:
 			ViewerID viewer_id, Box3i prev_data_box, Box3i new_data_box, bool can_load_blocks);
 	// void process_received_data_blocks();
 	void process_meshing();
-	void apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob);
+	void apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob);
 	void apply_data_block_response(VoxelEngine::BlockDataOutput &ob);
 
 	void _on_stream_params_changed();

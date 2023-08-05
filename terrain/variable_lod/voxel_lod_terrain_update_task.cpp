@@ -994,7 +994,7 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 			ZN_ASSERT_CONTINUE(chunk_mesh.state == VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT);
 
 			// Get block and its neighbors
-			// VoxelEngine::BlockMeshInput mesh_request;
+			// VoxelEngine::ChunkMeshInput mesh_request;
 			// mesh_request.render_block_position = chunk_mesh_pos;
 			// mesh_request.lod = lod_index;
 

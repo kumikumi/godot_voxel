@@ -259,7 +259,7 @@ private:
 	void process(float delta);
 	void apply_main_thread_update_tasks();
 
-	void apply_mesh_update(VoxelEngine::BlockMeshOutput &ob);
+	void apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob);
 	void apply_data_block_response(VoxelEngine::BlockDataOutput &ob);
 	void apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob);
 	void apply_detail_texture_update_to_block(
@@ -386,7 +386,7 @@ private:
 
 		VolumeID volume_id;
 		VoxelLodTerrain *self = nullptr;
-		VoxelEngine::BlockMeshOutput data;
+		VoxelEngine::ChunkMeshOutput data;
 	};
 
 	FixedArray<std::unordered_map<Vector3i, RefCount>, constants::MAX_LOD> _queued_main_thread_mesh_updates;

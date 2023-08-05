@@ -30,7 +30,7 @@ namespace zylann::voxel {
 // confused with networking features.
 class VoxelEngine {
 public:
-	struct BlockMeshOutput {
+	struct ChunkMeshOutput {
 		enum Type {
 			TYPE_MESHED, // Contains mesh
 			TYPE_DROPPED // Indicates the meshing was cancelled
@@ -84,7 +84,7 @@ public:
 	};
 
 	struct VolumeCallbacks {
-		void (*mesh_output_callback)(void *, BlockMeshOutput &) = nullptr;
+		void (*mesh_output_callback)(void *, ChunkMeshOutput &) = nullptr;
 		void (*data_output_callback)(void *, BlockDataOutput &) = nullptr;
 		void (*detail_texture_output_callback)(void *, BlockDetailTextureOutput &) = nullptr;
 		void *data = nullptr;

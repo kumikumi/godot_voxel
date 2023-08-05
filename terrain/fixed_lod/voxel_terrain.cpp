@@ -66,7 +66,7 @@ VoxelTerrain::VoxelTerrain() {
 		}
 		VolumeID volume_id;
 		VoxelTerrain *self = nullptr;
-		VoxelEngine::BlockMeshOutput data;
+		VoxelEngine::ChunkMeshOutput data;
 	};
 
 	// Mesh updates are spread over frames by scheduling them in a task runner of VoxelEngine,
@@ -74,7 +74,7 @@ VoxelTerrain::VoxelTerrain() {
 	// because this kind of task scheduling would otherwise delay the update by 1 frame
 	VoxelEngine::VolumeCallbacks callbacks;
 	callbacks.data = this;
-	callbacks.mesh_output_callback = [](void *cb_data, VoxelEngine::BlockMeshOutput &ob) {
+	callbacks.mesh_output_callback = [](void *cb_data, VoxelEngine::ChunkMeshOutput &ob) {
 		VoxelTerrain *self = reinterpret_cast<VoxelTerrain *>(cb_data);
 		ApplyMeshUpdateTask *task = memnew(ApplyMeshUpdateTask);
 		task->volume_id = self->_volume_id;
@@ -1602,7 +1602,7 @@ void VoxelTerrain::process_meshing() {
 	// String::num(_block_update_queue.size()));
 }
 
-void VoxelTerrain::apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob) {
+void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 	ZN_PROFILE_SCOPE();
 	// print_line(String("DDD receive {0}").format(varray(ob.position.to_vec3())));
 
@@ -1614,7 +1614,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob) {
 		return;
 	}
 
-	if (ob.type == VoxelEngine::BlockMeshOutput::TYPE_DROPPED) {
+	if (ob.type == VoxelEngine::ChunkMeshOutput::TYPE_DROPPED) {
 		// That block is loaded, but its meshing request was dropped.
 		// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 		ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");
