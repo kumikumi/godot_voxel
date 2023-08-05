@@ -206,8 +206,8 @@ private:
 	void emit_chunk_data_loaded(Vector3i bpos);
 	void emit_chunk_data_unloaded(Vector3i bpos);
 
-	void emit_mesh_block_entered(Vector3i bpos);
-	void emit_mesh_block_exited(Vector3i bpos);
+	void emit_chunk_mesh_entered(Vector3i bpos);
+	void emit_chunk_mesh_exited(Vector3i bpos);
 
 	bool try_get_paired_viewer_index(ViewerID id, size_t &out_i) const;
 

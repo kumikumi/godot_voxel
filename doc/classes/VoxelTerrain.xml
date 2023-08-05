@@ -157,12 +157,12 @@
 				Emitted when chunk data is unloaded due to being outside view distance.
 			</description>
 		</signal>
-		<signal name="mesh_block_entered">
+		<signal name="chunk_mesh_entered">
 			<param index="0" name="position" type="Vector3i" />
 			<description>
 			</description>
 		</signal>
-		<signal name="mesh_block_exited">
+		<signal name="chunk_mesh_exited">
 			<param index="0" name="position" type="Vector3i" />
 			<description>
 			</description>

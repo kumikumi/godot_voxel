@@ -31,8 +31,8 @@ VoxelStringNames::VoxelStringNames() {
 	chunk_data_loaded = StringName("chunk_data_loaded");
 	chunk_data_unloaded = StringName("chunk_data_unloaded");
 
-	mesh_block_entered = StringName("mesh_block_entered");
-	mesh_block_exited = StringName("mesh_block_exited");
+	chunk_mesh_entered = StringName("chunk_mesh_entered");
+	chunk_mesh_exited = StringName("chunk_mesh_exited");
 
 	store_colors_in_texture = StringName("store_colors_in_texture");
 	scale = StringName("scale");

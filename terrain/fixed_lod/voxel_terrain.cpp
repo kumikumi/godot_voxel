@@ -224,11 +224,11 @@ void VoxelTerrain::set_mesh_block_size(unsigned int mesh_block_size) {
 		VoxelInstancer &instancer = *_instancer;
 		_mesh_map.for_each_block([&instancer, this](VoxelMeshBlockVT &block) { //
 			instancer.on_mesh_block_exit(block.position, 0);
-			emit_mesh_block_exited(block.position);
+			emit_chunk_mesh_exited(block.position);
 		});
 	} else {
 		_mesh_map.for_each_block([this](VoxelMeshBlockVT &block) { //
-			emit_mesh_block_exited(block.position);
+			emit_chunk_mesh_exited(block.position);
 		});
 	}
 
@@ -508,7 +508,7 @@ void VoxelTerrain::unload_mesh_block(Vector3i bpos) {
 	if (_instancer != nullptr) {
 		_instancer->on_mesh_block_exit(bpos, 0);
 	}
-	emit_mesh_block_exited(bpos);
+	emit_chunk_mesh_exited(bpos);
 }
 
 void VoxelTerrain::save_all_modified_blocks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker) {
@@ -950,7 +950,7 @@ void VoxelTerrain::emit_chunk_data_unloaded(Vector3i bpos) {
 	emit_signal(VoxelStringNames::get_singleton().chunk_data_unloaded, bpos);
 }
 
-void VoxelTerrain::emit_mesh_block_entered(Vector3i bpos) {
+void VoxelTerrain::emit_chunk_mesh_entered(Vector3i bpos) {
 	// Not sure about exposing buffers directly... some stuff on them is useful to obtain directly,
 	// but also it allows scripters to mess with voxels in a way they should not.
 	// Example: modifying voxels without locking them first, while another thread may be reading them at the same
@@ -960,11 +960,11 @@ void VoxelTerrain::emit_mesh_block_entered(Vector3i bpos) {
 	// absolutely necessary, buffers aren't exposed. Workaround: use VoxelTool
 	// const Variant vbuffer = block->voxels;
 	// const Variant *args[2] = { &vpos, &vbuffer };
-	emit_signal(VoxelStringNames::get_singleton().mesh_block_entered, bpos);
+	emit_signal(VoxelStringNames::get_singleton().chunk_mesh_entered, bpos);
 }
 
-void VoxelTerrain::emit_mesh_block_exited(Vector3i bpos) {
-	emit_signal(VoxelStringNames::get_singleton().mesh_block_exited, bpos);
+void VoxelTerrain::emit_chunk_mesh_exited(Vector3i bpos) {
+	emit_signal(VoxelStringNames::get_singleton().chunk_mesh_exited, bpos);
 }
 
 bool VoxelTerrain::try_get_paired_viewer_index(ViewerID id, size_t &out_i) const {
@@ -1655,7 +1655,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob) {
 		if (_instancer != nullptr) {
 			_instancer->on_mesh_block_exit(ob.position, ob.lod);
 		}
-		emit_mesh_block_exited(ob.position);
+		emit_chunk_mesh_exited(ob.position);
 	}
 	if (ob.surfaces.surfaces.size() > 0 && mesh.is_valid() && !block->has_mesh()) {
 		// TODO The mesh could come from an edited region!
@@ -1664,7 +1664,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::BlockMeshOutput &ob) {
 		if (_instancer != nullptr) {
 			_instancer->on_mesh_block_enter(ob.position, ob.lod, ob.surfaces.surfaces[0].arrays);
 		}
-		emit_mesh_block_entered(ob.position);
+		emit_chunk_mesh_entered(ob.position);
 	}
 
 	block->set_mesh(mesh, DirectMeshInstance::GIMode(get_gi_mode()),
@@ -1980,8 +1980,8 @@ void VoxelTerrain::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("chunk_data_loaded", PropertyInfo(Variant::VECTOR3I, "position")));
 	ADD_SIGNAL(MethodInfo("chunk_data_unloaded", PropertyInfo(Variant::VECTOR3I, "position")));
 
-	ADD_SIGNAL(MethodInfo("mesh_block_entered", PropertyInfo(Variant::VECTOR3I, "position")));
-	ADD_SIGNAL(MethodInfo("mesh_block_exited", PropertyInfo(Variant::VECTOR3I, "position")));
+	ADD_SIGNAL(MethodInfo("chunk_mesh_entered", PropertyInfo(Variant::VECTOR3I, "position")));
+	ADD_SIGNAL(MethodInfo("chunk_mesh_exited", PropertyInfo(Variant::VECTOR3I, "position")));
 }
 
 } // namespace zylann::voxel

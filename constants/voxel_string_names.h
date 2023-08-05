@@ -25,8 +25,8 @@ public:
 	StringName chunk_data_loaded;
 	StringName chunk_data_unloaded;
 
-	StringName mesh_block_entered;
-	StringName mesh_block_exited;
+	StringName chunk_mesh_entered;
+	StringName chunk_mesh_exited;
 
 	StringName store_colors_in_texture;
 	StringName scale;
