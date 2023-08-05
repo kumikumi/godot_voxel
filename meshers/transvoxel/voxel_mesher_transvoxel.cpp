@@ -195,7 +195,7 @@ struct DeepSampler : transvoxel::IDeepSDFSampler {
 		{
 			RWLockRead rlock(lod.map_lock);
 			const Vector3i lod_bpos = lod_pos >> lod.map.get_block_size_pow2();
-			const VoxelDataBlock *block = lod.map.get_block(lod_bpos);
+			const VoxelChunkData *block = lod.map.get_block(lod_bpos);
 			// TODO Thread-safety: this checking presence of voxels is not safe.
 			// It can change while meshing takes place if a modifier is moved in the same area,
 			// because it invalidates cached data.

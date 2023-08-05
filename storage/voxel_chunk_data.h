@@ -11,18 +11,18 @@ namespace zylann::voxel {
 // Voxel data can be present, or not. If not present, it means we know the block contains no edits, and voxels can be
 // obtained by querying generators.
 // Voxel data can also be present as a cache of generators, for cheaper repeated queries.
-class VoxelDataBlock {
+class VoxelChunkData {
 public:
 	RefCount viewers;
 
-	VoxelDataBlock() {}
+	VoxelChunkData() {}
 
-	VoxelDataBlock(unsigned int p_lod_index) : _lod_index(p_lod_index) {}
+	VoxelChunkData(unsigned int p_lod_index) : _lod_index(p_lod_index) {}
 
-	VoxelDataBlock(std::shared_ptr<VoxelBufferInternal> &buffer, unsigned int p_lod_index) :
+	VoxelChunkData(std::shared_ptr<VoxelBufferInternal> &buffer, unsigned int p_lod_index) :
 			_voxels(buffer), _lod_index(p_lod_index) {}
 
-	VoxelDataBlock(VoxelDataBlock &&src) :
+	VoxelChunkData(VoxelChunkData &&src) :
 			viewers(src.viewers),
 			_voxels(std::move(src._voxels)),
 			_lod_index(src._lod_index),
@@ -30,7 +30,7 @@ public:
 			_modified(src._modified),
 			_edited(src._edited) {}
 
-	VoxelDataBlock(const VoxelDataBlock &src) :
+	VoxelChunkData(const VoxelChunkData &src) :
 			viewers(src.viewers),
 			_voxels(src._voxels),
 			_lod_index(src._lod_index),
@@ -38,7 +38,7 @@ public:
 			_modified(src._modified),
 			_edited(src._edited) {}
 
-	VoxelDataBlock &operator=(VoxelDataBlock &&src) {
+	VoxelChunkData &operator=(VoxelChunkData &&src) {
 		viewers = src.viewers;
 		_lod_index = src._lod_index;
 		_voxels = std::move(src._voxels);
@@ -48,7 +48,7 @@ public:
 		return *this;
 	}
 
-	VoxelDataBlock operator=(const VoxelDataBlock &src) {
+	VoxelChunkData operator=(const VoxelChunkData &src) {
 		viewers = src.viewers;
 		_lod_index = src._lod_index;
 		_voxels = src._voxels;

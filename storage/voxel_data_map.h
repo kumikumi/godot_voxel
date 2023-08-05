@@ -84,12 +84,12 @@ public:
 			uint8_t mask_channel, uint64_t mask_value, bool create_new_blocks);
 
 	// Moves the given buffer into a block of the map. The buffer is referenced, no copy is made.
-	VoxelDataBlock *set_block_buffer(Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite);
-	VoxelDataBlock *set_empty_block(Vector3i bpos, bool overwrite);
-	void set_block(Vector3i bpos, const VoxelDataBlock &block);
+	VoxelChunkData *set_block_buffer(Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite);
+	VoxelChunkData *set_empty_block(Vector3i bpos, bool overwrite);
+	void set_block(Vector3i bpos, const VoxelChunkData &block);
 
 	struct NoAction {
-		inline void operator()(VoxelDataBlock &block) {}
+		inline void operator()(VoxelChunkData &block) {}
 	};
 
 	template <typename Action_T>
@@ -101,8 +101,8 @@ public:
 		}
 	}
 
-	VoxelDataBlock *get_block(Vector3i bpos);
-	const VoxelDataBlock *get_block(Vector3i bpos) const;
+	VoxelChunkData *get_block(Vector3i bpos);
+	const VoxelChunkData *get_block(Vector3i bpos) const;
 
 	bool has_block(Vector3i pos) const;
 	bool is_block_surrounded(Vector3i pos) const;
@@ -111,7 +111,7 @@ public:
 
 	int get_block_count() const;
 
-	// op(Vector3i bpos, VoxelDataBlock &block)
+	// op(Vector3i bpos, VoxelChunkData &block)
 	template <typename Op_T>
 	inline void for_each_block(Op_T op) {
 		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
@@ -119,7 +119,7 @@ public:
 		}
 	}
 
-	// void op(Vector3i bpos, const VoxelDataBlock &block)
+	// void op(Vector3i bpos, const VoxelChunkData &block)
 	template <typename Op_T>
 	inline void for_each_block(Op_T op) const {
 		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
@@ -140,7 +140,7 @@ public:
 		const Box3i block_box = voxel_box.downscaled(get_block_size());
 		const Vector3i block_size = Vector3iUtil::create(get_block_size());
 		block_box.for_each_cell_zxy([this, action, voxel_box, channel, block_size, gen_func](Vector3i block_pos) {
-			VoxelDataBlock *block = get_block(block_pos);
+			VoxelChunkData *block = get_block(block_pos);
 			if (block == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
 				block = create_default_block(block_pos);
@@ -165,7 +165,7 @@ public:
 		const Vector3i block_size = Vector3iUtil::create(get_block_size());
 		block_box.for_each_cell_zxy(
 				[this, action, voxel_box, channel0, channel1, block_size, gen_func](Vector3i block_pos) {
-					VoxelDataBlock *block = get_block(block_pos);
+					VoxelChunkData *block = get_block(block_pos);
 					if (block == nullptr) {
 						block = create_default_block(block_pos);
 						gen_func(block->get_voxels(), block_pos << get_block_size_pow2());
@@ -179,9 +179,9 @@ public:
 	}
 
 private:
-	// void set_block(Vector3i bpos, VoxelDataBlock *block);
-	VoxelDataBlock *get_or_create_block_at_voxel_pos(Vector3i pos);
-	VoxelDataBlock *create_default_block(Vector3i bpos);
+	// void set_block(Vector3i bpos, VoxelChunkData *block);
+	VoxelChunkData *get_or_create_block_at_voxel_pos(Vector3i pos);
+	VoxelChunkData *create_default_block(Vector3i bpos);
 
 	// void set_block_size_pow2(unsigned int p);
 
@@ -191,7 +191,7 @@ private:
 	// defaults, but it sometimes has very long stalls on removal, which std::unordered_map doesn't seem to have
 	// (not as badly). Also overall performance is slightly better.
 	// Note: pointers to elements remain valid when inserting or removing others (only iterators may be invalidated)
-	std::unordered_map<Vector3i, VoxelDataBlock> _blocks_map;
+	std::unordered_map<Vector3i, VoxelChunkData> _blocks_map;
 
 	// This was a possible optimization in a single-threaded scenario, but it's not in multithread.
 	// We want to be able to do shared read-accesses but this is a mutable variable.
@@ -199,7 +199,7 @@ private:
 	//
 	// Voxel access will most frequently be in contiguous areas, so the same blocks are accessed.
 	// To prevent too much hashing, this reference is checked before.
-	// mutable VoxelDataBlock *_last_accessed_block = nullptr;
+	// mutable VoxelChunkData *_last_accessed_block = nullptr;
 
 	unsigned int _lod_index = 0;
 };

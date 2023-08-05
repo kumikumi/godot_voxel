@@ -27,7 +27,7 @@ public:
 			sl->lock_read(blocks_box);
 		}
 		blocks_box.for_each_cell_zxy([&map, this](const Vector3i pos) {
-			const VoxelDataBlock *block = map.get_block(pos);
+			const VoxelChunkData *block = map.get_block(pos);
 			// TODO Might need to invoke the generator at some level for present blocks without voxels,
 			// or make sure all blocks contain voxel data
 			if (block != nullptr && block->has_voxels()) {

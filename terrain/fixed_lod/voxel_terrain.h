@@ -211,7 +211,7 @@ private:
 
 	bool try_get_paired_viewer_index(ViewerID id, size_t &out_i) const;
 
-	void notify_chunk_enter(const VoxelDataBlock &block, Vector3i bpos, ViewerID viewer_id);
+	void notify_chunk_enter(const VoxelChunkData &block, Vector3i bpos, ViewerID viewer_id);
 
 	bool is_area_meshed(const Box3i &box_in_voxels) const;
 

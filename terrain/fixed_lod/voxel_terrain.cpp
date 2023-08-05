@@ -676,7 +676,7 @@ void VoxelTerrain::stop_streamer() {
 void VoxelTerrain::reset_map() {
 	// Discard everything, to reload it all
 
-	_data->for_each_block([this](const Vector3i &bpos, const VoxelDataBlock &block) { //
+	_data->for_each_block([this](const Vector3i &bpos, const VoxelChunkData &block) { //
 		emit_chunk_data_unloaded(bpos);
 	});
 	_data->reset_maps();
@@ -979,7 +979,7 @@ bool VoxelTerrain::try_get_paired_viewer_index(ViewerID id, size_t &out_i) const
 }
 
 // TODO It is unclear yet if this API will stay. I have a feeling it might consume a lot of CPU
-void VoxelTerrain::notify_chunk_enter(const VoxelDataBlock &block, Vector3i bpos, ViewerID viewer_id) {
+void VoxelTerrain::notify_chunk_enter(const VoxelChunkData &block, Vector3i bpos, ViewerID viewer_id) {
 	if (!VoxelEngine::get_singleton().viewer_exists(viewer_id)) {
 		// The viewer might have been removed between the moment we requested the block and the moment we finished
 		// loading it
@@ -1313,7 +1313,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 				VoxelEngine::get_singleton().viewer_exists(viewer_id) && // Could be a destroyed viewer
 				VoxelEngine::get_singleton().is_viewer_requiring_chunk_notifications(viewer_id);
 
-		static thread_local std::vector<VoxelDataBlock> tls_found_blocks;
+		static thread_local std::vector<VoxelChunkData> tls_found_blocks;
 
 		tls_missing_blocks.clear();
 		tls_found_blocks.clear();
@@ -1356,7 +1356,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 			// Notifications for blocks that were already loaded
 			for (unsigned int i = 0; i < tls_found_blocks.size(); ++i) {
 				const Vector3i bpos = tls_found_blocks_positions[i];
-				const VoxelDataBlock &block = tls_found_blocks[i];
+				const VoxelChunkData &block = tls_found_blocks[i];
 				notify_chunk_enter(block, bpos, viewer_id);
 			}
 		}
@@ -1419,7 +1419,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	CRASH_COND(ob.voxels == nullptr);
 
-	VoxelDataBlock block(ob.voxels, ob.lod_index);
+	VoxelChunkData block(ob.voxels, ob.lod_index);
 	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
 	// Viewers will be set only if the block doesn't already exist
 	block.viewers = loading_block.viewers;
@@ -1431,7 +1431,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		return;
 	}
 
-	_data->try_set_block(block_pos, block, [](VoxelDataBlock &existing_block, const VoxelDataBlock &incoming_block) {
+	_data->try_set_block(block_pos, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
 		existing_block.set_voxels(incoming_block.get_voxels_shared());
 		existing_block.set_edited(incoming_block.is_edited());
 	});
@@ -1492,13 +1492,13 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 	// Cancel loading version if any
 	_loading_blocks.erase(position);
 
-	VoxelDataBlock block(voxel_data, 0);
+	VoxelChunkData block(voxel_data, 0);
 	// TODO How to set the `edited` flag? Does it matter in use cases for this function?
 	block.set_edited(true);
 	block.viewers = refcount;
 
 	// Create or update block data
-	_data->try_set_block(position, block, [](VoxelDataBlock &existing_block, const VoxelDataBlock &incoming_block) {
+	_data->try_set_block(position, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
 		existing_block.set_voxels(incoming_block.get_voxels_shared());
 		existing_block.set_edited(incoming_block.is_edited());
 	});

@@ -40,7 +40,7 @@ bool VoxelTerrainMultiplayerSynchronizer::is_server() const {
 }
 
 void VoxelTerrainMultiplayerSynchronizer::send_block(
-		int viewer_peer_id, const VoxelDataBlock &chunk, Vector3i bpos) {
+		int viewer_peer_id, const VoxelChunkData &chunk, Vector3i bpos) {
 	ZN_PROFILE_SCOPE();
 
 	BlockSerializer::SerializeResult result = BlockSerializer::serialize_and_compress(chunk.get_voxels_const());

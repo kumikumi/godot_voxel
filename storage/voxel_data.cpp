@@ -14,7 +14,7 @@ struct BeforeUnloadSaveAction {
 	Vector3i position;
 	unsigned int lod_index;
 
-	inline void operator()(VoxelDataBlock &block) {
+	inline void operator()(VoxelChunkData &block) {
 		if (block.is_modified()) {
 			// If a modified block has no voxels, it is equivalent to removing the block from the stream
 			VoxelData::BlockToSave b;
@@ -34,7 +34,7 @@ struct ScheduleSaveAction {
 	uint8_t lod_index;
 	bool with_copy;
 
-	void operator()(const Vector3i &bpos, VoxelDataBlock &block) {
+	void operator()(const Vector3i &bpos, VoxelChunkData &block) {
 		if (block.is_modified()) {
 			// print_line(String("Scheduling save for block {0}").format(varray(block->position.to_vec3())));
 			VoxelData::BlockToSave b;
@@ -374,7 +374,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 			RWLockRead rlock(data_lod.map_lock);
 			block_box.for_each_cell([&data_lod, lod_index, &todo, streaming](Vector3i block_pos) {
 				// We don't check "loading blocks", because this function wants to complete the task right now.
-				const VoxelDataBlock *block = data_lod.map.get_block(block_pos);
+				const VoxelChunkData *block = data_lod.map.get_block(block_pos);
 				if (streaming) {
 					// Non-loaded blocks must not be touched because we don't know what's in them.
 					// We can generate caches if loaded ones have no voxel data.
@@ -426,7 +426,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 			for (; task_index < end_task_index; ++task_index) {
 				Task &task = todo[task_index];
 				ZN_ASSERT(task.lod_index == lod_index);
-				const VoxelDataBlock *prev_block = data_lod.map.get_block(task.block_pos);
+				const VoxelChunkData *prev_block = data_lod.map.get_block(task.block_pos);
 				if (prev_block != nullptr && prev_block->has_voxels()) {
 					// Sorry, that block has been set in the meantime by another thread.
 					// We'll assume the block we just generated is redundant and discard it.
@@ -454,7 +454,7 @@ void VoxelData::clear_cached_blocks_in_voxel_area(Box3i p_voxel_box) {
 
 		const Box3i blocks_box = p_voxel_box.downscaled(lod.map.get_block_size() << lod_index);
 		blocks_box.for_each_cell_zxy([&lod](const Vector3i bpos) {
-			VoxelDataBlock *block = lod.map.get_block(bpos);
+			VoxelChunkData *block = lod.map.get_block(bpos);
 			if (block == nullptr || block->is_edited() || block->is_modified()) {
 				return;
 			}
@@ -472,7 +472,7 @@ void VoxelData::mark_area_modified(
 		RWLockRead rlock(data_lod0.map_lock);
 
 		bbox.for_each_cell([&data_lod0, lod0_new_blocks_to_lod, require_lod_updates](Vector3i block_pos_lod0) {
-			VoxelDataBlock *block = data_lod0.map.get_block(block_pos_lod0);
+			VoxelChunkData *block = data_lod0.map.get_block(block_pos_lod0);
 			// We can get null blocks due to the added padding...
 			// ERR_FAIL_COND(block == nullptr);
 			if (block == nullptr) {
@@ -500,10 +500,10 @@ void VoxelData::mark_area_modified(
 	}
 }
 
-bool VoxelData::try_set_block(Vector3i block_position, const VoxelDataBlock &block) {
+bool VoxelData::try_set_block(Vector3i block_position, const VoxelChunkData &block) {
 	bool inserted = true;
 	try_set_block(block_position, block,
-			[&inserted](VoxelDataBlock &existing, const VoxelDataBlock &incoming) { inserted = false; });
+			[&inserted](VoxelChunkData &existing, const VoxelChunkData &incoming) { inserted = false; });
 	return inserted;
 }
 
@@ -568,7 +568,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 
 		for (unsigned int i = 0; i < blocks_pending_lodding_lod0.size(); ++i) {
 			const Vector3i chunk_pos = blocks_pending_lodding_lod0[i];
-			VoxelDataBlock *chunk = data_lod0.map.get_block(chunk_pos);
+			VoxelChunkData *chunk = data_lod0.map.get_block(chunk_pos);
 			ERR_CONTINUE(chunk == nullptr);
 			chunk->set_needs_lodding(false);
 
@@ -607,8 +607,8 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 			// Besides, in per-block streaming mode, it is not needed because blocks are supposed to be present
 			RWLockRead wlock(dst_data_lod.map_lock);
 
-			VoxelDataBlock *src_block = src_data_lod.map.get_block(src_bpos);
-			VoxelDataBlock *dst_block = dst_data_lod.map.get_block(dst_bpos);
+			VoxelChunkData *src_block = src_data_lod.map.get_block(src_bpos);
+			VoxelChunkData *dst_block = dst_data_lod.map.get_block(dst_bpos);
 
 			src_block->set_needs_lodding(false);
 
@@ -715,7 +715,7 @@ bool VoxelData::consume_block_modifications(Vector3i bpos, VoxelData::BlockToSav
 	Lod &lod = _lods[0];
 	VoxelSpatialLockRead srlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
 	RWLockRead rlock(lod.map_lock);
-	VoxelDataBlock *block = lod.map.get_block(bpos);
+	VoxelChunkData *block = lod.map.get_block(bpos);
 	if (block == nullptr) {
 		return false;
 	}
@@ -781,7 +781,7 @@ void VoxelData::get_blocks_with_voxel_data(
 
 	// Iteration order matters for thread access.
 	p_blocks_box.for_each_cell_zxy([&index, &data_lod, &out_blocks](Vector3i chunk_pos) {
-		const VoxelDataBlock *nblock = data_lod.map.get_block(chunk_pos);
+		const VoxelChunkData *nblock = data_lod.map.get_block(chunk_pos);
 		// The block can actually be null on some occasions. Not sure yet if it's that bad
 		// CRASH_COND(nblock == nullptr);
 		if (nblock != nullptr && nblock->has_voxels()) {
@@ -825,7 +825,7 @@ bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 
 		const VoxelDataMap &map = mip_data_lod.map;
 		const bool no_blocks_found = mip_blocks_box.all_cells_match([&map](const Vector3i pos) {
-			const VoxelDataBlock *block = map.get_block(pos);
+			const VoxelChunkData *block = map.get_block(pos);
 			return block == nullptr || block->has_voxels() == false;
 		});
 
@@ -840,7 +840,7 @@ bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 }
 
 void VoxelData::view_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
-		std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelDataBlock> &found_blocks) {
+		std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks) {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_blocks = get_bounds().downscaled(get_block_size());
 	blocks_box = blocks_box.clipped(bounds_in_blocks);
@@ -849,7 +849,7 @@ void VoxelData::view_area(Box3i blocks_box, std::vector<Vector3i> &missing_block
 	RWLockRead rlock(lod.map_lock);
 
 	blocks_box.for_each_cell_zxy([&lod, &found_blocks_positions, &found_blocks, &missing_blocks](Vector3i bpos) {
-		VoxelDataBlock *block = lod.map.get_block(bpos);
+		VoxelChunkData *block = lod.map.get_block(bpos);
 		if (block != nullptr) {
 			block->viewers.add();
 			found_blocks.push_back(*block);
@@ -870,7 +870,7 @@ void VoxelData::unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blo
 	RWLockRead rlock(lod.map_lock);
 
 	blocks_box.for_each_cell_zxy([&lod, &missing_blocks, &found_blocks, to_save](Vector3i bpos) {
-		VoxelDataBlock *block = lod.map.get_block(bpos);
+		VoxelChunkData *block = lod.map.get_block(bpos);
 		if (block != nullptr) {
 			block->viewers.remove();
 			if (block->viewers.get() == 0) {
@@ -890,7 +890,7 @@ void VoxelData::unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blo
 std::shared_ptr<VoxelBufferInternal> VoxelData::try_get_block_voxels(Vector3i bpos) {
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
-	VoxelDataBlock *block = lod.map.get_block(bpos);
+	VoxelChunkData *block = lod.map.get_block(bpos);
 	if (block == nullptr) {
 		return nullptr;
 	}
@@ -904,7 +904,7 @@ void VoxelData::set_voxel_metadata(Vector3i pos, Variant meta) {
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 	const Vector3i bpos = lod.map.voxel_to_block(pos);
-	VoxelDataBlock *block = lod.map.get_block(bpos);
+	VoxelChunkData *block = lod.map.get_block(bpos);
 	ZN_ASSERT_RETURN_MSG(block != nullptr, "Area not editable");
 	VoxelSpatialLockWrite swlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
 	// TODO Ability to have metadata in areas where voxels have not been allocated?
@@ -919,7 +919,7 @@ Variant VoxelData::get_voxel_metadata(Vector3i pos) {
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 	const Vector3i bpos = lod.map.voxel_to_block(pos);
-	VoxelDataBlock *block = lod.map.get_block(bpos);
+	VoxelChunkData *block = lod.map.get_block(bpos);
 	ZN_ASSERT_RETURN_V_MSG(block != nullptr, Variant(), "Area not editable");
 	VoxelSpatialLockRead srlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
 	ZN_ASSERT_RETURN_V_MSG(block->has_voxels(), Variant(), "Area not cached");

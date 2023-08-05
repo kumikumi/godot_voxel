@@ -1400,7 +1400,7 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		return;
 	}
 
-	VoxelDataBlock block(ob.voxels, ob.lod_index);
+	VoxelChunkData block(ob.voxels, ob.lod_index);
 	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
 
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_block_size())) {
@@ -2699,7 +2699,7 @@ void VoxelLodTerrain::update_gizmos() {
 		const Basis basis(Basis().scaled(Vector3(chunk_size, chunk_size, chunk_size)));
 
 		_data->for_each_block_at_lod(
-				[&dr, parent_transform, chunk_size, basis](const Vector3i &bpos, const VoxelDataBlock &block) {
+				[&dr, parent_transform, chunk_size, basis](const Vector3i &bpos, const VoxelChunkData &block) {
 					if (block.is_edited()) {
 						const Transform3D local_transform(basis, bpos * chunk_size);
 						const Transform3D t = parent_transform * local_transform;

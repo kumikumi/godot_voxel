@@ -60,7 +60,7 @@ void test_run_blocky_random_tick() {
 			std::shared_ptr<VoxelBufferInternal> buffer = make_shared_instance<VoxelBufferInternal>();
 			buffer->create(model_buffer.get_size());
 			buffer->copy_from(model_buffer);
-			VoxelDataBlock block(buffer, 0);
+			VoxelChunkData block(buffer, 0);
 			block.set_edited(true);
 			ZN_TEST_ASSERT(data.try_set_block(block_pos, block));
 		});

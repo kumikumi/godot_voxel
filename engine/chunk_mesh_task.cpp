@@ -392,7 +392,7 @@ void ChunkMeshTask::gather_voxels_cpu() {
 				for (bpos.y = min_bpos.y; bpos.y < max_bpos.y; ++bpos.y) {
 					// {
 					// 	RWLockRead rlock(lod.map_lock);
-					// 	VoxelDataBlock *block = lod.map.get_block(bpos);
+					// 	VoxelChunkData *block = lod.map.get_block(bpos);
 					// 	if (block != nullptr && (block->is_edited() || block->is_modified())) {
 					// 		continue;
 					// 	}

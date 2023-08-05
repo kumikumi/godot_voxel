@@ -20,7 +20,7 @@ public:
 	Vector3i block_position;
 	// Shallow copy of the block. We don't use a pointer due to thread-safety, so this information represents only the
 	// moment where the block was inserted into the map.
-	VoxelDataBlock voxel_block;
+	VoxelChunkData voxel_block;
 
 private:
 	int _b_get_network_peer_id() const;

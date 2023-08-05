@@ -18,7 +18,7 @@ public:
 
 	bool is_server() const;
 
-	void send_block(int viewer_peer_id, const VoxelDataBlock &chunk, Vector3i bpos);
+	void send_block(int viewer_peer_id, const VoxelChunkData &chunk, Vector3i bpos);
 	void send_area(Box3i voxel_box);
 
 #ifdef TOOLS_ENABLED

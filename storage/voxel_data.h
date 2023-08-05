@@ -139,13 +139,13 @@ public:
 
 	// Sets all the data of a block.
 	// If the block already exists, returns false. Otherwise, returns true.
-	bool try_set_block(Vector3i block_position, const VoxelDataBlock &block);
+	bool try_set_block(Vector3i block_position, const VoxelChunkData &block);
 
 	// Sets all the data of a block.
 	// If the block already exists, `action_when_exists` is called.
-	// `void action_when_exists(VoxelDataBlock &existing_block, const VoxelDataBlock &incoming_block)`
+	// `void action_when_exists(VoxelChunkData &existing_block, const VoxelChunkData &incoming_block)`
 	template <typename F>
-	void try_set_block(Vector3i block_position, const VoxelDataBlock &block, F action_when_exists) {
+	void try_set_block(Vector3i block_position, const VoxelChunkData &block, F action_when_exists) {
 		Lod &lod = _lods[block.get_lod_index()];
 #ifdef DEBUG_ENABLED
 		if (block.has_voxels()) {
@@ -153,7 +153,7 @@ public:
 		}
 #endif
 		RWLockWrite wlock(lod.map_lock);
-		VoxelDataBlock *existing_block = lod.map.get_block(block_position);
+		VoxelChunkData *existing_block = lod.map.get_block(block_position);
 		if (existing_block != nullptr) {
 			action_when_exists(*existing_block, block);
 		} else {
@@ -161,7 +161,7 @@ public:
 		}
 	}
 
-	// void op(Vector3i bpos, const VoxelDataBlock &block)
+	// void op(Vector3i bpos, const VoxelChunkData &block)
 	template <typename F>
 	void for_each_block(F op) const {
 		const unsigned int lod_count = get_lod_count();
@@ -172,7 +172,7 @@ public:
 		}
 	}
 
-	// void op(Vector3i bpos, const VoxelDataBlock &block)
+	// void op(Vector3i bpos, const VoxelChunkData &block)
 	template <typename F>
 	void for_each_block_at_lod(F op, unsigned int lod_index) const {
 		const Lod &lod = _lods[lod_index];
@@ -263,7 +263,7 @@ public:
 	// Returns positions where blocks were loaded, and where they were missing.
 	// Shallow copies of found blocks are returned (voxel data is referenced).
 	void view_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
-			std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelDataBlock> &found_blocks);
+			std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks);
 
 	// Decreases the reference count of loaded blocks in the area. Blocks reaching zero will be unloaded.
 	// Returns positions where blocks were found, and where they were missing.
@@ -307,7 +307,7 @@ private:
 	static inline std::shared_ptr<VoxelBufferInternal> try_get_voxel_buffer_with_lock(
 			const Lod &data_lod, Vector3i block_pos, bool &out_generate) {
 		RWLockRead rlock(data_lod.map_lock);
-		const VoxelDataBlock *block = data_lod.map.get_block(block_pos);
+		const VoxelChunkData *block = data_lod.map.get_block(block_pos);
 		if (block == nullptr) {
 			return nullptr;
 		}
