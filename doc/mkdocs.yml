@@ -51,7 +51,7 @@ nav:
     - api/VoxelBoxMover.md
     - api/VoxelBuffer.md
     - api/VoxelColorPalette.md
-    - api/VoxelDataBlockEnterInfo.md
+    - api/VoxelChunkEnterInfo.md
     - api/VoxelEngine.md
     - api/VoxelGenerator.md
     - api/VoxelGeneratorFlat.md

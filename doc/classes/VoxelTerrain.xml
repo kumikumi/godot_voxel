@@ -17,7 +17,7 @@
 		</method>
 		<method name="_on_chunk_entered" qualifiers="virtual">
 			<return type="void" />
-			<param index="0" name="info" type="VoxelDataBlockEnterInfo" />
+			<param index="0" name="info" type="VoxelChunkEnterInfo" />
 			<description>
 			</description>
 		</method>

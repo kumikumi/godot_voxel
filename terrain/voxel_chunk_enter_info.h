@@ -13,8 +13,8 @@ class VoxelBuffer;
 // Information sent with data block entering notifications.
 // It is a class for script API convenience.
 // You may neither create this object on your own, nor keep a reference to it.
-class VoxelDataBlockEnterInfo : public Object {
-	GDCLASS(VoxelDataBlockEnterInfo, Object)
+class VoxelChunkEnterInfo : public Object {
+	GDCLASS(VoxelChunkEnterInfo, Object)
 public:
 	int network_peer_id = -1;
 	Vector3i block_position;

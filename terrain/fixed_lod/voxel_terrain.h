@@ -219,7 +219,7 @@ private:
 	// Called each time a data block enters a viewer's area.
 	// This can be either when the block exists and the viewer gets close enough, or when it gets loaded.
 	// This only happens if data block enter notifications are enabled.
-	GDVIRTUAL1(_on_chunk_entered, VoxelDataBlockEnterInfo *);
+	GDVIRTUAL1(_on_chunk_entered, VoxelChunkEnterInfo *);
 
 	// Called each time voxels are edited within a region.
 	GDVIRTUAL2(_on_area_edited, Vector3i, Vector3i);
@@ -314,7 +314,7 @@ private:
 
 	Ref<Material> _material_override;
 
-	GodotObjectUniquePtr<VoxelDataBlockEnterInfo> _chunk_enter_info_obj;
+	GodotObjectUniquePtr<VoxelChunkEnterInfo> _chunk_enter_info_obj;
 
 	// References to external nodes.
 	VoxelInstancer *_instancer = nullptr;

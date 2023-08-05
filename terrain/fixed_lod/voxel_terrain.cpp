@@ -986,7 +986,7 @@ void VoxelTerrain::notify_chunk_enter(const VoxelDataBlock &block, Vector3i bpos
 		return;
 	}
 	if (_chunk_enter_info_obj == nullptr) {
-		_chunk_enter_info_obj = gd_make_unique<VoxelDataBlockEnterInfo>();
+		_chunk_enter_info_obj = gd_make_unique<VoxelChunkEnterInfo>();
 	}
 	const int network_peer_id = VoxelEngine::get_singleton().get_viewer_network_peer_id(viewer_id);
 	_chunk_enter_info_obj->network_peer_id = network_peer_id;

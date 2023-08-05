@@ -10,7 +10,7 @@ VoxelBlockyModel
 VoxelBoxMover
 VoxelBuffer
 VoxelColorPalette
-VoxelDataBlockEnterInfo
+VoxelChunkEnterInfo
 VoxelEngine
 VoxelGenerator
 VoxelGeneratorFlat
