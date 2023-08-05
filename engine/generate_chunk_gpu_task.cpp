@@ -7,7 +7,7 @@
 #include "../util/string_funcs.h"
 #include "gpu/compute_shader.h"
 #include "gpu/compute_shader_parameters.h"
-#include "mesh_block_task.h"
+#include "chunk_mesh_task.h"
 #include "voxel_engine.h"
 
 #include "../util/godot/classes/rendering_device.h"

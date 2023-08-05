@@ -1,4 +1,4 @@
-#include "../engine/mesh_block_task.h"
+#include "../engine/chunk_mesh_task.h"
 #include "../engine/render_detail_texture_gpu_task.h"
 #include "../engine/render_detail_texture_task.h"
 #include "../engine/voxel_engine.h"
@@ -96,9 +96,9 @@ void test_normalmap_render_gpu() {
 	nm_task.mesh_indices = mesh_arrays.indices;
 	nm_task.generator = generator;
 	nm_task.voxel_data = nullptr;
-	nm_task.mesh_block_size = Vector3iUtil::create(block_size);
+	nm_task.chunk_mesh_size = Vector3iUtil::create(block_size);
 	nm_task.lod_index = lod_index;
-	nm_task.mesh_block_position = Vector3i();
+	nm_task.chunk_mesh_position = Vector3i();
 	nm_task.output_textures = detail_textures;
 	nm_task.detail_texture_settings = detail_texture_settings;
 	nm_task.priority_dependency;
@@ -137,7 +137,7 @@ void test_normalmap_render_gpu() {
 
 	DetailImages images =
 			store_normalmap_data_to_images(detail_textures_data, detail_texture_settings.tile_resolution_min,
-					nm_task.mesh_block_size, detail_texture_settings.octahedral_encoding_enabled);
+					nm_task.chunk_mesh_size, detail_texture_settings.octahedral_encoding_enabled);
 	ZN_ASSERT(images.atlas.is_valid());
 	Ref<Image> cpu_atlas_image = images.atlas;
 

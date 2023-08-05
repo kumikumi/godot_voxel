@@ -11,7 +11,7 @@
 #include "generate_chunk_task.h"
 #include "load_all_blocks_data_task.h"
 #include "load_block_data_task.h"
-#include "mesh_block_task.h"
+#include "chunk_mesh_task.h"
 #include "save_block_data_task.h"
 
 namespace zylann::voxel {
@@ -68,7 +68,7 @@ VoxelEngine::VoxelEngine(ThreadsConfig threads_config) {
 
 	ZN_PRINT_VERBOSE(format("Size of LoadBlockDataTask: {}", sizeof(LoadBlockDataTask)));
 	ZN_PRINT_VERBOSE(format("Size of SaveBlockDataTask: {}", sizeof(SaveBlockDataTask)));
-	ZN_PRINT_VERBOSE(format("Size of MeshBlockTask: {}", sizeof(MeshBlockTask)));
+	ZN_PRINT_VERBOSE(format("Size of ChunkMeshTask: {}", sizeof(ChunkMeshTask)));
 
 	if (RenderingServer::get_singleton() != nullptr) {
 		_rendering_device = RenderingServer::get_singleton()->create_local_rendering_device();
@@ -383,7 +383,7 @@ VoxelEngine::Stats VoxelEngine::get_stats() const {
 	Stats s;
 	s.general = debug_get_pool_stats(_general_thread_pool);
 	s.generation_tasks = GenerateBlockTask::debug_get_running_count();
-	s.meshing_tasks = MeshBlockTask::debug_get_running_count();
+	s.meshing_tasks = ChunkMeshTask::debug_get_running_count();
 	s.streaming_tasks = LoadBlockDataTask::debug_get_running_count() + SaveBlockDataTask::debug_get_running_count();
 	s.main_thread_tasks = _time_spread_task_runner.get_pending_count() + _progressive_task_runner.get_pending_count();
 	return s;

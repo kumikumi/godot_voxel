@@ -1,16 +1,16 @@
-#ifndef VOXEL_MESH_BLOCK_VLT_H
-#define VOXEL_MESH_BLOCK_VLT_H
+#ifndef VOXEL_CHUNK_MESH_VLT_H
+#define VOXEL_CHUNK_MESH_VLT_H
 
 #include "../../util/godot/classes/shader_material.h"
 #include "../../util/memory.h"
 #include "../../util/tasks/time_spread_task_runner.h"
-#include "../voxel_mesh_block.h"
+#include "../voxel_chunk_mesh.h"
 
 namespace zylann::voxel {
 
 // Stores mesh and collider for one chunk of `VoxelTerrain`.
 // It doesn't store voxel data, because it may be using different block size, or different data structure.
-class VoxelMeshBlockVLT : public VoxelMeshBlock {
+class VoxelChunkMeshVLT : public VoxelChunkMesh {
 public:
 	enum FadingState { //
 		FADING_NONE,
@@ -40,8 +40,8 @@ public:
 	uint64_t last_collider_update_time = 0;
 	UniquePtr<VoxelMesher::Output> deferred_collider_data;
 
-	VoxelMeshBlockVLT(const Vector3i bpos, unsigned int size, unsigned int p_lod_index);
-	~VoxelMeshBlockVLT();
+	VoxelChunkMeshVLT(const Vector3i bpos, unsigned int size, unsigned int p_lod_index);
+	~VoxelChunkMeshVLT();
 
 	void set_world(Ref<World3D> p_world);
 	void set_visible(bool visible);
@@ -108,4 +108,4 @@ Ref<ArrayMesh> build_mesh(Span<const VoxelMesher::Output::Surface> surfaces, Mes
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_MESH_BLOCK_VLT_H
+#endif // VOXEL_CHUNK_MESH_VLT_H

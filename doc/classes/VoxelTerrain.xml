@@ -133,7 +133,7 @@
 			Sets the maximum distance this terrain can support. If a [VoxelViewer] requests more, it will be clamped.
 			Note: there is an internal limit of 512 for constant LOD terrains, because going further can affect performance and memory very badly at the moment.
 		</member>
-		<member name="mesh_block_size" type="int" setter="set_mesh_block_size" getter="get_mesh_block_size" default="16">
+		<member name="chunk_mesh_size" type="int" setter="set_chunk_mesh_size" getter="get_chunk_mesh_size" default="16">
 		</member>
 		<member name="run_stream_in_editor" type="bool" setter="set_run_stream_in_editor" getter="is_stream_running_in_editor" default="true">
 			Makes the terrain appear in the editor.

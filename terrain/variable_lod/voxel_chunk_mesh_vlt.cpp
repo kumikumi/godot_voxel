@@ -1,4 +1,4 @@
-#include "voxel_mesh_block_vlt.h"
+#include "voxel_chunk_mesh_vlt.h"
 #include "../../constants/voxel_string_names.h"
 #include "../../util/godot/classes/array_mesh.h"
 #include "../../util/godot/classes/mesh.h"
@@ -7,8 +7,8 @@
 
 namespace zylann::voxel {
 
-VoxelMeshBlockVLT::VoxelMeshBlockVLT(const Vector3i bpos, unsigned int size, unsigned int p_lod_index) :
-		VoxelMeshBlock(bpos) {
+VoxelChunkMeshVLT::VoxelChunkMeshVLT(const Vector3i bpos, unsigned int size, unsigned int p_lod_index) :
+		VoxelChunkMesh(bpos) {
 	_position_in_voxels = bpos * (size << p_lod_index);
 	lod_index = p_lod_index;
 
@@ -29,11 +29,11 @@ VoxelMeshBlockVLT::VoxelMeshBlockVLT(const Vector3i bpos, unsigned int size, uns
 #endif
 }
 
-VoxelMeshBlockVLT::~VoxelMeshBlockVLT() {
+VoxelChunkMeshVLT::~VoxelChunkMeshVLT() {
 	// Make sure no material override is set, because it's possible the material will get destroyed before the mesh
 	// instance, which would cause errors in RenderingServer. Our thin wrapper does not take ownership of the material.
 	// TODO Eventually it would be better if we could just unref the material after having destroyed the mesh...
-	// VoxelMeshBlock inheritance isn't helping us here
+	// VoxelChunkMesh inheritance isn't helping us here
 	_mesh_instance.set_material_override(Ref<Material>());
 
 	for (unsigned int i = 0; i < _transition_mesh_instances.size(); ++i) {
@@ -45,7 +45,7 @@ VoxelMeshBlockVLT::~VoxelMeshBlockVLT() {
 	}
 }
 
-void VoxelMeshBlockVLT::set_mesh(
+void VoxelChunkMeshVLT::set_mesh(
 		Ref<Mesh> mesh, DirectMeshInstance::GIMode gi_mode, RenderingServer::ShadowCastingSetting shadow_casting) {
 	// TODO Don't add mesh instance to the world if it's not visible.
 	// I suspect Godot is trying to include invisible mesh instances into the culling process,
@@ -78,8 +78,8 @@ void VoxelMeshBlockVLT::set_mesh(
 	}
 }
 
-void VoxelMeshBlockVLT::set_gi_mode(DirectMeshInstance::GIMode mode) {
-	VoxelMeshBlock::set_gi_mode(mode);
+void VoxelChunkMeshVLT::set_gi_mode(DirectMeshInstance::GIMode mode) {
+	VoxelChunkMesh::set_gi_mode(mode);
 	for (unsigned int i = 0; i < _transition_mesh_instances.size(); ++i) {
 		DirectMeshInstance &mi = _transition_mesh_instances[i];
 		if (mi.is_valid()) {
@@ -88,8 +88,8 @@ void VoxelMeshBlockVLT::set_gi_mode(DirectMeshInstance::GIMode mode) {
 	}
 }
 
-void VoxelMeshBlockVLT::set_shadow_casting(RenderingServer::ShadowCastingSetting mode) {
-	VoxelMeshBlock::set_shadow_casting(mode);
+void VoxelChunkMeshVLT::set_shadow_casting(RenderingServer::ShadowCastingSetting mode) {
+	VoxelChunkMesh::set_shadow_casting(mode);
 	for (unsigned int i = 0; i < _transition_mesh_instances.size(); ++i) {
 		DirectMeshInstance &mi = _transition_mesh_instances[i];
 		if (mi.is_valid()) {
@@ -98,7 +98,7 @@ void VoxelMeshBlockVLT::set_shadow_casting(RenderingServer::ShadowCastingSetting
 	}
 }
 
-void VoxelMeshBlockVLT::set_transition_mesh(Ref<Mesh> mesh, unsigned int side, DirectMeshInstance::GIMode gi_mode,
+void VoxelChunkMeshVLT::set_transition_mesh(Ref<Mesh> mesh, unsigned int side, DirectMeshInstance::GIMode gi_mode,
 		RenderingServer::ShadowCastingSetting shadow_casting) {
 	DirectMeshInstance &mesh_instance = _transition_mesh_instances[side];
 
@@ -128,7 +128,7 @@ void VoxelMeshBlockVLT::set_transition_mesh(Ref<Mesh> mesh, unsigned int side, D
 	}
 }
 
-void VoxelMeshBlockVLT::set_world(Ref<World3D> p_world) {
+void VoxelChunkMeshVLT::set_world(Ref<World3D> p_world) {
 	if (_world != p_world) {
 		_world = p_world;
 
@@ -141,7 +141,7 @@ void VoxelMeshBlockVLT::set_world(Ref<World3D> p_world) {
 	}
 }
 
-void VoxelMeshBlockVLT::set_visible(bool visible) {
+void VoxelChunkMeshVLT::set_visible(bool visible) {
 	if (_visible == visible) {
 		return;
 	}
@@ -149,8 +149,8 @@ void VoxelMeshBlockVLT::set_visible(bool visible) {
 	_set_visible(_visible && _parent_visible);
 }
 
-void VoxelMeshBlockVLT::_set_visible(bool visible) {
-	VoxelMeshBlock::_set_visible(visible);
+void VoxelChunkMeshVLT::_set_visible(bool visible) {
+	VoxelChunkMesh::_set_visible(visible);
 	for (unsigned int dir = 0; dir < _transition_mesh_instances.size(); ++dir) {
 		DirectMeshInstance &mi = _transition_mesh_instances[dir];
 		if (mi.is_valid()) {
@@ -159,7 +159,7 @@ void VoxelMeshBlockVLT::_set_visible(bool visible) {
 	}
 }
 
-void VoxelMeshBlockVLT::set_shader_material(Ref<ShaderMaterial> material) {
+void VoxelChunkMeshVLT::set_shader_material(Ref<ShaderMaterial> material) {
 	_shader_material = material;
 
 	if (_mesh_instance.is_valid()) {
@@ -181,7 +181,7 @@ void VoxelMeshBlockVLT::set_shader_material(Ref<ShaderMaterial> material) {
 	}
 }
 
-// void VoxelMeshBlock::set_transition_bit(uint8_t side, bool value) {
+// void VoxelChunkMesh::set_transition_bit(uint8_t side, bool value) {
 //	CRASH_COND(side >= Cube::SIDE_COUNT);
 //	uint32_t m = _transition_mask;
 //	if (value) {
@@ -192,7 +192,7 @@ void VoxelMeshBlockVLT::set_shader_material(Ref<ShaderMaterial> material) {
 //	set_transition_mask(m);
 // }
 
-void VoxelMeshBlockVLT::set_transition_mask(uint8_t m) {
+void VoxelChunkMeshVLT::set_transition_mask(uint8_t m) {
 	CRASH_COND(m >= (1 << Cube::SIDE_COUNT));
 	const uint8_t diff = _transition_mask ^ m;
 	if (diff == 0) {
@@ -224,7 +224,7 @@ void VoxelMeshBlockVLT::set_transition_mask(uint8_t m) {
 	}
 }
 
-void VoxelMeshBlockVLT::set_parent_visible(bool parent_visible) {
+void VoxelChunkMeshVLT::set_parent_visible(bool parent_visible) {
 	if (_parent_visible && parent_visible) {
 		return;
 	}
@@ -232,7 +232,7 @@ void VoxelMeshBlockVLT::set_parent_visible(bool parent_visible) {
 	_set_visible(_visible && _parent_visible);
 }
 
-void VoxelMeshBlockVLT::set_parent_transform(const Transform3D &parent_transform) {
+void VoxelChunkMeshVLT::set_parent_transform(const Transform3D &parent_transform) {
 	ZN_PROFILE_SCOPE();
 
 	if (_mesh_instance.is_valid() || _static_body.is_valid()) {
@@ -257,7 +257,7 @@ void VoxelMeshBlockVLT::set_parent_transform(const Transform3D &parent_transform
 	}
 }
 
-void VoxelMeshBlockVLT::update_transition_mesh_transform(unsigned int side, const Transform3D &parent_transform) {
+void VoxelChunkMeshVLT::update_transition_mesh_transform(unsigned int side, const Transform3D &parent_transform) {
 	DirectMeshInstance &mi = _transition_mesh_instances[side];
 	if (mi.is_valid()) {
 		// TODO Optimize: could be optimized due to the basis being identity
@@ -268,7 +268,7 @@ void VoxelMeshBlockVLT::update_transition_mesh_transform(unsigned int side, cons
 }
 
 // Returns `true` when finished
-bool VoxelMeshBlockVLT::update_fading(float speed) {
+bool VoxelChunkMeshVLT::update_fading(float speed) {
 	// TODO Should probably not be on the block directly?
 	// Because we may want to fade transition meshes only
 

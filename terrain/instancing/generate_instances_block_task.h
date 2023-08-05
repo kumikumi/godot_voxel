@@ -23,12 +23,12 @@ struct VoxelInstancerGeneratorTaskOutputQueue {
 // TODO Optimize: eventually this should be moved closer to the meshing task, including edited instances
 class GenerateInstancesBlockTask : public IThreadedTask {
 public:
-	Vector3i mesh_block_grid_position;
+	Vector3i chunk_mesh_grid_position;
 	uint16_t layer_id;
 	uint8_t lod_index;
 	uint8_t gen_octant_mask;
 	uint8_t up_mode;
-	float mesh_block_size;
+	float chunk_mesh_size;
 	Array surface_arrays;
 	Ref<VoxelInstanceGenerator> generator;
 	// Can be pre-populated by edited transforms

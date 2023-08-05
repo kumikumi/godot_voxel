@@ -1,8 +1,8 @@
-#ifndef VOXEL_MESH_BLOCK_VT_H
-#define VOXEL_MESH_BLOCK_VT_H
+#ifndef VOXEL_CHUNK_MESH_VT_H
+#define VOXEL_CHUNK_MESH_VT_H
 
 #include "../../util/godot/classes/material.h"
-#include "../voxel_mesh_block.h"
+#include "../voxel_chunk_mesh.h"
 
 namespace zylann::voxel {
 
@@ -12,7 +12,7 @@ namespace zylann::voxel {
 // Note that such a block can also not contain a mesh, in case voxels in this area do not produce geometry. For example,
 // it can be used to check if an area has been loaded (so we *know* that it should or should not have a mesh, as opposed
 // to not knowing while threads are still computing the mesh).
-class VoxelMeshBlockVT : public VoxelMeshBlock {
+class VoxelChunkMeshVT : public VoxelChunkMesh {
 public:
 	RefCount mesh_viewers;
 	RefCount collision_viewers;
@@ -26,7 +26,7 @@ public:
 	// collision, it may be a better idea to use `is_area_editable` and not use mesh blocks
 	bool is_loaded = false;
 
-	VoxelMeshBlockVT(const Vector3i bpos, unsigned int size) : VoxelMeshBlock(bpos) {
+	VoxelChunkMeshVT(const Vector3i bpos, unsigned int size) : VoxelChunkMesh(bpos) {
 		_position_in_voxels = bpos * size;
 	}
 
@@ -40,4 +40,4 @@ public:
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_MESH_BLOCK_VT_H
+#endif // VOXEL_CHUNK_MESH_VT_H

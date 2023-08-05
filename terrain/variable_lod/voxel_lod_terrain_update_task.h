@@ -47,13 +47,13 @@ public:
 	// Functions also used outside of this task
 
 	static void flush_pending_lod_edits(
-			VoxelLodTerrainUpdateData::State &state, VoxelData &data, const int mesh_block_size);
+			VoxelLodTerrainUpdateData::State &state, VoxelData &data, const int chunk_mesh_size);
 
 	static uint8_t get_transition_mask(const VoxelLodTerrainUpdateData::State &state, Vector3i block_pos,
 			unsigned int lod_index, unsigned int lod_count);
 
 	// To use on loaded blocks
-	static inline void schedule_mesh_update(VoxelLodTerrainUpdateData::MeshBlockState &block, Vector3i bpos,
+	static inline void schedule_mesh_update(VoxelLodTerrainUpdateData::ChunkMeshState &block, Vector3i bpos,
 			std::vector<Vector3i> &blocks_pending_update) {
 		if (block.state != VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT) {
 			if (block.active) {

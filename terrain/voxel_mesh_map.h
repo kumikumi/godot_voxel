@@ -10,7 +10,7 @@
 namespace zylann::voxel {
 
 // Stores meshes and colliders in an infinite sparse grid of chunks (aka blocks).
-template <typename MeshBlock_T>
+template <typename ChunkMesh_T>
 class VoxelMeshMap {
 public:
 	VoxelMeshMap() : _last_accessed_block(nullptr) {}
@@ -20,7 +20,7 @@ public:
 	}
 
 	struct NoAction {
-		inline void operator()(MeshBlock_T &block) {}
+		inline void operator()(ChunkMesh_T &block) {}
 	};
 
 	template <typename Action_T>
@@ -34,15 +34,15 @@ public:
 #ifdef DEBUG_ENABLED
 			CRASH_COND(i >= _blocks.size());
 #endif
-			MeshBlock_T *block = _blocks[i];
+			ChunkMesh_T *block = _blocks[i];
 			ERR_FAIL_COND(block == nullptr);
 			pre_delete(*block);
-			queue_free_mesh_block(block);
+			queue_free_chunk_mesh(block);
 			remove_block_internal(it, i);
 		}
 	}
 
-	MeshBlock_T *get_block(Vector3i bpos) {
+	ChunkMesh_T *get_block(Vector3i bpos) {
 		if (_last_accessed_block && _last_accessed_block->position == bpos) {
 			return _last_accessed_block;
 		}
@@ -51,7 +51,7 @@ public:
 #ifdef DEBUG_ENABLED
 			const unsigned int i = it->second.index;
 			CRASH_COND(i >= _blocks.size());
-			MeshBlock_T *block = _blocks[i];
+			ChunkMesh_T *block = _blocks[i];
 			CRASH_COND(block == nullptr); // The map should not contain null blocks
 			CRASH_COND(it->second.block == nullptr);
 #endif
@@ -61,7 +61,7 @@ public:
 		return nullptr;
 	}
 
-	const MeshBlock_T *get_block(Vector3i bpos) const {
+	const ChunkMesh_T *get_block(Vector3i bpos) const {
 		if (_last_accessed_block != nullptr && _last_accessed_block->position == bpos) {
 			return _last_accessed_block;
 		}
@@ -70,7 +70,7 @@ public:
 #ifdef DEBUG_ENABLED
 			const unsigned int i = it->second.index;
 			CRASH_COND(i >= _blocks.size());
-			MeshBlock_T *block = _blocks[i];
+			ChunkMesh_T *block = _blocks[i];
 			CRASH_COND(block == nullptr); // The map should not contain null blocks
 			CRASH_COND(it->second.block == nullptr);
 #endif
@@ -81,7 +81,7 @@ public:
 		return nullptr;
 	}
 
-	void set_block(Vector3i bpos, MeshBlock_T *block) {
+	void set_block(Vector3i bpos, ChunkMesh_T *block) {
 		ERR_FAIL_COND(block == nullptr);
 		CRASH_COND(bpos != block->position);
 		if (_last_accessed_block == nullptr || _last_accessed_block->position == bpos) {
@@ -102,7 +102,7 @@ public:
 
 	void clear() {
 		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
-			MeshBlock_T *block = *it;
+			ChunkMesh_T *block = *it;
 			if (block == nullptr) {
 				ERR_PRINT("Unexpected nullptr in VoxelMap::clear()");
 			} else {
@@ -125,7 +125,7 @@ public:
 	template <typename Op_T>
 	inline void for_each_block(Op_T op) {
 		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
-			MeshBlock_T *block = *it;
+			ChunkMesh_T *block = *it;
 #ifdef DEBUG_ENABLED
 			CRASH_COND(block == nullptr);
 #endif
@@ -136,7 +136,7 @@ public:
 	template <typename Op_T>
 	inline void for_each_block(Op_T op) const {
 		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
-			const MeshBlock_T *block = *it;
+			const ChunkMesh_T *block = *it;
 #ifdef DEBUG_ENABLED
 			CRASH_COND(block == nullptr);
 #endif
@@ -146,7 +146,7 @@ public:
 
 private:
 	struct MapItem {
-		MeshBlock_T *block;
+		ChunkMesh_T *block;
 		// Index of the block within the vector storage
 		unsigned int index;
 	};
@@ -159,7 +159,7 @@ private:
 		// This function assumes the block is already freed
 		_blocks_map.erase(rm_it);
 
-		MeshBlock_T *moved_block = _blocks.back();
+		ChunkMesh_T *moved_block = _blocks.back();
 #ifdef DEBUG_ENABLED
 		CRASH_COND(index >= _blocks.size());
 #endif
@@ -173,17 +173,17 @@ private:
 		}
 	}
 
-	static void queue_free_mesh_block(MeshBlock_T *block) {
+	static void queue_free_chunk_mesh(ChunkMesh_T *block) {
 		// We spread this out because of physics
-		// TODO Could it be enough to do both render and physic deallocation with the task in ~MeshBlock_T()?
-		struct FreeMeshBlockTask : public zylann::ITimeSpreadTask {
+		// TODO Could it be enough to do both render and physic deallocation with the task in ~ChunkMesh_T()?
+		struct FreeChunkMeshTask : public zylann::ITimeSpreadTask {
 			void run(TimeSpreadTaskContext &ctx) override {
 				memdelete(block);
 			}
-			MeshBlock_T *block = nullptr;
+			ChunkMesh_T *block = nullptr;
 		};
 		ERR_FAIL_COND(block == nullptr);
-		FreeMeshBlockTask *task = memnew(FreeMeshBlockTask);
+		FreeChunkMeshTask *task = memnew(FreeChunkMeshTask);
 		task->block = block;
 		VoxelEngine::get_singleton().push_main_thread_time_spread_task(task);
 	}
@@ -193,13 +193,13 @@ private:
 	std::unordered_map<Vector3i, MapItem> _blocks_map;
 	// Blocks are stored in a vector to allow faster iteration over all of them.
 	// Use cases for this include updating the transform of the meshes
-	std::vector<MeshBlock_T *> _blocks;
+	std::vector<ChunkMesh_T *> _blocks;
 
 	// Voxel access will most frequently be in contiguous areas, so the same blocks are accessed.
 	// To prevent too much hashing, this reference is checked before.
-	mutable MeshBlock_T *_last_accessed_block;
+	mutable ChunkMesh_T *_last_accessed_block;
 };
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_MESH_BLOCK_MAP_H
+#endif // VOXEL_CHUNK_MESH_MAP_H

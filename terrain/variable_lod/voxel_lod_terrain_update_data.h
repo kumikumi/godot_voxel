@@ -63,7 +63,7 @@ struct VoxelLodTerrainUpdateData {
 		bool detail_textures_use_gpu = false;
 		bool generator_use_gpu = false;
 		uint8_t detail_texture_generator_override_begin_lod_index = 0;
-		unsigned int mesh_block_size_po2 = 4;
+		unsigned int chunk_mesh_size_po2 = 4;
 		DetailRenderingSettings detail_texture_settings;
 		Ref<VoxelGenerator> detail_texture_generator_override;
 	};
@@ -83,14 +83,14 @@ struct VoxelLodTerrainUpdateData {
 		DETAIL_TEXTURE_PENDING
 	};
 
-	struct MeshBlockState {
+	struct ChunkMeshState {
 		std::atomic<MeshState> state;
 		std::atomic<DetailTextureState> detail_texture_state;
 		uint8_t transition_mask;
 		bool active;
 		// bool pending_transition_update;
 
-		MeshBlockState() :
+		ChunkMeshState() :
 				state(MESH_NEVER_UPDATED),
 				detail_texture_state(DETAIL_TEXTURE_IDLE),
 				transition_mask(0),
@@ -101,7 +101,7 @@ struct VoxelLodTerrainUpdateData {
 	// It contains states used to determine when to actually load/unload meshes.
 	struct MeshMapState {
 		// Values in this map are expected to have stable addresses.
-		std::unordered_map<Vector3i, MeshBlockState> map;
+		std::unordered_map<Vector3i, ChunkMeshState> map;
 		// Locked for writing when blocks get inserted or removed from the map.
 		// If you need to lock more than one Lod, always do so in increasing order, to avoid deadlocks.
 		// IMPORTANT:
@@ -124,14 +124,14 @@ struct VoxelLodTerrainUpdateData {
 		MeshMapState mesh_map_state;
 
 		std::vector<Vector3i> blocks_pending_update;
-		Vector3i last_viewer_mesh_block_pos;
-		int last_view_distance_mesh_blocks = 0;
+		Vector3i last_viewer_chunk_mesh_pos;
+		int last_view_distance_chunk_meshs = 0;
 
 		// Deferred outputs to main thread
-		std::vector<Vector3i> mesh_blocks_to_unload;
-		std::vector<TransitionUpdate> mesh_blocks_to_update_transitions;
-		std::vector<Vector3i> mesh_blocks_to_activate;
-		std::vector<Vector3i> mesh_blocks_to_deactivate;
+		std::vector<Vector3i> chunk_meshs_to_unload;
+		std::vector<TransitionUpdate> chunk_meshs_to_update_transitions;
+		std::vector<Vector3i> chunk_meshs_to_activate;
+		std::vector<Vector3i> chunk_meshs_to_deactivate;
 
 		inline bool has_loading_block(const Vector3i &pos) const {
 			return loading_blocks.find(pos) != loading_blocks.end();

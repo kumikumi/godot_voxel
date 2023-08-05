@@ -9,7 +9,7 @@
 #include "../voxel_data_block_enter_info.h"
 #include "../voxel_mesh_map.h"
 #include "../voxel_node.h"
-#include "voxel_mesh_block_vt.h"
+#include "voxel_chunk_mesh_vt.h"
 #include "voxel_terrain_multiplayer_synchronizer.h"
 
 namespace zylann {
@@ -49,11 +49,11 @@ public:
 	}
 	// void set_data_block_size_po2(unsigned int p_block_size_po2);
 
-	unsigned int get_mesh_block_size_pow2() const;
-	inline unsigned int get_mesh_block_size() const {
-		return 1 << get_mesh_block_size_pow2();
+	unsigned int get_chunk_mesh_size_pow2() const;
+	inline unsigned int get_chunk_mesh_size() const {
+		return 1 << get_chunk_mesh_size_pow2();
 	}
-	void set_mesh_block_size(unsigned int p_block_size);
+	void set_chunk_mesh_size(unsigned int p_block_size);
 
 	void post_edit_voxel(Vector3i pos);
 	void post_edit_area(Box3i box_in_voxels, bool update_mesh);
@@ -143,7 +143,7 @@ public:
 
 	void set_instancer(VoxelInstancer *instancer);
 	void get_meshed_block_positions(std::vector<Vector3i> &out_positions) const;
-	Array get_mesh_block_surface(Vector3i block_pos) const;
+	Array get_chunk_mesh_surface(Vector3i block_pos) const;
 
 	VolumeID get_volume_id() const override {
 		return _volume_id;
@@ -192,9 +192,9 @@ private:
 	// void unview_data_block(Vector3i bpos);
 	void unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag);
 	// void unload_data_block(Vector3i bpos);
-	void unload_mesh_block(Vector3i bpos);
+	void unload_chunk_mesh(Vector3i bpos);
 	// void make_data_block_dirty(Vector3i bpos);
-	void try_schedule_mesh_update(VoxelMeshBlockVT &block);
+	void try_schedule_mesh_update(VoxelChunkMeshVT &block);
 	void try_schedule_mesh_update_from_data(const Box3i &box_in_voxels);
 
 	void save_all_modified_blocks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker);
@@ -267,8 +267,8 @@ private:
 	std::shared_ptr<VoxelData> _data;
 
 	// Mesh storage
-	VoxelMeshMap<VoxelMeshBlockVT> _mesh_map;
-	uint32_t _mesh_block_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	VoxelMeshMap<VoxelChunkMeshVT> _mesh_map;
+	uint32_t _chunk_mesh_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
 
 	unsigned int _max_view_distance_voxels = 128;
 

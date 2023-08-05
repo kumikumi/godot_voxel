@@ -28,7 +28,7 @@ public:
 	std::vector<int> mesh_indices;
 	Ref<VoxelGenerator> generator;
 	std::shared_ptr<VoxelData> voxel_data;
-	Vector3i mesh_block_size;
+	Vector3i chunk_mesh_size;
 	uint8_t lod_index;
 	bool use_gpu = false;
 	DetailRenderingSettings detail_texture_settings;
@@ -37,7 +37,7 @@ public:
 	std::shared_ptr<DetailTextureOutput> output_textures;
 
 	// Identification
-	Vector3i mesh_block_position;
+	Vector3i chunk_mesh_position;
 	VolumeID volume_id;
 	PriorityDependency priority_dependency;
 
@@ -66,8 +66,8 @@ public:
 	std::vector<DetailTextureData::Tile> tile_data;
 	std::shared_ptr<DetailTextureOutput> output_textures;
 	VolumeID volume_id;
-	Vector3i mesh_block_position;
-	Vector3i mesh_block_size;
+	Vector3i chunk_mesh_position;
+	Vector3i chunk_mesh_size;
 	uint16_t atlas_width;
 	uint16_t atlas_height;
 	uint8_t lod_index;

@@ -42,7 +42,7 @@ namespace {
 struct BeforeUnloadMeshAction {
 	ShaderMaterialPoolVLT &shader_material_pool;
 
-	void operator()(VoxelMeshBlockVLT &block) {
+	void operator()(VoxelChunkMeshVLT &block) {
 		ZN_PROFILE_SCOPE_NAMED("Recycle material");
 		// Recycle material
 		Ref<ShaderMaterial> sm = block.get_shader_material();
@@ -228,9 +228,9 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 	// Update existing meshes
 	if (shader_material.is_valid() && _shader_material_pool.get_template().is_valid()) {
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-			VoxelMeshMap<VoxelMeshBlockVLT> &map = _mesh_maps_per_lod[lod_index];
+			VoxelMeshMap<VoxelChunkMeshVLT> &map = _mesh_maps_per_lod[lod_index];
 
-			map.for_each_block([this](VoxelMeshBlockVLT &block) { //
+			map.for_each_block([this](VoxelChunkMeshVLT &block) { //
 				Ref<ShaderMaterial> sm = _shader_material_pool.allocate();
 				Ref<ShaderMaterial> prev_material = block.get_shader_material();
 				if (prev_material.is_valid()) {
@@ -245,9 +245,9 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 	} else {
 		// The material isn't ShaderMaterial, fallback. Will probably not work correctly with transition meshes
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-			VoxelMeshMap<VoxelMeshBlockVLT> &map = _mesh_maps_per_lod[lod_index];
+			VoxelMeshMap<VoxelChunkMeshVLT> &map = _mesh_maps_per_lod[lod_index];
 
-			map.for_each_block([&p_material](VoxelMeshBlockVLT &block) { //
+			map.for_each_block([&p_material](VoxelChunkMeshVLT &block) { //
 				block.set_shader_material(Ref<ShaderMaterial>());
 
 				Ref<Mesh> mesh = block.get_mesh();
@@ -270,12 +270,12 @@ unsigned int VoxelLodTerrain::get_data_block_size_pow2() const {
 	return _data->get_block_size_po2();
 }
 
-unsigned int VoxelLodTerrain::get_mesh_block_size_pow2() const {
-	return _update_data->settings.mesh_block_size_po2;
+unsigned int VoxelLodTerrain::get_chunk_mesh_size_pow2() const {
+	return _update_data->settings.chunk_mesh_size_po2;
 }
 
-unsigned int VoxelLodTerrain::get_mesh_block_size() const {
-	return 1 << _update_data->settings.mesh_block_size_po2;
+unsigned int VoxelLodTerrain::get_chunk_mesh_size() const {
+	return 1 << _update_data->settings.chunk_mesh_size_po2;
 }
 
 void VoxelLodTerrain::set_stream(Ref<VoxelStream> p_stream) {
@@ -342,7 +342,7 @@ Ref<VoxelGenerator> VoxelLodTerrain::get_generator() const {
 void VoxelLodTerrain::_on_gi_mode_changed() {
 	const GIMode gi_mode = get_gi_mode();
 	for (unsigned int lod_index = 0; lod_index < _update_data->state.lods.size(); ++lod_index) {
-		_mesh_maps_per_lod[lod_index].for_each_block([gi_mode](VoxelMeshBlockVLT &block) { //
+		_mesh_maps_per_lod[lod_index].for_each_block([gi_mode](VoxelChunkMeshVLT &block) { //
 			block.set_gi_mode(DirectMeshInstance::GIMode(gi_mode));
 		});
 	}
@@ -351,7 +351,7 @@ void VoxelLodTerrain::_on_gi_mode_changed() {
 void VoxelLodTerrain::_on_shadow_casting_changed() {
 	const RenderingServer::ShadowCastingSetting mode = RenderingServer::ShadowCastingSetting(get_shadow_casting());
 	for (unsigned int lod_index = 0; lod_index < _update_data->state.lods.size(); ++lod_index) {
-		_mesh_maps_per_lod[lod_index].for_each_block([mode](VoxelMeshBlockVLT &block) { //
+		_mesh_maps_per_lod[lod_index].for_each_block([mode](VoxelChunkMeshVLT &block) { //
 			block.set_shadow_casting(mode);
 		});
 	}
@@ -435,20 +435,20 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 	for (unsigned int i = 0; i < lod_count; ++i) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[i];
 		lod.last_view_distance_data_blocks = 0;
-		lod.last_view_distance_mesh_blocks = 0;
+		lod.last_view_distance_chunk_meshs = 0;
 	}
 
 	update_configuration_warnings();
 }
 
-void VoxelLodTerrain::set_mesh_block_size(unsigned int mesh_block_size) {
+void VoxelLodTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 	// Mesh block size cannot be smaller than data block size, for now
-	mesh_block_size = math::clamp(mesh_block_size, get_data_block_size(), constants::MAX_BLOCK_SIZE);
+	chunk_mesh_size = math::clamp(chunk_mesh_size, get_data_block_size(), constants::MAX_BLOCK_SIZE);
 
 	// Only these sizes are allowed at the moment. This stuff is still not supported in a generic way yet,
 	// some code still exploits the fact it's a multiple of data block size, for performance
 	unsigned int po2;
-	switch (mesh_block_size) {
+	switch (chunk_mesh_size) {
 		case 16:
 			po2 = 4;
 			break;
@@ -456,11 +456,11 @@ void VoxelLodTerrain::set_mesh_block_size(unsigned int mesh_block_size) {
 			po2 = 5;
 			break;
 		default:
-			mesh_block_size = 16;
+			chunk_mesh_size = 16;
 			po2 = 4;
 			break;
 	}
-	if (mesh_block_size == get_mesh_block_size()) {
+	if (chunk_mesh_size == get_chunk_mesh_size()) {
 		return;
 	}
 
@@ -468,12 +468,12 @@ void VoxelLodTerrain::set_mesh_block_size(unsigned int mesh_block_size) {
 
 	//_update_data->wait_for_end_of_task(); // Done by reset_mesh_maps()
 	ZN_ASSERT(_update_data->task_is_complete);
-	_update_data->settings.mesh_block_size_po2 = po2;
+	_update_data->settings.chunk_mesh_size_po2 = po2;
 	_update_data->state.force_update_octrees_next_update = true;
 
-	// Doing this after because `on_mesh_block_exit` may use the old size
+	// Doing this after because `on_chunk_mesh_exit` may use the old size
 	if (_instancer != nullptr) {
-		_instancer->set_mesh_block_size_po2(mesh_block_size);
+		_instancer->set_chunk_mesh_size_po2(chunk_mesh_size);
 	}
 
 	// Update voxel bounds because block size change can affect octree size
@@ -508,7 +508,7 @@ bool VoxelLodTerrain::is_threaded_update_enabled() const {
 	return _threaded_update_enabled;
 }
 
-void VoxelLodTerrain::set_mesh_block_active(VoxelMeshBlockVLT &block, bool active, bool with_fading) {
+void VoxelLodTerrain::set_chunk_mesh_active(VoxelChunkMeshVLT &block, bool active, bool with_fading) {
 	if (block.active == active) {
 		return;
 	}
@@ -520,8 +520,8 @@ void VoxelLodTerrain::set_mesh_block_active(VoxelMeshBlockVLT &block, bool activ
 		block.set_visible(active);
 
 		// Cancel fading if already in progress
-		if (block.fading_state != VoxelMeshBlockVLT::FADING_NONE) {
-			block.fading_state = VoxelMeshBlockVLT::FADING_NONE;
+		if (block.fading_state != VoxelChunkMeshVLT::FADING_NONE) {
+			block.fading_state = VoxelChunkMeshVLT::FADING_NONE;
 
 			_fading_blocks_per_lod[block.lod_index].erase(block.position);
 
@@ -543,22 +543,22 @@ void VoxelLodTerrain::set_mesh_block_active(VoxelMeshBlockVLT &block, bool activ
 		return;
 	}
 
-	VoxelMeshBlockVLT::FadingState fading_state;
+	VoxelChunkMeshVLT::FadingState fading_state;
 	// Initial progress has to be set too because it sometimes happens that a LOD must appear before its parent
 	// finished fading in. So the parent will have to fade out from solid with the same duration.
 	float initial_progress;
 	if (active) {
 		block.set_visible(true);
-		fading_state = VoxelMeshBlockVLT::FADING_IN;
+		fading_state = VoxelChunkMeshVLT::FADING_IN;
 		initial_progress = 0.f;
 	} else {
-		fading_state = VoxelMeshBlockVLT::FADING_OUT;
+		fading_state = VoxelChunkMeshVLT::FADING_OUT;
 		initial_progress = 1.f;
 	}
 
 	if (block.fading_state != fading_state) {
-		if (block.fading_state == VoxelMeshBlockVLT::FADING_NONE) {
-			std::map<Vector3i, VoxelMeshBlockVLT *> &fading_blocks = _fading_blocks_per_lod[block.lod_index];
+		if (block.fading_state == VoxelChunkMeshVLT::FADING_NONE) {
+			std::map<Vector3i, VoxelChunkMeshVLT *> &fading_blocks = _fading_blocks_per_lod[block.lod_index];
 			// Must not have duplicates
 			ERR_FAIL_COND(fading_blocks.find(block.position) != fading_blocks.end());
 			fading_blocks.insert({ block.position, &block });
@@ -674,9 +674,9 @@ void VoxelLodTerrain::stop_updater() {
 		lod.blocks_pending_update.clear();
 
 		for (auto it = lod.mesh_map_state.map.begin(); it != lod.mesh_map_state.map.end(); ++it) {
-			VoxelLodTerrainUpdateData::MeshBlockState &mesh_block = it->second;
-			if (mesh_block.state == VoxelLodTerrainUpdateData::MESH_UPDATE_SENT) {
-				mesh_block.state = VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT;
+			VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh = it->second;
+			if (chunk_mesh.state == VoxelLodTerrainUpdateData::MESH_UPDATE_SENT) {
+				chunk_mesh.state = VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT;
 			}
 		}
 	}
@@ -798,13 +798,13 @@ void VoxelLodTerrain::reset_mesh_maps() {
 
 	for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-		VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 
 		if (_instancer != nullptr) {
 			// Unload instances
 			VoxelInstancer *instancer = _instancer;
-			mesh_map.for_each_block([lod_index, instancer](VoxelMeshBlockVLT &block) {
-				instancer->on_mesh_block_exit(block.position, lod_index);
+			mesh_map.for_each_block([lod_index, instancer](VoxelChunkMeshVLT &block) {
+				instancer->on_chunk_mesh_exit(block.position, lod_index);
 			});
 		}
 
@@ -815,7 +815,7 @@ void VoxelLodTerrain::reset_mesh_maps() {
 			mesh_map.clear();
 			// Reset view distance cache so blocks will be re-entered due to the difference
 			lod.last_view_distance_data_blocks = 0;
-			lod.last_view_distance_mesh_blocks = 0;
+			lod.last_view_distance_chunk_meshs = 0;
 		} else {
 			mesh_map.clear();
 		}
@@ -823,10 +823,10 @@ void VoxelLodTerrain::reset_mesh_maps() {
 		lod.mesh_map_state.map.clear();
 
 		// Clear temporal lists
-		lod.mesh_blocks_to_activate.clear();
-		lod.mesh_blocks_to_deactivate.clear();
-		lod.mesh_blocks_to_unload.clear();
-		lod.mesh_blocks_to_update_transitions.clear();
+		lod.chunk_meshs_to_activate.clear();
+		lod.chunk_meshs_to_deactivate.clear();
+		lod.chunk_meshs_to_unload.clear();
+		lod.chunk_meshs_to_update_transitions.clear();
 
 		_deferred_collision_updates_per_lod[lod_index].clear();
 	}
@@ -870,8 +870,8 @@ void VoxelLodTerrain::set_collision_layer(int layer) {
 
 	_collision_layer = layer;
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		mesh_map.for_each_block([layer](VoxelMeshBlockVLT &block) { //
+		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		mesh_map.for_each_block([layer](VoxelChunkMeshVLT &block) { //
 			block.set_collision_layer(layer);
 		});
 	}
@@ -886,8 +886,8 @@ void VoxelLodTerrain::set_collision_mask(int mask) {
 
 	_collision_mask = mask;
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		mesh_map.for_each_block([mask](VoxelMeshBlockVLT &block) { //
+		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		mesh_map.for_each_block([mask](VoxelChunkMeshVLT &block) { //
 			block.set_collision_mask(mask);
 		});
 	}
@@ -902,8 +902,8 @@ void VoxelLodTerrain::set_collision_margin(float margin) {
 
 	_collision_margin = margin;
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		mesh_map.for_each_block([margin](VoxelMeshBlockVLT &block) { //
+		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		mesh_map.for_each_block([margin](VoxelChunkMeshVLT &block) { //
 			block.set_collision_margin(margin);
 		});
 	}
@@ -917,8 +917,8 @@ int VoxelLodTerrain::get_data_block_region_extent() const {
 	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_data_block_size());
 }
 
-int VoxelLodTerrain::get_mesh_block_region_extent() const {
-	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_mesh_block_size());
+int VoxelLodTerrain::get_chunk_mesh_region_extent() const {
+	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_chunk_mesh_size());
 }
 
 Vector3i VoxelLodTerrain::voxel_to_data_block_position(Vector3 vpos, int lod_index) const {
@@ -928,11 +928,11 @@ Vector3i VoxelLodTerrain::voxel_to_data_block_position(Vector3 vpos, int lod_ind
 	return bpos;
 }
 
-Vector3i VoxelLodTerrain::voxel_to_mesh_block_position(Vector3 vpos, int lod_index) const {
+Vector3i VoxelLodTerrain::voxel_to_chunk_mesh_position(Vector3 vpos, int lod_index) const {
 	ERR_FAIL_COND_V(lod_index < 0, Vector3i());
 	ERR_FAIL_COND_V(lod_index >= get_lod_count(), Vector3i());
-	const unsigned int mesh_block_size_po2 = _update_data->settings.mesh_block_size_po2;
-	const Vector3i bpos = (math::floor_to_int(vpos) >> mesh_block_size_po2) >> lod_index;
+	const unsigned int chunk_mesh_size_po2 = _update_data->settings.chunk_mesh_size_po2;
+	const Vector3i bpos = (math::floor_to_int(vpos) >> chunk_mesh_size_po2) >> lod_index;
 	return bpos;
 }
 
@@ -987,8 +987,8 @@ void VoxelLodTerrain::_notification(int p_what) {
 			World3D *world = *get_world_3d();
 			VoxelLodTerrainUpdateData::State &state = _update_data->state;
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
-				VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([world](VoxelMeshBlockVLT &block) { //
+				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+				mesh_map.for_each_block([world](VoxelChunkMeshVLT &block) { //
 					block.set_world(world);
 				});
 			}
@@ -1004,8 +1004,8 @@ void VoxelLodTerrain::_notification(int p_what) {
 		case NOTIFICATION_EXIT_WORLD: {
 			VoxelLodTerrainUpdateData::State &state = _update_data->state;
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
-				VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([](VoxelMeshBlockVLT &block) { //
+				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+				mesh_map.for_each_block([](VoxelChunkMeshVLT &block) { //
 					block.set_world(nullptr);
 				});
 			}
@@ -1019,8 +1019,8 @@ void VoxelLodTerrain::_notification(int p_what) {
 			VoxelLodTerrainUpdateData::State &state = _update_data->state;
 
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
-				VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([visible](VoxelMeshBlockVLT &block) { //
+				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+				mesh_map.for_each_block([visible](VoxelChunkMeshVLT &block) { //
 					block.set_parent_visible(visible);
 				});
 			}
@@ -1047,8 +1047,8 @@ void VoxelLodTerrain::_notification(int p_what) {
 			VoxelLodTerrainUpdateData::State &state = _update_data->state;
 
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
-				VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([&transform](VoxelMeshBlockVLT &block) { //
+				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+				mesh_map.for_each_block([&transform](VoxelChunkMeshVLT &block) { //
 					block.set_parent_transform(transform);
 				});
 			}
@@ -1078,9 +1078,9 @@ Vector3 VoxelLodTerrain::get_local_viewer_pos() const {
 	return pos;
 }
 
-inline bool check_block_sizes(int data_block_size, int mesh_block_size) {
-	return (data_block_size == 16 || data_block_size == 32) && (mesh_block_size == 16 || mesh_block_size == 32) &&
-			mesh_block_size >= data_block_size;
+inline bool check_block_sizes(int data_block_size, int chunk_mesh_size) {
+	return (data_block_size == 16 || data_block_size == 32) && (chunk_mesh_size == 16 || chunk_mesh_size == 32) &&
+			chunk_mesh_size >= data_block_size;
 }
 
 void VoxelLodTerrain::process(float delta) {
@@ -1180,14 +1180,14 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[lod_index];
-		VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		std::unordered_set<const VoxelMeshBlockVLT *> activated_blocks;
+		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		std::unordered_set<const VoxelChunkMeshVLT *> activated_blocks;
 
-		const int mesh_block_size = get_mesh_block_size() << lod_index;
+		const int chunk_mesh_size = get_chunk_mesh_size() << lod_index;
 
-		for (unsigned int i = 0; i < lod.mesh_blocks_to_activate.size(); ++i) {
-			const Vector3i bpos = lod.mesh_blocks_to_activate[i];
-			VoxelMeshBlockVLT *block = mesh_map.get_block(bpos);
+		for (unsigned int i = 0; i < lod.chunk_meshs_to_activate.size(); ++i) {
+			const Vector3i bpos = lod.chunk_meshs_to_activate[i];
+			VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				continue;
@@ -1196,17 +1196,17 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			bool with_fading = false;
 			if (_lod_fade_duration > 0.f) {
 				const Vector3 block_center = volume_transform.xform(
-						to_vec3(block->position * mesh_block_size + Vector3iUtil::create(mesh_block_size / 2)));
+						to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 				// Don't start fading on blocks behind the camera
 				with_fading = camera.forward.dot(block_center - camera.position) > 0.0;
 			}
-			set_mesh_block_active(*block, true, with_fading);
+			set_chunk_mesh_active(*block, true, with_fading);
 			activated_blocks.insert(block);
 		}
 
-		for (unsigned int i = 0; i < lod.mesh_blocks_to_deactivate.size(); ++i) {
-			const Vector3i bpos = lod.mesh_blocks_to_deactivate[i];
-			VoxelMeshBlockVLT *block = mesh_map.get_block(bpos);
+		for (unsigned int i = 0; i < lod.chunk_meshs_to_deactivate.size(); ++i) {
+			const Vector3i bpos = lod.chunk_meshs_to_deactivate[i];
+			VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				continue;
@@ -1215,15 +1215,15 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			bool with_fading = false;
 			if (_lod_fade_duration > 0.f) {
 				const Vector3 block_center = volume_transform.xform(
-						to_vec3(block->position * mesh_block_size + Vector3iUtil::create(mesh_block_size / 2)));
+						to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 				// Don't start fading on blocks behind the camera
 				with_fading = camera.forward.dot(block_center - camera.position) > 0.0;
 			}
-			set_mesh_block_active(*block, false, with_fading);
+			set_chunk_mesh_active(*block, false, with_fading);
 		}
 
-		lod.mesh_blocks_to_activate.clear();
-		lod.mesh_blocks_to_deactivate.clear();
+		lod.chunk_meshs_to_activate.clear();
+		lod.chunk_meshs_to_deactivate.clear();
 
 		/*
 #ifdef DEBUG_ENABLED
@@ -1231,14 +1231,14 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 #endif
 		*/
 
-		for (unsigned int i = 0; i < lod.mesh_blocks_to_unload.size(); ++i) {
-			const Vector3i bpos = lod.mesh_blocks_to_unload[i];
+		for (unsigned int i = 0; i < lod.chunk_meshs_to_unload.size(); ++i) {
+			const Vector3i bpos = lod.chunk_meshs_to_unload[i];
 			mesh_map.remove_block(bpos, BeforeUnloadMeshAction{ _shader_material_pool });
 
 			_fading_blocks_per_lod[lod_index].erase(bpos);
 
 			if (_instancer != nullptr) {
-				_instancer->on_mesh_block_exit(bpos, lod_index);
+				_instancer->on_chunk_mesh_exit(bpos, lod_index);
 			}
 			/*
 #ifdef DEBUG_ENABLED
@@ -1249,9 +1249,9 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			// because it's too expensive to linear-search all blocks for each block
 		}
 
-		for (unsigned int i = 0; i < lod.mesh_blocks_to_update_transitions.size(); ++i) {
-			const VoxelLodTerrainUpdateData::TransitionUpdate tu = lod.mesh_blocks_to_update_transitions[i];
-			VoxelMeshBlockVLT *block = mesh_map.get_block(tu.block_position);
+		for (unsigned int i = 0; i < lod.chunk_meshs_to_update_transitions.size(); ++i) {
+			const VoxelLodTerrainUpdateData::TransitionUpdate tu = lod.chunk_meshs_to_update_transitions[i];
+			VoxelChunkMeshVLT *block = mesh_map.get_block(tu.block_position);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				/*
@@ -1276,13 +1276,13 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 						tu.transition_mask != block->get_transition_mask()) {
 					//
 					const Vector3 block_center = volume_transform.xform(
-							to_vec3(block->position * mesh_block_size + Vector3iUtil::create(mesh_block_size / 2)));
+							to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 
 					// Don't do fading for blocks behind the camera.
 					if (camera.forward.dot(block_center - camera.position) > 0.f) {
 						FadingOutMesh item;
 
-						item.local_position = block->position * mesh_block_size;
+						item.local_position = block->position * chunk_mesh_size;
 						item.progress = 1.f;
 
 						// Wayyyy too slow, because of https://github.com/godotengine/godot/issues/34741
@@ -1305,9 +1305,9 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 						_fading_out_meshes.push_back(std::move(item));
 
-						if (block->fading_state == VoxelMeshBlockVLT::FADING_NONE) {
+						if (block->fading_state == VoxelChunkMeshVLT::FADING_NONE) {
 							_fading_blocks_per_lod[lod_index].insert({ block->position, block });
-							block->fading_state = VoxelMeshBlockVLT::FADING_IN;
+							block->fading_state = VoxelChunkMeshVLT::FADING_IN;
 							block->fading_progress = 0.f;
 						}
 					}
@@ -1317,8 +1317,8 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			}
 		}
 
-		lod.mesh_blocks_to_unload.clear();
-		lod.mesh_blocks_to_update_transitions.clear();
+		lod.chunk_meshs_to_unload.clear();
+		lod.chunk_meshs_to_update_transitions.clear();
 	}
 
 	// Remove completed async edits
@@ -1457,8 +1457,8 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 	{
 		VoxelLodTerrainUpdateData::Lod &lod = update_data.state.lods[ob.lod];
 		RWLockRead rlock(lod.mesh_map_state.map_lock);
-		auto mesh_block_state_it = lod.mesh_map_state.map.find(ob.position);
-		if (mesh_block_state_it == lod.mesh_map_state.map.end()) {
+		auto chunk_mesh_state_it = lod.mesh_map_state.map.find(ob.position);
+		if (chunk_mesh_state_it == lod.mesh_map_state.map.end()) {
 			// That block is no longer loaded in the update map, drop the result
 			++_stats.dropped_block_meshs;
 			return;
@@ -1471,22 +1471,22 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 			return;
 		}
 
-		VoxelLodTerrainUpdateData::MeshBlockState &mesh_block_state = mesh_block_state_it->second;
+		VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh_state = chunk_mesh_state_it->second;
 
-		transition_mask = mesh_block_state.transition_mask;
+		transition_mask = chunk_mesh_state.transition_mask;
 
 		// The update task could be running at the same time, so we need to do this atomically.
 		// The state can become "up to date" only if no other unsent update was pending.
 		VoxelLodTerrainUpdateData::MeshState expected = VoxelLodTerrainUpdateData::MESH_UPDATE_SENT;
-		mesh_block_state.state.compare_exchange_strong(expected, VoxelLodTerrainUpdateData::MESH_UP_TO_DATE);
-		active = mesh_block_state.active;
+		chunk_mesh_state.state.compare_exchange_strong(expected, VoxelLodTerrainUpdateData::MESH_UP_TO_DATE);
+		active = chunk_mesh_state.active;
 	}
 
 	// -------- Part where we invoke Godot functions ---------
 	// This part is not fully threadable.
 
-	VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[ob.lod];
-	VoxelMeshBlockVLT *block = mesh_map.get_block(ob.position);
+	VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[ob.lod];
+	VoxelChunkMeshVLT *block = mesh_map.get_block(ob.position);
 
 	VoxelMesher::Output &mesh_data = ob.surfaces;
 
@@ -1513,7 +1513,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 			// TODO Factor removal in a function, it's done in a few places
 			mesh_map.remove_block(ob.position, BeforeUnloadMeshAction{ _shader_material_pool });
 			if (_instancer != nullptr) {
-				_instancer->on_mesh_block_exit(ob.position, ob.lod);
+				_instancer->on_chunk_mesh_exit(ob.position, ob.lod);
 			}
 		}
 		// ZN_PRINT_VERBOSE(format("Empty block pos {} lod {} time {}", ob.position, int(ob.lod),
@@ -1522,7 +1522,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 	}
 
 	if (block == nullptr) {
-		block = memnew(VoxelMeshBlockVLT(ob.position, get_mesh_block_size(), ob.lod));
+		block = memnew(VoxelChunkMeshVLT(ob.position, get_chunk_mesh_size(), ob.lod));
 		block->active = active;
 		block->set_visible(active);
 		mesh_map.set_block(ob.position, block);
@@ -1543,13 +1543,13 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 		if (_instancer != nullptr && ob.surfaces.surfaces.size() > 0) {
 			// TODO The mesh could come from an edited region!
 			// We would have to know if specific voxels got edited, or different from the generator
-			_instancer->on_mesh_block_enter(ob.position, ob.lod, ob.surfaces.surfaces[0].arrays);
+			_instancer->on_chunk_mesh_enter(ob.position, ob.lod, ob.surfaces.surfaces[0].arrays);
 		}
 
 		// Lazy initialization
 
 		// print_line(String("Adding block {0} at lod {1}").format(varray(eo.block_position.to_vec3(), eo.lod)));
-		// set_mesh_block_active(*block, false);
+		// set_chunk_mesh_active(*block, false);
 		block->set_parent_visible(is_visible());
 		block->set_world(get_world_3d());
 
@@ -1637,8 +1637,8 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::BlockMeshOutput &ob) {
 }
 
 void VoxelLodTerrain::apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob) {
-	VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[ob.lod_index];
-	VoxelMeshBlockVLT *block = mesh_map.get_block(ob.position);
+	VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[ob.lod_index];
+	VoxelChunkMeshVLT *block = mesh_map.get_block(ob.position);
 
 	// This can happen if:
 	// - Virtual texture rendering results are handled before the first meshing results which that have created the
@@ -1656,8 +1656,8 @@ void VoxelLodTerrain::apply_detail_texture_update(VoxelEngine::BlockDetailTextur
 	apply_detail_texture_update_to_block(*block, *ob.detail_textures, ob.lod_index);
 }
 
-static void try_apply_parent_virtual_texture_to_block(VoxelMeshBlockVLT &block, Vector3i bpos, ShaderMaterial &material,
-		unsigned int mesh_block_size, const VoxelMeshBlockVLT &parent_block, Vector3i parent_bpos,
+static void try_apply_parent_virtual_texture_to_block(VoxelChunkMeshVLT &block, Vector3i bpos, ShaderMaterial &material,
+		unsigned int chunk_mesh_size, const VoxelChunkMeshVLT &parent_block, Vector3i parent_bpos,
 		const DetailRenderingSettings &detail_texture_settings) {
 	//
 	Ref<ShaderMaterial> parent_material = parent_block.get_shader_material();
@@ -1676,14 +1676,14 @@ static void try_apply_parent_virtual_texture_to_block(VoxelMeshBlockVLT &block, 
 	const int cell_size = 1 << block.lod_index;
 	material.set_shader_parameter(sn.u_voxel_cell_size, cell_size);
 
-	material.set_shader_parameter(sn.u_voxel_block_size, mesh_block_size);
+	material.set_shader_parameter(sn.u_voxel_block_size, chunk_mesh_size);
 
 	const Vector4 parent_offset_and_scale =
 			parent_material->get_shader_parameter(sn.u_voxel_virtual_texture_offset_scale);
 	const Vector3i parent_offset(parent_offset_and_scale.x, parent_offset_and_scale.y, parent_offset_and_scale.z);
 	const int fallback_level = parent_block.detail_texture_fallback_level + 1;
 
-	const Vector3i offset = parent_offset + (bpos - (parent_bpos * 2)) * (mesh_block_size >> fallback_level);
+	const Vector3i offset = parent_offset + (bpos - (parent_bpos * 2)) * (chunk_mesh_size >> fallback_level);
 	const float scale = 1.f / float(1 << fallback_level);
 	material.set_shader_parameter(
 			sn.u_voxel_virtual_texture_offset_scale, Vector4(offset.x, offset.y, offset.z, scale));
@@ -1698,7 +1698,7 @@ static void try_apply_parent_virtual_texture_to_block(VoxelMeshBlockVLT &block, 
 	block.detail_texture_fallback_level = fallback_level;
 }
 
-void VoxelLodTerrain::try_apply_parent_detail_texture_to_block(VoxelMeshBlockVLT &block, Vector3i bpos) {
+void VoxelLodTerrain::try_apply_parent_detail_texture_to_block(VoxelChunkMeshVLT &block, Vector3i bpos) {
 	ZN_PROFILE_SCOPE();
 
 	Ref<ShaderMaterial> material = block.get_shader_material();
@@ -1711,19 +1711,19 @@ void VoxelLodTerrain::try_apply_parent_detail_texture_to_block(VoxelMeshBlockVLT
 
 	// Only looking up one level for now
 	const unsigned int parent_lod_index = block.lod_index + 1;
-	const VoxelMeshMap<VoxelMeshBlockVLT> &parent_map = _mesh_maps_per_lod[parent_lod_index];
+	const VoxelMeshMap<VoxelChunkMeshVLT> &parent_map = _mesh_maps_per_lod[parent_lod_index];
 	const Vector3i parent_bpos = bpos >> 1;
-	const VoxelMeshBlockVLT *parent_block = parent_map.get_block(parent_bpos);
+	const VoxelChunkMeshVLT *parent_block = parent_map.get_block(parent_bpos);
 	if (parent_block == nullptr) {
 		return;
 	}
 
-	zylann::voxel::try_apply_parent_virtual_texture_to_block(block, bpos, **material, get_mesh_block_size(),
+	zylann::voxel::try_apply_parent_virtual_texture_to_block(block, bpos, **material, get_chunk_mesh_size(),
 			*parent_block, parent_bpos, _update_data->settings.detail_texture_settings);
 }
 
 void VoxelLodTerrain::apply_detail_texture_update_to_block(
-		VoxelMeshBlockVLT &block, DetailTextureOutput &ob, unsigned int lod_index) {
+		VoxelChunkMeshVLT &block, DetailTextureOutput &ob, unsigned int lod_index) {
 	ZN_PROFILE_SCOPE();
 	ZN_ASSERT(ob.valid);
 
@@ -1745,7 +1745,7 @@ void VoxelLodTerrain::apply_detail_texture_update_to_block(
 		material->set_shader_parameter(sn.u_voxel_cell_lookup, normalmap_textures.lookup);
 		const int cell_size = 1 << lod_index;
 		material->set_shader_parameter(sn.u_voxel_cell_size, cell_size);
-		material->set_shader_parameter(sn.u_voxel_block_size, get_mesh_block_size());
+		material->set_shader_parameter(sn.u_voxel_block_size, get_chunk_mesh_size());
 		material->set_shader_parameter(sn.u_voxel_virtual_texture_offset_scale, Vector4(0, 0, 0, 1));
 
 		if (!had_texture) {
@@ -1769,12 +1769,12 @@ void VoxelLodTerrain::apply_detail_texture_update_to_block(
 	{
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[lod_index];
 		RWLockRead rlock(lod.mesh_map_state.map_lock);
-		auto mesh_block_state_it = lod.mesh_map_state.map.find(block.position);
-		if (mesh_block_state_it != lod.mesh_map_state.map.end()) {
+		auto chunk_mesh_state_it = lod.mesh_map_state.map.find(block.position);
+		if (chunk_mesh_state_it != lod.mesh_map_state.map.end()) {
 			VoxelLodTerrainUpdateData::DetailTextureState expected_dt_state =
 					VoxelLodTerrainUpdateData::DETAIL_TEXTURE_PENDING;
 			// If it was PENDING, set it to IDLE.
-			mesh_block_state_it->second.detail_texture_state.compare_exchange_strong(
+			chunk_mesh_state_it->second.detail_texture_state.compare_exchange_strong(
 					expected_dt_state, VoxelLodTerrainUpdateData::DETAIL_TEXTURE_IDLE);
 			// TODO If the mesh was modified again since, we need to schedule an extra update for the virtual texture to
 			// catch up. But for now I'm not sure if there is much value in doing so. It can get updated by the next
@@ -1793,12 +1793,12 @@ void VoxelLodTerrain::process_deferred_collision_updates(uint32_t timeout_msec) 
 	const uint64_t then = get_ticks_msec();
 
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 		std::vector<Vector3i> &deferred_collision_updates = _deferred_collision_updates_per_lod[lod_index];
 
 		for (unsigned int i = 0; i < deferred_collision_updates.size(); ++i) {
 			const Vector3i block_pos = deferred_collision_updates[i];
-			VoxelMeshBlockVLT *block = mesh_map.get_block(block_pos);
+			VoxelChunkMeshVLT *block = mesh_map.get_block(block_pos);
 
 			if (block == nullptr || block->deferred_collider_data == nullptr) {
 				// Block was unloaded or no longer needs a collision update
@@ -1858,14 +1858,14 @@ void VoxelLodTerrain::process_fading_blocks(float delta) {
 	{
 		ZN_PROFILE_SCOPE();
 		for (unsigned int lod_index = 0; lod_index < _fading_blocks_per_lod.size(); ++lod_index) {
-			std::map<Vector3i, VoxelMeshBlockVLT *> &fading_blocks = _fading_blocks_per_lod[lod_index];
-			std::map<Vector3i, VoxelMeshBlockVLT *>::iterator it = fading_blocks.begin();
+			std::map<Vector3i, VoxelChunkMeshVLT *> &fading_blocks = _fading_blocks_per_lod[lod_index];
+			std::map<Vector3i, VoxelChunkMeshVLT *>::iterator it = fading_blocks.begin();
 
 			while (it != fading_blocks.end()) {
-				VoxelMeshBlockVLT *block = it->second;
+				VoxelChunkMeshVLT *block = it->second;
 				ZN_ASSERT(block != nullptr);
 				// The collection of fading blocks must only contain fading blocks
-				ERR_FAIL_COND(block->fading_state == VoxelMeshBlockVLT::FADING_NONE);
+				ERR_FAIL_COND(block->fading_state == VoxelChunkMeshVLT::FADING_NONE);
 
 				const bool finished = block->update_fading(speed);
 
@@ -1914,7 +1914,7 @@ void VoxelLodTerrain::process_fading_blocks(float delta) {
 			bool remove = true;
 
 			if (item.lod_index < lod_count) {
-				VoxelMeshBlockVLT *block = _mesh_maps_per_lod[item.lod_index].get_block(item.block_position);
+				VoxelChunkMeshVLT *block = _mesh_maps_per_lod[item.lod_index].get_block(item.block_position);
 
 				if (block != nullptr) {
 					Ref<ShaderMaterial> sm = block->get_shader_material();
@@ -1975,17 +1975,17 @@ void VoxelLodTerrain::set_instancer(VoxelInstancer *instancer) {
 // This function is primarily intended for editor use cases at the moment.
 // It will be slower than using the instancing generation events,
 // because it has to query VisualServer, which then allocates and decodes vertex buffers (assuming they are cached).
-Array VoxelLodTerrain::get_mesh_block_surface(Vector3i block_pos, int lod_index) const {
+Array VoxelLodTerrain::get_chunk_mesh_surface(Vector3i block_pos, int lod_index) const {
 	ZN_PROFILE_SCOPE();
 
 	const int lod_count = get_lod_count();
 	ERR_FAIL_COND_V(lod_index < 0 || lod_index >= lod_count, Array());
 
-	const VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+	const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 
 	Ref<Mesh> mesh;
 	{
-		const VoxelMeshBlockVLT *block = mesh_map.get_block(block_pos);
+		const VoxelChunkMeshVLT *block = mesh_map.get_block(block_pos);
 		if (block != nullptr) {
 			mesh = block->get_mesh();
 		}
@@ -2002,9 +2002,9 @@ void VoxelLodTerrain::get_meshed_block_positions_at_lod(int lod_index, std::vect
 	const int lod_count = get_lod_count();
 	ERR_FAIL_COND(lod_index < 0 || lod_index >= lod_count);
 
-	const VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+	const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 
-	mesh_map.for_each_block([&out_positions](const VoxelMeshBlockVLT &block) {
+	mesh_map.for_each_block([&out_positions](const VoxelChunkMeshVLT &block) {
 		if (block.has_mesh()) {
 			out_positions.push_back(block.position);
 		}
@@ -2018,7 +2018,7 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 	// This could be part of the update task if async, but here we want it to be immediate.
 	_update_data->wait_for_end_of_task();
 
-	VoxelLodTerrainUpdateTask::flush_pending_lod_edits(_update_data->state, *_data, get_mesh_block_size());
+	VoxelLodTerrainUpdateTask::flush_pending_lod_edits(_update_data->state, *_data, get_chunk_mesh_size());
 
 	BufferedTaskScheduler &task_scheduler = BufferedTaskScheduler::get_for_current_thread();
 	std::vector<VoxelData::BlockToSave> blocks_to_save;
@@ -2109,7 +2109,7 @@ void VoxelLodTerrain::remesh_all_blocks() {
 }
 
 bool VoxelLodTerrain::is_area_meshed(const Box3i &box_in_voxels, unsigned int lod_index) const {
-	const Box3i box_in_blocks = box_in_voxels.downscaled(1 << (get_mesh_block_size_pow2() + lod_index));
+	const Box3i box_in_blocks = box_in_voxels.downscaled(1 << (get_chunk_mesh_size_pow2() + lod_index));
 	// We have to check this separate map instead of the mesh map, because the mesh map will not contain blocks in areas
 	// that have no mesh (one reason is so it reduces the time it takes to update all mesh positions when the terrain is
 	// moved)
@@ -2120,7 +2120,7 @@ bool VoxelLodTerrain::is_area_meshed(const Box3i &box_in_voxels, unsigned int lo
 		if (it == mms.map.end()) {
 			return false;
 		}
-		const VoxelLodTerrainUpdateData::MeshBlockState &block = it->second;
+		const VoxelLodTerrainUpdateData::ChunkMeshState &block = it->second;
 		return block.state == VoxelLodTerrainUpdateData::MESH_UP_TO_DATE;
 	});
 }
@@ -2130,7 +2130,7 @@ void VoxelLodTerrain::set_voxel_bounds(Box3i p_box) {
 	Box3i bounds_in_voxels =
 			p_box.clipped(Box3i::from_center_extents(Vector3i(), Vector3iUtil::create(constants::MAX_VOLUME_EXTENT)));
 	// Round to octree size
-	const int octree_size = get_mesh_block_size() << (get_lod_count() - 1);
+	const int octree_size = get_chunk_mesh_size() << (get_lod_count() - 1);
 	bounds_in_voxels = bounds_in_voxels.snapped(octree_size);
 	// Can't have a smaller region than one octree
 	for (unsigned i = 0; i < Vector3iUtil::AXIS_COUNT; ++i) {
@@ -2391,7 +2391,7 @@ AABB VoxelLodTerrain::_b_get_voxel_bounds() const {
 
 // DEBUG LAND
 
-Array VoxelLodTerrain::debug_raycast_mesh_block(Vector3 world_origin, Vector3 world_direction) const {
+Array VoxelLodTerrain::debug_raycast_chunk_mesh(Vector3 world_origin, Vector3 world_direction) const {
 	const Transform3D world_to_local = get_global_transform().affine_inverse();
 	Vector3 pos = world_to_local.xform(world_origin);
 	const Vector3 dir = world_to_local.basis.xform(world_direction);
@@ -2399,15 +2399,15 @@ Array VoxelLodTerrain::debug_raycast_mesh_block(Vector3 world_origin, Vector3 wo
 	const float step = 2.f;
 	float distance = 0.f;
 	const unsigned int lod_count = get_lod_count();
-	const unsigned int mesh_block_size_po2 = _update_data->settings.mesh_block_size_po2;
+	const unsigned int chunk_mesh_size_po2 = _update_data->settings.chunk_mesh_size_po2;
 
 	Array hits;
 	while (distance < max_distance && hits.size() == 0) {
 		const Vector3i posi = math::floor_to_int(pos);
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-			const VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-			const Vector3i bpos = (posi << mesh_block_size_po2) >> lod_index;
-			const VoxelMeshBlockVLT *block = mesh_map.get_block(bpos);
+			const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+			const Vector3i bpos = (posi << chunk_mesh_size_po2) >> lod_index;
+			const VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
 			if (block != nullptr && block->is_visible() && block->has_mesh()) {
 				Dictionary d;
 				d["position"] = block->position;
@@ -2447,7 +2447,7 @@ Dictionary VoxelLodTerrain::debug_get_data_block_info(Vector3 fbpos, int lod_ind
 	return d;
 }
 
-Dictionary VoxelLodTerrain::debug_get_mesh_block_info(Vector3 fbpos, int lod_index) const {
+Dictionary VoxelLodTerrain::debug_get_chunk_mesh_info(Vector3 fbpos, int lod_index) const {
 	Dictionary d;
 	ERR_FAIL_COND_V(lod_index < 0, d);
 	const int lod_count = get_lod_count();
@@ -2461,8 +2461,8 @@ Dictionary VoxelLodTerrain::debug_get_mesh_block_info(Vector3 fbpos, int lod_ind
 	bool active = false;
 	int mesh_state = VoxelLodTerrainUpdateData::MESH_NEVER_UPDATED;
 
-	const VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-	const VoxelMeshBlockVLT *block = mesh_map.get_block(bpos);
+	const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+	const VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
 
 	if (block != nullptr) {
 		int recomputed_transition_mask;
@@ -2529,11 +2529,11 @@ Array VoxelLodTerrain::debug_get_octrees_detailed() const {
 			Variant node_state;
 
 			const VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-			auto mesh_block_it = lod.mesh_map_state.map.find(position);
-			if (mesh_block_it == lod.mesh_map_state.map.end()) {
+			auto chunk_mesh_it = lod.mesh_map_state.map.find(position);
+			if (chunk_mesh_it == lod.mesh_map_state.map.end()) {
 				node_state = 0;
 			} else {
-				if (mesh_block_it->second.state == VoxelLodTerrainUpdateData::MESH_UP_TO_DATE) {
+				if (chunk_mesh_it->second.state == VoxelLodTerrainUpdateData::MESH_UP_TO_DATE) {
 					node_state = 2;
 				} else {
 					node_state = 1;
@@ -2640,11 +2640,11 @@ void VoxelLodTerrain::update_gizmos() {
 
 	const Transform3D parent_transform = get_global_transform();
 	const unsigned int lod_count = get_lod_count();
-	const int mesh_block_size = get_mesh_block_size();
+	const int chunk_mesh_size = get_chunk_mesh_size();
 
 	// Octree bounds
 	if (debug_get_draw_flag(DEBUG_DRAW_OCTREE_BOUNDS)) {
-		const int octree_size = 1 << LodOctree::get_octree_size_po2(get_mesh_block_size_pow2(), get_lod_count());
+		const int octree_size = 1 << LodOctree::get_octree_size_po2(get_chunk_mesh_size_pow2(), get_lod_count());
 		const Basis local_octree_basis = Basis().scaled(Vector3(octree_size, octree_size, octree_size));
 
 		for (auto it = state.lod_octrees.begin(); it != state.lod_octrees.end(); ++it) {
@@ -2678,11 +2678,11 @@ void VoxelLodTerrain::update_gizmos() {
 			const Vector3i block_pos_maxlod = it->first;
 			const Vector3i block_offset_lod0 = block_pos_maxlod << (lod_count - 1);
 
-			octree.for_each_leaf([&dr, block_offset_lod0, mesh_block_size, parent_transform, lod_count_f](
+			octree.for_each_leaf([&dr, block_offset_lod0, chunk_mesh_size, parent_transform, lod_count_f](
 										 Vector3i node_pos, int lod_index, const LodOctree::NodeData &node_data) {
 				//
-				const int size = mesh_block_size << lod_index;
-				const Vector3i voxel_pos = mesh_block_size * ((node_pos << lod_index) + block_offset_lod0);
+				const int size = chunk_mesh_size << lod_index;
+				const Vector3i voxel_pos = chunk_mesh_size * ((node_pos << lod_index) + block_offset_lod0);
 				const Transform3D local_transform(Basis().scaled(Vector3(size, size, size)), voxel_pos);
 				const Transform3D t = parent_transform * local_transform;
 				// Squaring because lower lod indexes are more interesting to see, so we give them more contrast.
@@ -2714,8 +2714,8 @@ void VoxelLodTerrain::update_gizmos() {
 	for (unsigned int i = 0; i < _debug_mesh_update_items.size();) {
 		DebugMeshUpdateItem &item = _debug_mesh_update_items[i];
 
-		const Transform3D local_transform(Basis().scaled(to_vec3(Vector3iUtil::create(mesh_block_size << item.lod))),
-				to_vec3(item.position * (mesh_block_size << item.lod)));
+		const Transform3D local_transform(Basis().scaled(to_vec3(Vector3iUtil::create(chunk_mesh_size << item.lod))),
+				to_vec3(item.position * (chunk_mesh_size << item.lod)));
 
 		const Transform3D t = parent_transform * local_transform;
 
@@ -2800,11 +2800,11 @@ Array VoxelLodTerrain::_b_debug_print_sdf_top_down(Vector3i center, Vector3i ext
 	return image_array;
 }
 
-int VoxelLodTerrain::_b_debug_get_mesh_block_count() const {
+int VoxelLodTerrain::_b_debug_get_chunk_mesh_count() const {
 	int sum = 0;
 	const unsigned int lod_count = get_lod_count();
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		const VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 		sum += mesh_map.get_block_count();
 	}
 	return sum;
@@ -2821,9 +2821,9 @@ Node3D *VoxelLodTerrain::debug_dump_as_nodes(bool include_instancer) const {
 	const unsigned int lod_count = get_lod_count();
 
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		const VoxelMeshMap<VoxelMeshBlockVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
+		const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 
-		mesh_map.for_each_block([root](const VoxelMeshBlockVLT &block) {
+		mesh_map.for_each_block([root](const VoxelChunkMeshVLT &block) {
 			block.for_each_mesh_instance_with_transform([root, &block](const DirectMeshInstance &dmi, Transform3D t) {
 				Ref<Mesh> mesh = dmi.get_mesh();
 
@@ -2922,8 +2922,8 @@ void VoxelLodTerrain::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("voxel_to_data_block_position", "voxel_position", "lod_index"),
 			&VoxelLodTerrain::voxel_to_data_block_position);
-	ClassDB::bind_method(D_METHOD("voxel_to_mesh_block_position", "voxel_position", "lod_index"),
-			&VoxelLodTerrain::voxel_to_mesh_block_position);
+	ClassDB::bind_method(D_METHOD("voxel_to_chunk_mesh_position", "voxel_position", "lod_index"),
+			&VoxelLodTerrain::voxel_to_chunk_mesh_position);
 
 	ClassDB::bind_method(D_METHOD("get_voxel_tool"), &VoxelLodTerrain::get_voxel_tool);
 	ClassDB::bind_method(D_METHOD("save_modified_blocks"), &VoxelLodTerrain::_b_save_modified_blocks);
@@ -2977,8 +2977,8 @@ void VoxelLodTerrain::_bind_methods() {
 
 	// Advanced
 
-	ClassDB::bind_method(D_METHOD("get_mesh_block_size"), &VoxelLodTerrain::get_mesh_block_size);
-	ClassDB::bind_method(D_METHOD("set_mesh_block_size"), &VoxelLodTerrain::set_mesh_block_size);
+	ClassDB::bind_method(D_METHOD("get_chunk_mesh_size"), &VoxelLodTerrain::get_chunk_mesh_size);
+	ClassDB::bind_method(D_METHOD("set_chunk_mesh_size"), &VoxelLodTerrain::set_chunk_mesh_size);
 
 	ClassDB::bind_method(D_METHOD("get_data_block_size"), &VoxelLodTerrain::get_data_block_size);
 	ClassDB::bind_method(D_METHOD("get_data_block_region_extent"), &VoxelLodTerrain::get_data_block_region_extent);
@@ -3001,15 +3001,15 @@ void VoxelLodTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_statistics"), &VoxelLodTerrain::_b_get_statistics);
 
 	ClassDB::bind_method(
-			D_METHOD("debug_raycast_mesh_block", "origin", "dir"), &VoxelLodTerrain::debug_raycast_mesh_block);
+			D_METHOD("debug_raycast_chunk_mesh", "origin", "dir"), &VoxelLodTerrain::debug_raycast_chunk_mesh);
 	ClassDB::bind_method(
 			D_METHOD("debug_get_data_block_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_data_block_info);
 	ClassDB::bind_method(
-			D_METHOD("debug_get_mesh_block_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_mesh_block_info);
+			D_METHOD("debug_get_chunk_mesh_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_mesh_info);
 	ClassDB::bind_method(D_METHOD("debug_get_octrees_detailed"), &VoxelLodTerrain::debug_get_octrees_detailed);
 	ClassDB::bind_method(
 			D_METHOD("debug_print_sdf_top_down", "center", "extents"), &VoxelLodTerrain::_b_debug_print_sdf_top_down);
-	ClassDB::bind_method(D_METHOD("debug_get_mesh_block_count"), &VoxelLodTerrain::_b_debug_get_mesh_block_count);
+	ClassDB::bind_method(D_METHOD("debug_get_chunk_mesh_count"), &VoxelLodTerrain::_b_debug_get_chunk_mesh_count);
 	ClassDB::bind_method(D_METHOD("debug_get_data_block_count"), &VoxelLodTerrain::_b_debug_get_data_block_count);
 	ClassDB::bind_method(
 			D_METHOD("debug_dump_as_scene", "path", "include_instancer"), &VoxelLodTerrain::_b_debug_dump_as_scene);
@@ -3085,7 +3085,7 @@ void VoxelLodTerrain::_bind_methods() {
 	// TODO Probably should be in parent class?
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "run_stream_in_editor"), "set_run_stream_in_editor",
 			"is_stream_running_in_editor");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "mesh_block_size"), "set_mesh_block_size", "get_mesh_block_size");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "chunk_mesh_size"), "set_chunk_mesh_size", "get_chunk_mesh_size");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "full_load_mode_enabled"), "set_full_load_mode_enabled",
 			"is_full_load_mode_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "threaded_update_enabled"), "set_threaded_update_enabled",

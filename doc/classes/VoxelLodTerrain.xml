@@ -34,12 +34,12 @@
 			<description>
 			</description>
 		</method>
-		<method name="debug_get_mesh_block_count" qualifiers="const">
+		<method name="debug_get_chunk_mesh_count" qualifiers="const">
 			<return type="int" />
 			<description>
 			</description>
 		</method>
-		<method name="debug_get_mesh_block_info" qualifiers="const">
+		<method name="debug_get_chunk_mesh_info" qualifiers="const">
 			<return type="Dictionary" />
 			<param index="0" name="block_pos" type="Vector3" />
 			<param index="1" name="lod" type="int" />
@@ -63,7 +63,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="debug_raycast_mesh_block" qualifiers="const">
+		<method name="debug_raycast_chunk_mesh" qualifiers="const">
 			<return type="Array" />
 			<param index="0" name="origin" type="Vector3" />
 			<param index="1" name="dir" type="Vector3" />
@@ -172,7 +172,7 @@
 				Converts a voxel position into a data block position for a specific LOD index.
 			</description>
 		</method>
-		<method name="voxel_to_mesh_block_position" qualifiers="const">
+		<method name="voxel_to_chunk_mesh_position" qualifiers="const">
 			<return type="Vector3i" />
 			<param index="0" name="voxel_position" type="Vector3" />
 			<param index="1" name="lod_index" type="int" />
@@ -216,7 +216,7 @@
 		<member name="material" type="Material" setter="set_material" getter="get_material">
 			Material used for the surface of the volume. The main usage of this node is with smooth voxels, which means if you want more than one "material" on the ground, you need to use splatmapping techniques with a shader. In addition, many features require shaders to work properly. Check the online documentation or examples for more information.
 		</member>
-		<member name="mesh_block_size" type="int" setter="set_mesh_block_size" getter="get_mesh_block_size" default="16">
+		<member name="chunk_mesh_size" type="int" setter="set_chunk_mesh_size" getter="get_chunk_mesh_size" default="16">
 			Size of meshes used for chunks of this volume, in voxels. Can only be set to either 16 or 32. Using 32 is expected to increase rendering performance, and slightly increase the cost of edits.
 		</member>
 		<member name="normalmap_begin_lod_index" type="int" setter="set_normalmap_begin_lod_index" getter="get_normalmap_begin_lod_index" default="2">

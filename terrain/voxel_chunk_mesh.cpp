@@ -1,4 +1,4 @@
-#include "voxel_mesh_block.h"
+#include "voxel_chunk_mesh.h"
 #include "../constants/voxel_string_names.h"
 #include "../util/godot/classes/collision_shape_3d.h"
 #include "../util/godot/classes/concave_polygon_shape_3d.h"
@@ -9,15 +9,15 @@
 
 namespace zylann::voxel {
 
-VoxelMeshBlock::VoxelMeshBlock(Vector3i bpos) {
+VoxelChunkMesh::VoxelChunkMesh(Vector3i bpos) {
 	position = bpos;
 }
 
-VoxelMeshBlock::~VoxelMeshBlock() {
+VoxelChunkMesh::~VoxelChunkMesh() {
 	FreeMeshTask::try_add_and_destroy(_mesh_instance);
 }
 
-void VoxelMeshBlock::set_world(Ref<World3D> p_world) {
+void VoxelChunkMesh::set_world(Ref<World3D> p_world) {
 	if (_world != p_world) {
 		_world = p_world;
 
@@ -30,19 +30,19 @@ void VoxelMeshBlock::set_world(Ref<World3D> p_world) {
 	}
 }
 
-void VoxelMeshBlock::set_gi_mode(DirectMeshInstance::GIMode mode) {
+void VoxelChunkMesh::set_gi_mode(DirectMeshInstance::GIMode mode) {
 	if (_mesh_instance.is_valid()) {
 		_mesh_instance.set_gi_mode(mode);
 	}
 }
 
-void VoxelMeshBlock::set_shadow_casting(RenderingServer::ShadowCastingSetting setting) {
+void VoxelChunkMesh::set_shadow_casting(RenderingServer::ShadowCastingSetting setting) {
 	if (_mesh_instance.is_valid()) {
 		_mesh_instance.set_cast_shadows_setting(setting);
 	}
 }
 
-void VoxelMeshBlock::set_mesh(
+void VoxelChunkMesh::set_mesh(
 		Ref<Mesh> mesh, DirectMeshInstance::GIMode gi_mode, RenderingServer::ShadowCastingSetting setting) {
 	// TODO Don't add mesh instance to the world if it's not visible.
 	// I suspect Godot is trying to include invisible mesh instances into the culling process,
@@ -72,24 +72,24 @@ void VoxelMeshBlock::set_mesh(
 	}
 }
 
-Ref<Mesh> VoxelMeshBlock::get_mesh() const {
+Ref<Mesh> VoxelChunkMesh::get_mesh() const {
 	if (_mesh_instance.is_valid()) {
 		return _mesh_instance.get_mesh();
 	}
 	return Ref<Mesh>();
 }
 
-bool VoxelMeshBlock::has_mesh() const {
+bool VoxelChunkMesh::has_mesh() const {
 	return _mesh_instance.get_mesh().is_valid();
 }
 
-void VoxelMeshBlock::drop_mesh() {
+void VoxelChunkMesh::drop_mesh() {
 	if (_mesh_instance.is_valid()) {
 		_mesh_instance.destroy();
 	}
 }
 
-void VoxelMeshBlock::set_visible(bool visible) {
+void VoxelChunkMesh::set_visible(bool visible) {
 	if (_visible == visible) {
 		return;
 	}
@@ -97,11 +97,11 @@ void VoxelMeshBlock::set_visible(bool visible) {
 	_set_visible(_visible && _parent_visible);
 }
 
-bool VoxelMeshBlock::is_visible() const {
+bool VoxelChunkMesh::is_visible() const {
 	return _visible;
 }
 
-void VoxelMeshBlock::_set_visible(bool visible) {
+void VoxelChunkMesh::_set_visible(bool visible) {
 	if (_mesh_instance.is_valid()) {
 		set_mesh_instance_visible(_mesh_instance, visible);
 	}
@@ -110,7 +110,7 @@ void VoxelMeshBlock::_set_visible(bool visible) {
 	}
 }
 
-void VoxelMeshBlock::set_parent_visible(bool parent_visible) {
+void VoxelChunkMesh::set_parent_visible(bool parent_visible) {
 	if (_parent_visible && parent_visible) {
 		return;
 	}
@@ -118,7 +118,7 @@ void VoxelMeshBlock::set_parent_visible(bool parent_visible) {
 	_set_visible(_visible && _parent_visible);
 }
 
-void VoxelMeshBlock::set_parent_transform(const Transform3D &parent_transform) {
+void VoxelChunkMesh::set_parent_transform(const Transform3D &parent_transform) {
 	ZN_PROFILE_SCOPE();
 
 	if (_mesh_instance.is_valid() || _static_body.is_valid()) {
@@ -135,7 +135,7 @@ void VoxelMeshBlock::set_parent_transform(const Transform3D &parent_transform) {
 	}
 }
 
-void VoxelMeshBlock::set_collision_shape(Ref<Shape3D> shape, bool debug_collision, Node3D *node, float margin) {
+void VoxelChunkMesh::set_collision_shape(Ref<Shape3D> shape, bool debug_collision, Node3D *node, float margin) {
 	ERR_FAIL_COND(node == nullptr);
 	ERR_FAIL_COND_MSG(node->get_world_3d() != _world, "Physics body and attached node must be from the same world");
 
@@ -161,19 +161,19 @@ void VoxelMeshBlock::set_collision_shape(Ref<Shape3D> shape, bool debug_collisio
 	_static_body.set_shape_enabled(0, _visible);
 }
 
-void VoxelMeshBlock::set_collision_layer(int layer) {
+void VoxelChunkMesh::set_collision_layer(int layer) {
 	if (_static_body.is_valid()) {
 		_static_body.set_collision_layer(layer);
 	}
 }
 
-void VoxelMeshBlock::set_collision_mask(int mask) {
+void VoxelChunkMesh::set_collision_mask(int mask) {
 	if (_static_body.is_valid()) {
 		_static_body.set_collision_mask(mask);
 	}
 }
 
-void VoxelMeshBlock::set_collision_margin(float margin) {
+void VoxelChunkMesh::set_collision_margin(float margin) {
 	if (_static_body.is_valid()) {
 		Ref<Shape3D> shape = _static_body.get_shape(0);
 		if (shape.is_valid()) {
@@ -182,7 +182,7 @@ void VoxelMeshBlock::set_collision_margin(float margin) {
 	}
 }
 
-void VoxelMeshBlock::drop_collision() {
+void VoxelChunkMesh::drop_collision() {
 	if (_static_body.is_valid()) {
 		_static_body.destroy();
 	}

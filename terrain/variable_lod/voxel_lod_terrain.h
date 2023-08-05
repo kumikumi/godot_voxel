@@ -1,7 +1,7 @@
 #ifndef VOXEL_LOD_TERRAIN_HPP
 #define VOXEL_LOD_TERRAIN_HPP
 
-#include "../../engine/mesh_block_task.h"
+#include "../../engine/chunk_mesh_task.h"
 #include "../../engine/voxel_engine.h"
 #include "../../storage/voxel_data.h"
 #include "../../util/godot/shader_material_pool.h"
@@ -9,7 +9,7 @@
 #include "../voxel_node.h"
 #include "lod_octree.h"
 #include "voxel_lod_terrain_update_data.h"
-#include "voxel_mesh_block_vlt.h"
+#include "voxel_chunk_mesh_vlt.h"
 
 #include <map>
 #include <unordered_set>
@@ -77,18 +77,18 @@ public:
 	float get_collision_margin() const;
 
 	int get_data_block_region_extent() const;
-	int get_mesh_block_region_extent() const;
+	int get_chunk_mesh_region_extent() const;
 
 	Vector3i voxel_to_data_block_position(Vector3 vpos, int lod_index) const;
-	Vector3i voxel_to_mesh_block_position(Vector3 vpos, int lod_index) const;
+	Vector3i voxel_to_chunk_mesh_position(Vector3 vpos, int lod_index) const;
 
 	unsigned int get_data_block_size_pow2() const;
 	unsigned int get_data_block_size() const;
 	// void set_data_block_size_po2(unsigned int p_block_size_po2);
 
-	unsigned int get_mesh_block_size_pow2() const;
-	unsigned int get_mesh_block_size() const;
-	void set_mesh_block_size(unsigned int mesh_block_size);
+	unsigned int get_chunk_mesh_size_pow2() const;
+	unsigned int get_chunk_mesh_size() const;
+	void set_chunk_mesh_size(unsigned int chunk_mesh_size);
 
 	void set_full_load_mode_enabled(bool enabled);
 	bool is_full_load_mode_enabled() const;
@@ -192,9 +192,9 @@ public:
 
 	// Debugging
 
-	Array debug_raycast_mesh_block(Vector3 world_origin, Vector3 world_direction) const;
+	Array debug_raycast_chunk_mesh(Vector3 world_origin, Vector3 world_direction) const;
 	Dictionary debug_get_data_block_info(Vector3 fbpos, int lod_index) const;
-	Dictionary debug_get_mesh_block_info(Vector3 fbpos, int lod_index) const;
+	Dictionary debug_get_chunk_mesh_info(Vector3 fbpos, int lod_index) const;
 	Array debug_get_octree_positions() const;
 	Array debug_get_octrees_detailed() const;
 
@@ -237,7 +237,7 @@ public:
 		return _streaming_dependency;
 	}
 
-	Array get_mesh_block_surface(Vector3i block_pos, int lod_index) const;
+	Array get_chunk_mesh_surface(Vector3i block_pos, int lod_index) const;
 	void get_meshed_block_positions_at_lod(int lod_index, std::vector<Vector3i> &out_positions) const;
 
 	inline VoxelData &get_storage() const {
@@ -263,8 +263,8 @@ private:
 	void apply_data_block_response(VoxelEngine::BlockDataOutput &ob);
 	void apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob);
 	void apply_detail_texture_update_to_block(
-			VoxelMeshBlockVLT &block, DetailTextureOutput &ob, unsigned int lod_index);
-	void try_apply_parent_detail_texture_to_block(VoxelMeshBlockVLT &block, Vector3i bpos);
+			VoxelChunkMeshVLT &block, DetailTextureOutput &ob, unsigned int lod_index);
+	void try_apply_parent_detail_texture_to_block(VoxelChunkMeshVLT &block, Vector3i bpos);
 
 	void start_updater();
 	void stop_updater();
@@ -275,7 +275,7 @@ private:
 
 	Vector3 get_local_viewer_pos() const;
 	void _set_lod_count(int p_lod_count);
-	void set_mesh_block_active(VoxelMeshBlockVLT &block, bool active, bool with_fading);
+	void set_chunk_mesh_active(VoxelChunkMeshVLT &block, bool active, bool with_fading);
 
 	void _on_stream_params_changed();
 
@@ -298,7 +298,7 @@ private:
 	AABB _b_get_voxel_bounds() const;
 
 	Array _b_debug_print_sdf_top_down(Vector3i center, Vector3i extents);
-	int _b_debug_get_mesh_block_count() const;
+	int _b_debug_get_chunk_mesh_count() const;
 	int _b_debug_get_data_block_count() const;
 	// TODO GDX: Can't bind functions returning a `godot::Error` enum
 	int /*Error*/ _b_debug_dump_as_scene(String fpath, bool include_instancer) const;
@@ -331,7 +331,7 @@ private:
 	// it has to add a connection to a HUGE list. Which is very slow, enough to cause stutters.
 	ShaderMaterialPoolVLT _shader_material_pool;
 
-	FixedArray<VoxelMeshMap<VoxelMeshBlockVLT>, constants::MAX_LOD> _mesh_maps_per_lod;
+	FixedArray<VoxelMeshMap<VoxelChunkMeshVLT>, constants::MAX_LOD> _mesh_maps_per_lod;
 
 	// Copies of meshes just for fading out.
 	// Used when a transition mask changes. This can make holes appear if not smoothly faded.
@@ -360,7 +360,7 @@ private:
 	// Note, direct pointers to mesh blocks should be safe because these blocks are always destroyed from the same
 	// thread that updates fading blocks. If a mesh block is destroyed, these maps should be updated at the same time.
 	// TODO Optimization: use FlatMap? Need to check how many blocks get in there, probably not many
-	FixedArray<std::map<Vector3i, VoxelMeshBlockVLT *>, constants::MAX_LOD> _fading_blocks_per_lod;
+	FixedArray<std::map<Vector3i, VoxelChunkMeshVLT *>, constants::MAX_LOD> _fading_blocks_per_lod;
 
 	struct FadingDetailTexture {
 		Vector3i block_position;

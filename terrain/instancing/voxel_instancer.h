@@ -74,8 +74,8 @@ public:
 	// Event handlers
 
 	void on_chunk_data_loaded(Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceBlockData> instances);
-	void on_mesh_block_enter(Vector3i render_grid_position, unsigned int lod_index, Array surface_arrays);
-	void on_mesh_block_exit(Vector3i render_grid_position, unsigned int lod_index);
+	void on_chunk_mesh_enter(Vector3i render_grid_position, unsigned int lod_index, Array surface_arrays);
+	void on_chunk_mesh_exit(Vector3i render_grid_position, unsigned int lod_index);
 	void on_area_edited(Box3i p_voxel_box);
 	void on_body_removed(Vector3i data_block_position, unsigned int render_block_index, unsigned int instance_index);
 	void on_scene_instance_removed(
@@ -84,7 +84,7 @@ public:
 
 	// Internal properties
 
-	void set_mesh_block_size_po2(unsigned int p_mesh_block_size_po2);
+	void set_chunk_mesh_size_po2(unsigned int p_chunk_mesh_size_po2);
 	void set_data_block_size_po2(unsigned int p_data_block_size_po2);
 	void set_mesh_lod_distance(float p_lod_distance);
 
@@ -252,7 +252,7 @@ private:
 
 	VoxelNode *_parent = nullptr;
 	unsigned int _parent_data_block_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
-	unsigned int _parent_mesh_block_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
+	unsigned int _parent_chunk_mesh_size_po2 = constants::DEFAULT_BLOCK_SIZE_PO2;
 	float _mesh_lod_distance = 0.f;
 
 	std::shared_ptr<VoxelInstancerGeneratorTaskOutputQueue> _generator_results;

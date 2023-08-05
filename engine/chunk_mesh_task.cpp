@@ -1,7 +1,7 @@
-#include "mesh_block_task.h"
+#include "chunk_mesh_task.h"
 #include "../meshers/transvoxel/voxel_mesher_transvoxel.h"
 #include "../storage/voxel_data.h"
-#include "../terrain/voxel_mesh_block.h"
+#include "../terrain/voxel_chunk_mesh.h"
 #include "../util/dstack.h"
 #include "../util/godot/classes/mesh.h"
 #include "../util/log.h"
@@ -17,7 +17,7 @@ namespace zylann::voxel {
 
 struct CubicAreaInfo {
 	int edge_size; // In data blocks
-	int mesh_block_size_factor;
+	int chunk_mesh_size_factor;
 	unsigned int anchor_buffer_index;
 
 	inline bool is_valid() const {
@@ -28,15 +28,15 @@ struct CubicAreaInfo {
 CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 	// Determine size of the cube of blocks
 	int edge_size;
-	int mesh_block_size_factor;
+	int chunk_mesh_size_factor;
 	switch (size) {
 		case 3 * 3 * 3:
 			edge_size = 3;
-			mesh_block_size_factor = 1;
+			chunk_mesh_size_factor = 1;
 			break;
 		case 4 * 4 * 4:
 			edge_size = 4;
-			mesh_block_size_factor = 2;
+			chunk_mesh_size_factor = 2;
 			break;
 		default:
 			ZN_PRINT_ERROR("Unsupported block count");
@@ -46,7 +46,7 @@ CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 	// Pick anchor block, usually within the central part of the cube (that block must be valid)
 	const unsigned int anchor_buffer_index = edge_size * edge_size + edge_size + 1;
 
-	return { edge_size, mesh_block_size_factor, anchor_buffer_index };
+	return { edge_size, chunk_mesh_size_factor, anchor_buffer_index };
 }
 
 // Takes a list of blocks and interprets it as a cube of blocks centered around the area we want to create a mesh from.
@@ -54,7 +54,7 @@ CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 // which includes enough neighbors for the mesher to avoid doing bound checks.
 static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> blocks, VoxelBufferInternal &dst,
 		int min_padding, int max_padding, int channels_mask, Ref<VoxelGenerator> generator, const VoxelData &voxel_data,
-		uint8_t lod_index, Vector3i mesh_block_pos, std::vector<Box3i> *out_boxes_to_generate,
+		uint8_t lod_index, Vector3i chunk_mesh_pos, std::vector<Box3i> *out_boxes_to_generate,
 		Vector3i *out_origin_in_voxels) {
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
@@ -75,10 +75,10 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 				Vector3iUtil::all_members_equal(central_buffer->get_size()) == false, "Central buffer must be cubic");
 	}
 	const int data_block_size = voxel_data.get_block_size();
-	const int mesh_block_size = data_block_size * area_info.mesh_block_size_factor;
-	const int padded_mesh_block_size = mesh_block_size + min_padding + max_padding;
+	const int chunk_mesh_size = data_block_size * area_info.chunk_mesh_size_factor;
+	const int padded_chunk_mesh_size = chunk_mesh_size + min_padding + max_padding;
 
-	dst.create(padded_mesh_block_size, padded_mesh_block_size, padded_mesh_block_size);
+	dst.create(padded_chunk_mesh_size, padded_chunk_mesh_size, padded_chunk_mesh_size);
 
 	// TODO Need to provide format differently, this won't work in full load mode where areas are generated on the fly
 	// for (unsigned int ci = 0; ci < channels.size(); ++ci) {
@@ -95,7 +95,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	}
 
 	const Vector3i min_pos = -Vector3iUtil::create(min_padding);
-	const Vector3i max_pos = Vector3iUtil::create(mesh_block_size + max_padding);
+	const Vector3i max_pos = Vector3iUtil::create(chunk_mesh_size + max_padding);
 
 	// TODO In terrains that only work with caches, we should never consider generating voxels from here.
 	// This is the case of VoxelTerrain, which is now doing unnecessary box subtraction calculations...
@@ -111,7 +111,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 		// TODO The following logic might as well be simplified and moved to VoxelData.
 		// We are just sampling or generating data in a given area.
 
-		const Vector3i data_block_pos0 = mesh_block_pos * area_info.mesh_block_size_factor;
+		const Vector3i data_block_pos0 = chunk_mesh_pos * area_info.chunk_mesh_size_factor;
 		VoxelSpatialLockRead srlock(voxel_data.get_spatial_lock(lod_index),
 				BoxBounds3i(data_block_pos0 - Vector3i(1, 1, 1),
 						data_block_pos0 + Vector3iUtil::create(area_info.edge_size)));
@@ -164,7 +164,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	}
 
 	const Vector3i origin_in_voxels =
-			mesh_block_pos * (area_info.mesh_block_size_factor * data_block_size << lod_index) -
+			chunk_mesh_pos * (area_info.chunk_mesh_size_factor * data_block_size << lod_index) -
 			Vector3iUtil::create(min_padding << lod_index);
 
 	for (Box3i &box : boxes_to_generate) {
@@ -266,19 +266,19 @@ namespace {
 std::atomic_int g_debug_mesh_tasks_count = { 0 };
 } // namespace
 
-MeshBlockTask::MeshBlockTask() {
+ChunkMeshTask::ChunkMeshTask() {
 	++g_debug_mesh_tasks_count;
 }
 
-MeshBlockTask::~MeshBlockTask() {
+ChunkMeshTask::~ChunkMeshTask() {
 	--g_debug_mesh_tasks_count;
 }
 
-int MeshBlockTask::debug_get_running_count() {
+int ChunkMeshTask::debug_get_running_count() {
 	return g_debug_mesh_tasks_count;
 }
 
-void MeshBlockTask::run(zylann::ThreadedTaskContext &ctx) {
+void ChunkMeshTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
 	if (block_generation_use_gpu) {
@@ -298,7 +298,7 @@ void MeshBlockTask::run(zylann::ThreadedTaskContext &ctx) {
 	}
 }
 
-void MeshBlockTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
+void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	ZN_ASSERT(meshing_dependency != nullptr);
 	ZN_ASSERT(data != nullptr);
 
@@ -312,7 +312,7 @@ void MeshBlockTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	Vector3i origin_in_voxels;
 
 	copy_block_and_neighbors(to_span(blocks, blocks_count), _voxels, min_padding, max_padding,
-			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, mesh_block_position,
+			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, chunk_mesh_position,
 			&boxes_to_generate, &origin_in_voxels);
 
 	if (boxes_to_generate.size() == 0) {
@@ -356,12 +356,12 @@ void MeshBlockTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	VoxelEngine::get_singleton().push_gpu_task(gpu_task);
 }
 
-void MeshBlockTask::set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) {
+void ChunkMeshTask::set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) {
 	_gpu_generation_results = std::move(results);
 	_stage = 1;
 }
 
-void MeshBlockTask::gather_voxels_cpu() {
+void ChunkMeshTask::gather_voxels_cpu() {
 	ZN_ASSERT(meshing_dependency != nullptr);
 	ZN_ASSERT(data != nullptr);
 
@@ -372,7 +372,7 @@ void MeshBlockTask::gather_voxels_cpu() {
 	const unsigned int max_padding = mesher->get_maximum_padding();
 
 	copy_block_and_neighbors(to_span(blocks, blocks_count), _voxels, min_padding, max_padding,
-			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, mesh_block_position,
+			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, chunk_mesh_position,
 			nullptr, nullptr);
 
 	// Could cache generator data from here if it was safe to write into the map
@@ -383,7 +383,7 @@ void MeshBlockTask::gather_voxels_cpu() {
 		VoxelDataLodMap::Lod &lod = data->lods[lod_index];
 
 		// Note, this box does not include neighbors!
-		const Vector3i min_bpos = position * area_info.mesh_block_size_factor;
+		const Vector3i min_bpos = position * area_info.chunk_mesh_size_factor;
 		const Vector3i max_bpos = min_bpos + Vector3iUtil::create(area_info.edge_size - 2);
 
 		Vector3i bpos;
@@ -409,12 +409,12 @@ void MeshBlockTask::gather_voxels_cpu() {
 	}*/
 }
 
-void MeshBlockTask::build_mesh() {
+void ChunkMeshTask::build_mesh() {
 	Ref<VoxelMesher> mesher = meshing_dependency->mesher;
-	const Vector3i mesh_block_size =
+	const Vector3i chunk_mesh_size =
 			_voxels.get_size() - Vector3iUtil::create(mesher->get_minimum_padding() + mesher->get_maximum_padding());
 
-	const Vector3i origin_in_voxels = mesh_block_position * (mesh_block_size << lod_index);
+	const Vector3i origin_in_voxels = chunk_mesh_position * (chunk_mesh_size << lod_index);
 
 	const VoxelMesher::Input input = { _voxels, meshing_dependency->generator.ptr(), data.get(), origin_in_voxels,
 		lod_index, collision_hint, lod_hint, true };
@@ -457,9 +457,9 @@ void MeshBlockTask::build_mesh() {
 			nm_task->generator = meshing_dependency->generator;
 		}
 		nm_task->voxel_data = data;
-		nm_task->mesh_block_size = mesh_block_size;
+		nm_task->chunk_mesh_size = chunk_mesh_size;
 		nm_task->lod_index = lod_index;
-		nm_task->mesh_block_position = mesh_block_position;
+		nm_task->chunk_mesh_position = chunk_mesh_position;
 		nm_task->volume_id = volume_id;
 		nm_task->output_textures = detail_textures;
 		nm_task->detail_texture_settings = detail_texture_settings;
@@ -482,7 +482,7 @@ void MeshBlockTask::build_mesh() {
 	_has_run = true;
 }
 
-TaskPriority MeshBlockTask::get_priority() {
+TaskPriority ChunkMeshTask::get_priority() {
 	float closest_viewer_distance_sq;
 	const TaskPriority p =
 			priority_dependency.evaluate(lod_index, constants::TASK_PRIORITY_MESH_BAND2, &closest_viewer_distance_sq);
@@ -490,11 +490,11 @@ TaskPriority MeshBlockTask::get_priority() {
 	return p;
 }
 
-bool MeshBlockTask::is_cancelled() {
+bool ChunkMeshTask::is_cancelled() {
 	return !meshing_dependency->valid || _too_far;
 }
 
-void MeshBlockTask::apply_result() {
+void ChunkMeshTask::apply_result() {
 	if (VoxelEngine::get_singleton().is_volume_valid(volume_id)) {
 		// The request response must match the dependency it would have been requested with.
 		// If it doesn't match, we are no longer interested in the result.
@@ -510,7 +510,7 @@ void MeshBlockTask::apply_result() {
 				o.type = VoxelEngine::BlockMeshOutput::TYPE_DROPPED;
 			}
 
-			o.position = mesh_block_position;
+			o.position = chunk_mesh_position;
 			o.lod = lod_index;
 			o.surfaces = std::move(_surfaces_output);
 			o.mesh = _mesh;

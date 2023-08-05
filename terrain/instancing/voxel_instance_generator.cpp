@@ -242,7 +242,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 	if (_noise.is_valid()) {
 		// Position of the block relative to the instancer node.
 		// Use full-precision here because we deal with potentially large coordinates
-		const Vector3 mesh_block_origin_d = grid_position * block_size;
+		const Vector3 chunk_mesh_origin_d = grid_position * block_size;
 		ZN_PROFILE_SCOPE_NAMED("noise filter");
 
 		noise_cache.clear();
@@ -250,7 +250,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 		switch (_noise_dimension) {
 			case DIMENSION_2D: {
 				for (size_t i = 0; i < vertex_cache.size(); ++i) {
-					const Vector3 &pos = to_vec3(vertex_cache[i]) + mesh_block_origin_d;
+					const Vector3 &pos = to_vec3(vertex_cache[i]) + chunk_mesh_origin_d;
 					const float n = _noise->get_noise_2d(pos.x, pos.z);
 					if (n < 0) {
 						unordered_remove(vertex_cache, i);
@@ -264,7 +264,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 
 			case DIMENSION_3D: {
 				for (size_t i = 0; i < vertex_cache.size(); ++i) {
-					const Vector3 &pos = to_vec3(vertex_cache[i]) + mesh_block_origin_d;
+					const Vector3 &pos = to_vec3(vertex_cache[i]) + chunk_mesh_origin_d;
 					const float n = _noise->get_noise_3d(pos.x, pos.y, pos.z);
 					if (n < 0) {
 						unordered_remove(vertex_cache, i);
@@ -296,7 +296,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 
 	const Vector3f fixed_look_axis = up_mode == UP_MODE_POSITIVE_Y ? Vector3f(1, 0, 0) : Vector3f(0, 1, 0);
 	const Vector3f fixed_look_axis_alternative = up_mode == UP_MODE_POSITIVE_Y ? Vector3f(0, 1, 0) : Vector3f(1, 0, 0);
-	const Vector3f mesh_block_origin = to_vec3f(grid_position * block_size);
+	const Vector3f chunk_mesh_origin = to_vec3f(grid_position * block_size);
 
 	// Calculate orientations and scales
 	for (size_t vertex_index = 0; vertex_index < vertex_cache.size(); ++vertex_index) {
@@ -321,7 +321,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 
 		} else {
 			if (up_mode == UP_MODE_SPHERE) {
-				global_up = normalized(mesh_block_origin + t.origin, sphere_distance);
+				global_up = normalized(chunk_mesh_origin + t.origin, sphere_distance);
 				sphere_up_is_computed = true;
 				sphere_distance_is_computed = true;
 			}
@@ -342,7 +342,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 			float ny = surface_normal.y;
 			if (up_mode == UP_MODE_SPHERE) {
 				if (!sphere_up_is_computed) {
-					global_up = normalized(mesh_block_origin + t.origin, sphere_distance);
+					global_up = normalized(chunk_mesh_origin + t.origin, sphere_distance);
 					sphere_up_is_computed = true;
 					sphere_distance_is_computed = true;
 				}
@@ -356,10 +356,10 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 		}
 
 		if (height_filter) {
-			float y = mesh_block_origin.y + t.origin.y;
+			float y = chunk_mesh_origin.y + t.origin.y;
 			if (up_mode == UP_MODE_SPHERE) {
 				if (!sphere_distance_is_computed) {
-					sphere_distance = math::length(mesh_block_origin + t.origin);
+					sphere_distance = math::length(chunk_mesh_origin + t.origin);
 					sphere_distance_is_computed = true;
 				}
 				y = sphere_distance;

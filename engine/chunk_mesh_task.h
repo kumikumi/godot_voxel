@@ -1,5 +1,5 @@
-#ifndef VOXEL_MESH_BLOCK_TASK_H
-#define VOXEL_MESH_BLOCK_TASK_H
+#ifndef VOXEL_CHUNK_MESH_TASK_H
+#define VOXEL_CHUNK_MESH_TASK_H
 
 #include "../constants/voxel_constants.h"
 #include "../storage/voxel_buffer_internal.h"
@@ -8,7 +8,7 @@
 #include "detail_rendering.h"
 #include "generate_chunk_gpu_task.h"
 #include "ids.h"
-#include "mesh_block_task.h"
+#include "chunk_mesh_task.h"
 #include "meshing_dependency.h"
 #include "priority_dependency.h"
 
@@ -17,13 +17,13 @@ namespace zylann::voxel {
 class VoxelData;
 
 // Asynchronous task generating a mesh from voxel blocks and their neighbors, in a particular volume
-class MeshBlockTask : public IGeneratingVoxelsThreadedTask {
+class ChunkMeshTask : public IGeneratingVoxelsThreadedTask {
 public:
-	MeshBlockTask();
-	~MeshBlockTask();
+	ChunkMeshTask();
+	~ChunkMeshTask();
 
 	const char *get_debug_name() const override {
-		return "MeshBlock";
+		return "ChunkMesh";
 	}
 
 	void run(ThreadedTaskContext &ctx) override;
@@ -39,7 +39,7 @@ public:
 	FixedArray<std::shared_ptr<VoxelBufferInternal>, constants::MAX_BLOCK_COUNT_PER_REQUEST> blocks;
 	// TODO Need to provide format
 	// FixedArray<uint8_t, VoxelBufferInternal::MAX_CHANNELS> channel_depths;
-	Vector3i mesh_block_position; // In mesh blocks of the specified lod
+	Vector3i chunk_mesh_position; // In mesh blocks of the specified lod
 	VolumeID volume_id;
 	uint8_t lod_index = 0;
 	uint8_t blocks_count = 0;
@@ -79,4 +79,4 @@ Ref<ArrayMesh> build_mesh(Span<const VoxelMesher::Output::Surface> surfaces, Mes
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_MESH_BLOCK_TASK_H
+#endif // VOXEL_CHUNK_MESH_TASK_H

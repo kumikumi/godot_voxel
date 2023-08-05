@@ -1,5 +1,5 @@
-#ifndef VOXEL_MESH_BLOCK_H
-#define VOXEL_MESH_BLOCK_H
+#ifndef VOXEL_CHUNK_MESH_H
+#define VOXEL_CHUNK_MESH_H
 
 #include "../constants/cube_tables.h"
 #include "../meshers/voxel_mesher.h"
@@ -21,15 +21,15 @@ namespace zylann::voxel {
 // It doesn't store voxel data, because it may be using different block size, or different data structure.
 // IMPORTANT: This is not an abstract class. It exists to share common code between variants of it.
 // Only explicit instances are used, no virtuals.
-class VoxelMeshBlock : public NonCopyable {
+class VoxelChunkMesh : public NonCopyable {
 public:
 	Vector3i position; // In blocks
 
 protected:
-	VoxelMeshBlock(Vector3i bpos);
+	VoxelChunkMesh(Vector3i bpos);
 
 public:
-	~VoxelMeshBlock();
+	~VoxelChunkMesh();
 
 	void set_world(Ref<World3D> p_world);
 
@@ -94,4 +94,4 @@ Ref<ConcavePolygonShape3D> make_collision_shape_from_mesher_output(
 
 } // namespace zylann::voxel
 
-#endif // VOXEL_MESH_BLOCK_H
+#endif // VOXEL_CHUNK_MESH_H
