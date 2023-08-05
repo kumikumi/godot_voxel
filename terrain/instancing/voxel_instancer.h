@@ -73,7 +73,7 @@ public:
 
 	// Event handlers
 
-	void on_data_block_loaded(Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceBlockData> instances);
+	void on_chunk_data_loaded(Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceBlockData> instances);
 	void on_mesh_block_enter(Vector3i render_grid_position, unsigned int lod_index, Array surface_arrays);
 	void on_mesh_block_exit(Vector3i render_grid_position, unsigned int lod_index);
 	void on_area_edited(Box3i p_voxel_box);

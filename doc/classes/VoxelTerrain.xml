@@ -144,17 +144,17 @@
 		</member>
 	</members>
 	<signals>
-		<signal name="block_loaded">
+		<signal name="chunk_data_loaded">
 			<param index="0" name="position" type="Vector3i" />
 			<description>
-				Emitted when a new data block is loaded from stream.
-				Note: it might be not visible yet.
+				Emitted when new chunk data is loaded from stream.
+				Note: the chunk might not be visible yet.
 			</description>
 		</signal>
-		<signal name="block_unloaded">
+		<signal name="chunk_data_unloaded">
 			<param index="0" name="position" type="Vector3i" />
 			<description>
-				Emitted when a data block is unloaded due to being outside view distance.
+				Emitted when chunk data is unloaded due to being outside view distance.
 			</description>
 		</signal>
 		<signal name="mesh_block_entered">

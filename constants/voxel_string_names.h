@@ -22,8 +22,8 @@ public:
 	StringName _generate_chunk;
 	StringName _get_used_channels_mask;
 
-	StringName block_loaded;
-	StringName block_unloaded;
+	StringName chunk_data_loaded;
+	StringName chunk_data_unloaded;
 
 	StringName mesh_block_entered;
 	StringName mesh_block_exited;

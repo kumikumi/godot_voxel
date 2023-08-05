@@ -842,7 +842,7 @@ void VoxelInstancer::remove_block(unsigned int block_index) {
 	}
 }
 
-void VoxelInstancer::on_data_block_loaded(
+void VoxelInstancer::on_chunk_data_loaded(
 		Vector3i grid_position, unsigned int lod_index, UniquePtr<InstanceBlockData> instances) {
 	ERR_FAIL_COND(lod_index >= _lods.size());
 	Lod &lod = _lods[lod_index];

@@ -1425,7 +1425,7 @@ void VoxelLodTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob
 	}
 
 	if (_instancer != nullptr && ob.instances != nullptr) {
-		_instancer->on_data_block_loaded(ob.position, ob.lod_index, std::move(ob.instances));
+		_instancer->on_chunk_data_loaded(ob.position, ob.lod_index, std::move(ob.instances));
 	}
 }
 

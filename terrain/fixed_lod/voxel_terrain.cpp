@@ -677,7 +677,7 @@ void VoxelTerrain::reset_map() {
 	// Discard everything, to reload it all
 
 	_data->for_each_block([this](const Vector3i &bpos, const VoxelDataBlock &block) { //
-		emit_data_block_unloaded(bpos);
+		emit_chunk_data_unloaded(bpos);
 	});
 	_data->reset_maps();
 
@@ -933,7 +933,7 @@ void VoxelTerrain::consume_block_data_save_requests(
 	_blocks_to_save.clear();
 }
 
-void VoxelTerrain::emit_data_block_loaded(Vector3i bpos) {
+void VoxelTerrain::emit_chunk_data_loaded(Vector3i bpos) {
 	// Not sure about exposing buffers directly... some stuff on them is useful to obtain directly,
 	// but also it allows scripters to mess with voxels in a way they should not.
 	// Example: modifying voxels without locking them first, while another thread may be reading them at the same
@@ -943,11 +943,11 @@ void VoxelTerrain::emit_data_block_loaded(Vector3i bpos) {
 	// absolutely necessary, buffers aren't exposed. Workaround: use VoxelTool
 	// const Variant vbuffer = block->voxels;
 	// const Variant *args[2] = { &vpos, &vbuffer };
-	emit_signal(VoxelStringNames::get_singleton().block_loaded, bpos);
+	emit_signal(VoxelStringNames::get_singleton().chunk_data_loaded, bpos);
 }
 
-void VoxelTerrain::emit_data_block_unloaded(Vector3i bpos) {
-	emit_signal(VoxelStringNames::get_singleton().block_unloaded, bpos);
+void VoxelTerrain::emit_chunk_data_unloaded(Vector3i bpos) {
+	emit_signal(VoxelStringNames::get_singleton().chunk_data_unloaded, bpos);
 }
 
 void VoxelTerrain::emit_mesh_block_entered(Vector3i bpos) {
@@ -1273,7 +1273,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 
 		// Remove loading blocks (those were loaded and had their refcount reach zero)
 		for (const Vector3i bpos : tls_found_blocks_positions) {
-			emit_data_block_unloaded(bpos);
+			emit_chunk_data_unloaded(bpos);
 			_loading_blocks.erase(bpos);
 		}
 
@@ -1436,7 +1436,7 @@ void VoxelTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob) {
 		existing_block.set_edited(incoming_block.is_edited());
 	});
 
-	emit_data_block_loaded(block_pos);
+	emit_chunk_data_loaded(block_pos);
 
 	for (unsigned int i = 0; i < loading_block.viewers_to_notify.size(); ++i) {
 		const ViewerID viewer_id = loading_block.viewers_to_notify[i];
@@ -1455,7 +1455,7 @@ void VoxelTerrain::apply_data_block_response(VoxelEngine::BlockDataOutput &ob) {
 	// }
 
 	if (_instancer != nullptr && ob.instances != nullptr) {
-		_instancer->on_data_block_loaded(ob.position, ob.lod_index, std::move(ob.instances));
+		_instancer->on_chunk_data_loaded(ob.position, ob.lod_index, std::move(ob.instances));
 	}
 }
 
@@ -1977,8 +1977,8 @@ void VoxelTerrain::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_gpu_generation"), "set_generator_use_gpu", "get_generator_use_gpu");
 
 	// TODO Add back access to block, but with an API securing multithreaded access
-	ADD_SIGNAL(MethodInfo("block_loaded", PropertyInfo(Variant::VECTOR3I, "position")));
-	ADD_SIGNAL(MethodInfo("block_unloaded", PropertyInfo(Variant::VECTOR3I, "position")));
+	ADD_SIGNAL(MethodInfo("chunk_data_loaded", PropertyInfo(Variant::VECTOR3I, "position")));
+	ADD_SIGNAL(MethodInfo("chunk_data_unloaded", PropertyInfo(Variant::VECTOR3I, "position")));
 
 	ADD_SIGNAL(MethodInfo("mesh_block_entered", PropertyInfo(Variant::VECTOR3I, "position")));
 	ADD_SIGNAL(MethodInfo("mesh_block_exited", PropertyInfo(Variant::VECTOR3I, "position")));

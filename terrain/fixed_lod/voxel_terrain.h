@@ -203,8 +203,8 @@ private:
 	void consume_block_data_save_requests(
 			BufferedTaskScheduler &task_scheduler, std::shared_ptr<AsyncDependencyTracker> saving_tracker);
 
-	void emit_data_block_loaded(Vector3i bpos);
-	void emit_data_block_unloaded(Vector3i bpos);
+	void emit_chunk_data_loaded(Vector3i bpos);
+	void emit_chunk_data_unloaded(Vector3i bpos);
 
 	void emit_mesh_block_entered(Vector3i bpos);
 	void emit_mesh_block_exited(Vector3i bpos);

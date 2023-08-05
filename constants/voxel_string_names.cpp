@@ -28,8 +28,8 @@ VoxelStringNames::VoxelStringNames() {
 	_generate_chunk = StringName("_generate_chunk");
 	_get_used_channels_mask = StringName("_get_used_channels_mask");
 
-	block_loaded = StringName("block_loaded");
-	block_unloaded = StringName("block_unloaded");
+	chunk_data_loaded = StringName("chunk_data_loaded");
+	chunk_data_unloaded = StringName("chunk_data_unloaded");
 
 	mesh_block_entered = StringName("mesh_block_entered");
 	mesh_block_exited = StringName("mesh_block_exited");
