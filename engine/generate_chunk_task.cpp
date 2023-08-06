@@ -16,19 +16,19 @@ namespace {
 std::atomic_int g_debug_generate_tasks_count = { 0 };
 }
 
-GenerateBlockTask::GenerateBlockTask() {
+GenerateChunkTask::GenerateChunkTask() {
 	++g_debug_generate_tasks_count;
 }
 
-GenerateBlockTask::~GenerateBlockTask() {
+GenerateChunkTask::~GenerateChunkTask() {
 	--g_debug_generate_tasks_count;
 }
 
-int GenerateBlockTask::debug_get_running_count() {
+int GenerateChunkTask::debug_get_running_count() {
 	return g_debug_generate_tasks_count;
 }
 
-void GenerateBlockTask::run(zylann::ThreadedTaskContext &ctx) {
+void GenerateChunkTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_PROFILE_SCOPE();
 
 	CRASH_COND(stream_dependency == nullptr);
@@ -56,7 +56,7 @@ void GenerateBlockTask::run(zylann::ThreadedTaskContext &ctx) {
 	}
 }
 
-void GenerateBlockTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
+void GenerateChunkTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 	Ref<VoxelGenerator> generator = stream_dependency->generator;
 	ERR_FAIL_COND(generator.is_null());
 
@@ -77,7 +77,7 @@ void GenerateBlockTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 
 	const Vector3i resolution = Vector3iUtil::create(chunk_size);
 
-	GenerateBlockGPUTask *gpu_task = memnew(GenerateBlockGPUTask);
+	GenerateChunkGPUTask *gpu_task = memnew(GenerateChunkGPUTask);
 	gpu_task->boxes_to_generate.push_back(Box3i(Vector3i(), resolution));
 	gpu_task->generator_shader = generator_shader;
 	gpu_task->generator_shader_params = generator->get_block_rendering_shader_parameters();
@@ -92,7 +92,7 @@ void GenerateBlockTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 		const VoxelModifierStack &modifiers = data->get_modifiers();
 		modifiers.apply_for_gpu_rendering(modifiers_shader_data, aabb_voxels, VoxelModifier::ShaderData::TYPE_BLOCK);
 		for (const VoxelModifier::ShaderData &d : modifiers_shader_data) {
-			gpu_task->modifiers.push_back(GenerateBlockGPUTask::ModifierData{
+			gpu_task->modifiers.push_back(GenerateChunkGPUTask::ModifierData{
 					d.shader_rids[VoxelModifier::ShaderData::TYPE_BLOCK], d.params });
 		}
 	}
@@ -103,17 +103,17 @@ void GenerateBlockTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 	VoxelEngine::get_singleton().push_gpu_task(gpu_task);
 }
 
-void GenerateBlockTask::set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) {
+void GenerateChunkTask::set_gpu_results(std::vector<GenerateChunkGPUTaskResult> &&results) {
 	_gpu_generation_results = std::move(results);
 	_stage = 1;
 }
 
-void GenerateBlockTask::run_gpu_conversion() {
-	GenerateBlockGPUTaskResult::convert_to_voxel_buffer(to_span(_gpu_generation_results), *voxels);
+void GenerateChunkTask::run_gpu_conversion() {
+	GenerateChunkGPUTaskResult::convert_to_voxel_buffer(to_span(_gpu_generation_results), *voxels);
 	_stage = 2;
 }
 
-void GenerateBlockTask::run_cpu_generation() {
+void GenerateChunkTask::run_cpu_generation() {
 	const Vector3i origin_in_voxels = (position << lod_index) * chunk_size;
 
 	Ref<VoxelGenerator> generator = stream_dependency->generator;
@@ -128,7 +128,7 @@ void GenerateBlockTask::run_cpu_generation() {
 	}
 }
 
-void GenerateBlockTask::run_stream_saving_and_finish() {
+void GenerateChunkTask::run_stream_saving_and_finish() {
 	if (stream_dependency->valid) {
 		Ref<VoxelStream> stream = stream_dependency->stream;
 
@@ -155,7 +155,7 @@ void GenerateBlockTask::run_stream_saving_and_finish() {
 	has_run = true;
 }
 
-TaskPriority GenerateBlockTask::get_priority() {
+TaskPriority GenerateChunkTask::get_priority() {
 	float closest_viewer_distance_sq;
 	const TaskPriority p = priority_dependency.evaluate(
 			lod_index, constants::TASK_PRIORITY_GENERATE_BAND2, &closest_viewer_distance_sq);
@@ -163,11 +163,11 @@ TaskPriority GenerateBlockTask::get_priority() {
 	return p;
 }
 
-bool GenerateBlockTask::is_cancelled() {
+bool GenerateChunkTask::is_cancelled() {
 	return !stream_dependency->valid || too_far; // || stream_dependency->stream->get_fallback_generator().is_null();
 }
 
-void GenerateBlockTask::apply_result() {
+void GenerateChunkTask::apply_result() {
 	bool aborted = true;
 
 	if (VoxelEngine::get_singleton().is_volume_valid(volume_id)) {

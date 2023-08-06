@@ -864,7 +864,7 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		// Directly generate the block without checking the stream
 		ERR_FAIL_COND(stream_dependency->generator.is_null());
 
-		GenerateBlockTask *task = ZN_NEW(GenerateBlockTask);
+		GenerateChunkTask *task = ZN_NEW(GenerateChunkTask);
 		task->volume_id = volume_id;
 		task->position = block_pos;
 		task->lod_index = 0;

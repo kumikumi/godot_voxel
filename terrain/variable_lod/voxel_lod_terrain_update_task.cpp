@@ -858,7 +858,7 @@ static void request_block_generate(VolumeID volume_id, unsigned int chunk_size,
 	// We should not have done this request in the first place if both stream and generator are null
 	ERR_FAIL_COND(stream_dependency->generator.is_null());
 
-	GenerateBlockTask *task = ZN_NEW(GenerateBlockTask);
+	GenerateChunkTask *task = ZN_NEW(GenerateChunkTask);
 	task->volume_id = volume_id;
 	task->position = block_pos;
 	task->lod_index = lod;

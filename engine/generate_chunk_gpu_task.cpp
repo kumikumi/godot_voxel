@@ -14,7 +14,7 @@
 
 namespace zylann::voxel {
 
-GenerateBlockGPUTask::~GenerateBlockGPUTask() {
+GenerateChunkGPUTask::~GenerateChunkGPUTask() {
 	if (consumer_task != nullptr) {
 		// If we get here, it means the engine got shut down before a mesh task could complete,
 		// so we still have ownership on this task and it should be deleted from here.
@@ -24,7 +24,7 @@ GenerateBlockGPUTask::~GenerateBlockGPUTask() {
 	}
 }
 
-unsigned int GenerateBlockGPUTask::get_required_shared_output_buffer_size() const {
+unsigned int GenerateChunkGPUTask::get_required_shared_output_buffer_size() const {
 	unsigned int volume = 0;
 	for (const Box3i &box : boxes_to_generate) {
 		volume += Vector3iUtil::get_volume(box.size);
@@ -33,7 +33,7 @@ unsigned int GenerateBlockGPUTask::get_required_shared_output_buffer_size() cons
 	return generator_shader_outputs->outputs.size() * volume * sizeof(float);
 }
 
-void GenerateBlockGPUTask::prepare(GPUTaskContext &ctx) {
+void GenerateChunkGPUTask::prepare(GPUTaskContext &ctx) {
 	ZN_PROFILE_SCOPE();
 	ZN_DSTACK();
 
@@ -338,7 +338,7 @@ static void convert_gpu_output_uint(VoxelBufferInternal &dst, Span<const float> 
 	}
 }
 
-void GenerateBlockGPUTaskResult::convert_to_voxel_buffer(VoxelBufferInternal &dst) {
+void GenerateChunkGPUTaskResult::convert_to_voxel_buffer(VoxelBufferInternal &dst) {
 	// Shaders can only output float arrays for now. Also looks like GLSL does not have 8-bit or 16-bit data types?
 	// TODO Should we convert in the compute shader to reduce bandwidth and CPU work?
 	Span<const float> src_data_f = _bytes.reinterpret_cast_to<const float>();
@@ -362,25 +362,25 @@ void GenerateBlockGPUTaskResult::convert_to_voxel_buffer(VoxelBufferInternal &ds
 	}
 }
 
-void GenerateBlockGPUTaskResult::convert_to_voxel_buffer(
-		Span<GenerateBlockGPUTaskResult> boxes_data, VoxelBufferInternal &dst) {
+void GenerateChunkGPUTaskResult::convert_to_voxel_buffer(
+		Span<GenerateChunkGPUTaskResult> boxes_data, VoxelBufferInternal &dst) {
 	ZN_PROFILE_SCOPE();
 
-	for (GenerateBlockGPUTaskResult &box_data : boxes_data) {
+	for (GenerateChunkGPUTaskResult &box_data : boxes_data) {
 		box_data.convert_to_voxel_buffer(dst);
 	}
 
 	dst.compress_uniform_channels();
 }
 
-void GenerateBlockGPUTask::collect(GPUTaskContext &ctx) {
+void GenerateChunkGPUTask::collect(GPUTaskContext &ctx) {
 	ZN_PROFILE_SCOPE();
 	ZN_DSTACK();
 
 	RenderingDevice &rd = ctx.rendering_device;
 	GPUStorageBufferPool &storage_buffer_pool = ctx.storage_buffer_pool;
 
-	std::vector<GenerateBlockGPUTaskResult> results;
+	std::vector<GenerateChunkGPUTaskResult> results;
 	results.reserve(_boxes_data.size());
 
 	// Get span for that specific task
@@ -399,7 +399,7 @@ void GenerateBlockGPUTask::collect(GPUTaskContext &ctx) {
 		for (unsigned int output_index = 0; output_index < generator_shader_outputs->outputs.size(); ++output_index) {
 			const VoxelGenerator::ShaderOutput &output_info = generator_shader_outputs->outputs[output_index];
 
-			GenerateBlockGPUTaskResult result(box, output_info.type,
+			GenerateChunkGPUTaskResult result(box, output_info.type,
 					// Get span for that specific output
 					outputs_bytes.sub(box_offset + size_per_output * output_index, size_per_output),
 					// Pass reference to the backing buffer to keep it valid until all consumers are done with it

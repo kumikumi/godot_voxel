@@ -12,13 +12,13 @@
 
 namespace zylann::voxel {
 
-class GenerateBlockGPUTaskResult {
+class GenerateChunkGPUTaskResult {
 public:
-	GenerateBlockGPUTaskResult(Box3i p_box, VoxelGenerator::ShaderOutput::Type p_type, Span<const uint8_t> p_bytes,
+	GenerateChunkGPUTaskResult(Box3i p_box, VoxelGenerator::ShaderOutput::Type p_type, Span<const uint8_t> p_bytes,
 			PackedByteArray p_shared_bytes) :
 			_box(p_box), _type(p_type), _bytes(p_bytes), _shared_bytes(p_shared_bytes) {}
 
-	static void convert_to_voxel_buffer(Span<GenerateBlockGPUTaskResult> boxes_data, VoxelBufferInternal &dst);
+	static void convert_to_voxel_buffer(Span<GenerateChunkGPUTaskResult> boxes_data, VoxelBufferInternal &dst);
 
 private:
 	void convert_to_voxel_buffer(VoxelBufferInternal &dst);
@@ -33,18 +33,18 @@ private:
 	PackedByteArray _shared_bytes;
 };
 
-// Interface used for tasks that can spawn `GenerateBlockGPUTask`. It is required to return their results.
+// Interface used for tasks that can spawn `GenerateChunkGPUTask`. It is required to return their results.
 class IGeneratingVoxelsThreadedTask : public IThreadedTask {
 public:
 	// Called when the GPU task is complete.
-	virtual void set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) = 0;
+	virtual void set_gpu_results(std::vector<GenerateChunkGPUTaskResult> &&results) = 0;
 };
 
 // Generates a block of voxels on the GPU. Must be scheduled from a threaded task, which will be resumed when this one
 // finishes.
-class GenerateBlockGPUTask : public IGPUTask {
+class GenerateChunkGPUTask : public IGPUTask {
 public:
-	~GenerateBlockGPUTask();
+	~GenerateChunkGPUTask();
 
 	unsigned int get_required_shared_output_buffer_size() const override;
 

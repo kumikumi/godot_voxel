@@ -286,7 +286,7 @@ void ChunkMeshTask::run(zylann::ThreadedTaskContext &ctx) {
 			gather_voxels_gpu(ctx);
 		}
 		if (_stage == 1) {
-			GenerateBlockGPUTaskResult::convert_to_voxel_buffer(to_span(_gpu_generation_results), _voxels);
+			GenerateChunkGPUTaskResult::convert_to_voxel_buffer(to_span(_gpu_generation_results), _voxels);
 			_stage = 2;
 		}
 		if (_stage == 2) {
@@ -332,7 +332,7 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	std::shared_ptr<ComputeShader> generator_shader = generator->get_block_rendering_shader();
 	ERR_FAIL_COND(generator_shader == nullptr);
 
-	GenerateBlockGPUTask *gpu_task = memnew(GenerateBlockGPUTask);
+	GenerateChunkGPUTask *gpu_task = memnew(GenerateChunkGPUTask);
 	gpu_task->boxes_to_generate = std::move(boxes_to_generate);
 	gpu_task->generator_shader = generator_shader;
 	gpu_task->generator_shader_params = generator->get_block_rendering_shader_parameters();
@@ -347,7 +347,7 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	modifiers.apply_for_gpu_rendering(modifiers_shader_data, aabb_voxels, VoxelModifier::ShaderData::TYPE_BLOCK);
 	for (const VoxelModifier::ShaderData &d : modifiers_shader_data) {
 		gpu_task->modifiers.push_back(
-				GenerateBlockGPUTask::ModifierData{ d.shader_rids[VoxelModifier::ShaderData::TYPE_BLOCK], d.params });
+				GenerateChunkGPUTask::ModifierData{ d.shader_rids[VoxelModifier::ShaderData::TYPE_BLOCK], d.params });
 	}
 
 	ctx.status = ThreadedTaskContext::STATUS_TAKEN_OUT;
@@ -356,7 +356,7 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	VoxelEngine::get_singleton().push_gpu_task(gpu_task);
 }
 
-void ChunkMeshTask::set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) {
+void ChunkMeshTask::set_gpu_results(std::vector<GenerateChunkGPUTaskResult> &&results) {
 	_gpu_generation_results = std::move(results);
 	_stage = 1;
 }

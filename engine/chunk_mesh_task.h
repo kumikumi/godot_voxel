@@ -31,7 +31,7 @@ public:
 	bool is_cancelled() override;
 	void apply_result() override;
 
-	void set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) override;
+	void set_gpu_results(std::vector<GenerateChunkGPUTaskResult> &&results) override;
 
 	static int debug_get_running_count();
 
@@ -71,7 +71,7 @@ private:
 	Ref<Mesh> _mesh;
 	std::vector<uint8_t> _mesh_material_indices; // Indexed by mesh surface
 	std::shared_ptr<DetailTextureOutput> _detail_textures;
-	std::vector<GenerateBlockGPUTaskResult> _gpu_generation_results;
+	std::vector<GenerateChunkGPUTaskResult> _gpu_generation_results;
 };
 
 Ref<ArrayMesh> build_mesh(Span<const VoxelMesher::Output::Surface> surfaces, Mesh::PrimitiveType primitive, int flags,

@@ -15,13 +15,13 @@ namespace voxel {
 
 class VoxelData;
 
-class GenerateBlockTask : public IGeneratingVoxelsThreadedTask {
+class GenerateChunkTask : public IGeneratingVoxelsThreadedTask {
 public:
-	GenerateBlockTask();
-	~GenerateBlockTask();
+	GenerateChunkTask();
+	~GenerateChunkTask();
 
 	const char *get_debug_name() const override {
-		return "GenerateBlock";
+		return "GenerateChunk";
 	}
 
 	void run(ThreadedTaskContext &ctx) override;
@@ -29,7 +29,7 @@ public:
 	bool is_cancelled() override;
 	void apply_result() override;
 
-	void set_gpu_results(std::vector<GenerateBlockGPUTaskResult> &&results) override;
+	void set_gpu_results(std::vector<GenerateChunkGPUTaskResult> &&results) override;
 
 	static int debug_get_running_count();
 
@@ -55,7 +55,7 @@ private:
 	void run_stream_saving_and_finish();
 
 	uint8_t _stage = 0;
-	std::vector<GenerateBlockGPUTaskResult> _gpu_generation_results;
+	std::vector<GenerateChunkGPUTaskResult> _gpu_generation_results;
 };
 
 } // namespace voxel

@@ -71,7 +71,7 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 			Ref<VoxelGenerator> generator = _stream_dependency->generator;
 
 			if (generator.is_valid()) {
-				GenerateBlockTask *task = ZN_NEW(GenerateBlockTask);
+				GenerateChunkTask *task = ZN_NEW(GenerateChunkTask);
 				task->voxels = _voxels;
 				task->volume_id = _volume_id;
 				task->position = _position;
