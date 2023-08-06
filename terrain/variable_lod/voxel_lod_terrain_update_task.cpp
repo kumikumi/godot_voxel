@@ -84,13 +84,13 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 		// Each LOD keeps a box of loaded blocks, and only some of the blocks will get polygonized.
 		// The player can edit them so changes can be propagated to lower lods.
 
-		const unsigned int chunk_size_po2 = chunk_size_po2 + lod_index;
+		const unsigned int chunk_size_po2_lod = chunk_size_po2 + lod_index;
 		const Vector3i viewer_block_pos_within_lod =
-				VoxelDataMap::voxel_to_block_b(math::floor_to_int(p_viewer_pos), chunk_size_po2);
+				VoxelDataMap::voxel_to_block_b(math::floor_to_int(p_viewer_pos), chunk_size_po2_lod);
 
 		const Box3i bounds_in_blocks = Box3i( //
-				bounds_in_voxels.pos >> chunk_size_po2, //
-				bounds_in_voxels.size >> chunk_size_po2);
+				bounds_in_voxels.pos >> chunk_size_po2_lod, //
+				bounds_in_voxels.size >> chunk_size_po2_lod);
 
 		const Box3i new_box =
 				Box3i::from_center_extents(viewer_block_pos_within_lod, Vector3iUtil::create(chunk_region_extent));
