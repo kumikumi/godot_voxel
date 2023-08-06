@@ -1,5 +1,5 @@
-#ifndef SAVE_BLOCK_DATA_TASK_H
-#define SAVE_BLOCK_DATA_TASK_H
+#ifndef SAVE_CHUNK_DATA_TASK_H
+#define SAVE_CHUNK_DATA_TASK_H
 
 #include "../util/memory.h"
 #include "../util/tasks/threaded_task.h"
@@ -55,4 +55,4 @@ private:
 } // namespace voxel
 } // namespace zylann
 
-#endif // SAVE_BLOCK_DATA_TASK_H
+#endif // SAVE_CHUNK_DATA_TASK_H
