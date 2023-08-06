@@ -871,7 +871,7 @@ void VoxelStreamRegionFiles::set_lod_count(int p_lod_count) {
 void VoxelStreamRegionFiles::convert_files(Dictionary d) {
 	Meta meta;
 	meta.version = _meta.version;
-	meta.block_size_po2 = int(d["block_size_po2"]);
+	meta.chunk_size_po2 = int(d["block_size_po2"]);
 	meta.region_size_po2 = int(d["region_size_po2"]);
 	meta.sector_size = int(d["sector_size"]);
 	meta.lod_count = int(d["lod_count"]);

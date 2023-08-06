@@ -53,7 +53,7 @@ public:
 
 	struct Meta {
 		int version = -1;
-		int block_size_po2 = 0;
+		int chunk_size_po2 = 0;
 
 		struct Channel {
 			VoxelBufferInternal::Depth depth;
@@ -230,7 +230,7 @@ bool VoxelStreamSQLiteInternal::open(const char *fpath) {
 		// Setup database
 		meta.version = VERSION;
 		// Defaults
-		meta.block_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
+		meta.chunk_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 		for (unsigned int i = 0; i < meta.channels.size(); ++i) {
 			Meta::Channel &channel = meta.channels[i];
 			channel.used = true;
@@ -517,7 +517,7 @@ VoxelStreamSQLiteInternal::Meta VoxelStreamSQLiteInternal::load_meta() {
 	rc = sqlite3_step(load_meta_statement);
 	if (rc == SQLITE_ROW) {
 		meta.version = sqlite3_column_int(load_meta_statement, 0);
-		meta.block_size_po2 = sqlite3_column_int(load_meta_statement, 1);
+		meta.chunk_size_po2 = sqlite3_column_int(load_meta_statement, 1);
 		// The query is still ongoing, we'll need to step one more time to complete it
 		rc = sqlite3_step(load_meta_statement);
 
@@ -582,7 +582,7 @@ void VoxelStreamSQLiteInternal::save_meta(Meta meta) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return;
 	}
-	rc = sqlite3_bind_int(save_meta_statement, 2, meta.block_size_po2);
+	rc = sqlite3_bind_int(save_meta_statement, 2, meta.chunk_size_po2);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return;
