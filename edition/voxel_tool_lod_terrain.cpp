@@ -671,7 +671,7 @@ Array separate_floating_chunks(VoxelTool &voxel_tool, Box3i world_box, Node *par
 
 			// DEBUG
 			// {
-			// 	Ref<VoxelBlockSerializer> serializer;
+			// 	Ref<VoxelChunkSerializer> serializer;
 			// 	serializer.instance();
 			// 	Ref<StreamPeerBuffer> peer;
 			// 	peer.instance();

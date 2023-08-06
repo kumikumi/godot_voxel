@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VoxelBlockSerializer" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+<class name="VoxelChunkSerializer" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
 	</brief_description>
 	<description>
@@ -8,7 +8,7 @@
 		To store into a file allocating a PackedByteArray:
 		[codeblock]
 		# `voxels` is an existing `VoxelBuffer`
-		var data := VoxelBlockSerializer.serialize_to_byte_array(voxels, true)
+		var data := VoxelChunkSerializer.serialize_to_byte_array(voxels, true)
 		file.store_32(len(data))
 		file.store_buffer(data)
 		[/codeblock]
@@ -16,14 +16,14 @@
 		[codeblock]
 		var size := file.get_32()
 		var data := file.get_buffer(size)
-		VoxelBlockSerializer.deserialize_from_byte_array(data, voxels, true)
+		VoxelChunkSerializer.deserialize_from_byte_array(data, voxels, true)
 		[/codeblock]
 
 		To store into a file by re-using a StreamPeerBuffer:
 		[codeblock]
 		# Note, buffer can be re-used if you do this often
 		var stream_peer_buffer := StreamPeerBuffer.new()
-		var written_size = VoxelBlockSerializer.serialize_to_stream_peer(stream_peer_buffer, voxels, true)
+		var written_size = VoxelChunkSerializer.serialize_to_stream_peer(stream_peer_buffer, voxels, true)
 		file.store_32(written_size)
 		file.store_buffer(stream_peer_buffer.data_array)
 		[/codeblock]
@@ -33,7 +33,7 @@
 		var stream_peer_buffer := StreamPeerBuffer.new()
 		# Unfortunately Godot will always allocate memory with this API, can't avoid that
 		stream_peer_buffer.data_array = file.get_buffer(size)
-		VoxelBlockSerializer.deserialize_from_stream_peer(stream_peer_buffer, voxels, size, true)
+		VoxelChunkSerializer.deserialize_from_stream_peer(stream_peer_buffer, voxels, size, true)
 		[/codeblock]
 	</description>
 	<tutorials>

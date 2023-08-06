@@ -1,7 +1,7 @@
 #include "test_voxel_buffer.h"
 #include "../storage/voxel_buffer_gd.h"
 #include "../storage/voxel_metadata_variant.h"
-#include "../streams/voxel_block_serializer.h"
+#include "../streams/voxel_chunk_serializer.h"
 #include "testing.h"
 
 namespace zylann::voxel::tests {
@@ -108,12 +108,12 @@ void test_voxel_buffer_metadata() {
 			meta2->set_custom(CustomMetadataTest::ID, custom);
 		}
 
-		BlockSerializer::SerializeResult sresult = BlockSerializer::serialize(vb);
+		ChunkSerializer::SerializeResult sresult = ChunkSerializer::serialize(vb);
 		ZN_TEST_ASSERT(sresult.success);
 		std::vector<uint8_t> bytes = sresult.data;
 
 		VoxelBufferInternal rvb;
-		ZN_TEST_ASSERT(BlockSerializer::deserialize(to_span(bytes), rvb));
+		ZN_TEST_ASSERT(ChunkSerializer::deserialize(to_span(bytes), rvb));
 
 		const FlatMapMoveOnly<Vector3i, VoxelMetadata> &vb_meta_map = vb.get_voxel_metadata();
 		const FlatMapMoveOnly<Vector3i, VoxelMetadata> &rvb_meta_map = rvb.get_voxel_metadata();
@@ -185,14 +185,14 @@ void test_voxel_buffer_metadata_gd() {
 			vb->set_voxel_metadata(Vector3i(4, 5, 6), meta1);
 		}
 
-		BlockSerializer::SerializeResult sresult = BlockSerializer::serialize(vb->get_buffer());
+		ChunkSerializer::SerializeResult sresult = ChunkSerializer::serialize(vb->get_buffer());
 		ZN_TEST_ASSERT(sresult.success);
 		std::vector<uint8_t> bytes = sresult.data;
 
 		Ref<gd::VoxelBuffer> vb2;
 		vb2.instantiate();
 
-		ZN_TEST_ASSERT(BlockSerializer::deserialize(to_span(bytes), vb2->get_buffer()));
+		ZN_TEST_ASSERT(ChunkSerializer::deserialize(to_span(bytes), vb2->get_buffer()));
 
 		ZN_TEST_ASSERT(vb2->get_buffer().equals(vb->get_buffer()));
 

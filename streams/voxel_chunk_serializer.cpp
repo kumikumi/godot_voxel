@@ -1,4 +1,4 @@
-#include "voxel_block_serializer.h"
+#include "voxel_chunk_serializer.h"
 #include "../storage/voxel_buffer_internal.h"
 #include "../storage/voxel_memory_pool.h"
 #include "../util/container_funcs.h"
@@ -17,7 +17,7 @@
 #include <limits>
 
 namespace zylann::voxel {
-namespace BlockSerializer {
+namespace ChunkSerializer {
 
 const unsigned int BLOCK_TRAILING_MAGIC = 0x900df00d;
 const unsigned int BLOCK_TRAILING_MAGIC_SIZE = 4;
@@ -708,5 +708,5 @@ bool decompress_and_deserialize(FileAccess &f, unsigned int size_to_read, VoxelB
 	return decompress_and_deserialize(to_span(compressed_data), out_voxel_buffer);
 }
 
-} // namespace BlockSerializer
+} // namespace ChunkSerializer
 } // namespace zylann::voxel

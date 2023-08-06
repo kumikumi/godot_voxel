@@ -1,6 +1,6 @@
 #include "tests.h"
 #include "../util/profiling.h"
-#include "test_block_serializer.h"
+#include "test_chunk_serializer.h"
 #include "test_box3i.h"
 #include "test_container_funcs.h"
 #include "test_curve_range.h"
@@ -84,8 +84,8 @@ void run_voxel_tests() {
 	VOXEL_TEST(test_octree_find_in_box);
 	VOXEL_TEST(test_get_curve_monotonic_sections);
 	VOXEL_TEST(test_voxel_buffer_create);
-	VOXEL_TEST(test_block_serializer);
-	VOXEL_TEST(test_block_serializer_stream_peer);
+	VOXEL_TEST(test_chunk_serializer);
+	VOXEL_TEST(test_chunk_serializer_stream_peer);
 	VOXEL_TEST(test_region_file);
 	VOXEL_TEST(test_voxel_stream_region_files);
 #ifdef VOXEL_ENABLE_FAST_NOISE_2

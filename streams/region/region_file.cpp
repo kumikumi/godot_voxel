@@ -1,5 +1,5 @@
 #include "region_file.h"
-#include "../../streams/voxel_block_serializer.h"
+#include "../../streams/voxel_chunk_serializer.h"
 #include "../../util/godot/core/array.h"
 #include "../../util/godot/core/string.h"
 #include "../../util/log.h"
@@ -337,7 +337,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	unsigned int block_data_size = f.get_32();
 	CRASH_COND(f.eof_reached());
 
-	ERR_FAIL_COND_V_MSG(!BlockSerializer::decompress_and_deserialize(f, block_data_size, out_block), ERR_PARSE_ERROR,
+	ERR_FAIL_COND_V_MSG(!ChunkSerializer::decompress_and_deserialize(f, block_data_size, out_block), ERR_PARSE_ERROR,
 			String("Failed to read block {0}").format(varray(position)));
 
 	return OK;
@@ -368,7 +368,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		// Check position matches the sectors rule
 		CRASH_COND((block_offset - _blocks_begin_offset) % _header.format.sector_size != 0);
 
-		BlockSerializer::SerializeResult res = BlockSerializer::serialize_and_compress(block);
+		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
 		ERR_FAIL_COND_V(!res.success, ERR_INVALID_PARAMETER);
 		f.store_32(res.data.size());
 		const unsigned int written_size = sizeof(uint32_t) + res.data.size();
@@ -398,7 +398,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		const int old_sector_count = block_info.get_sector_count();
 		CRASH_COND(old_sector_count < 1);
 
-		BlockSerializer::SerializeResult res = BlockSerializer::serialize_and_compress(block);
+		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
 		ERR_FAIL_COND_V(!res.success, ERR_INVALID_PARAMETER);
 		const std::vector<uint8_t> &data = res.data;
 		const size_t written_size = sizeof(uint32_t) + data.size();

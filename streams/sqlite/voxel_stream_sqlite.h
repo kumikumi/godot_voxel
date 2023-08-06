@@ -3,7 +3,7 @@
 
 #include "../../util/math/vector3i16.h"
 #include "../../util/thread/mutex.h"
-#include "../voxel_block_serializer.h"
+#include "../voxel_chunk_serializer.h"
 #include "../voxel_stream.h"
 #include "../voxel_stream_cache.h"
 

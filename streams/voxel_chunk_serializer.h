@@ -1,5 +1,5 @@
-#ifndef VOXEL_BLOCK_SERIALIZER_H
-#define VOXEL_BLOCK_SERIALIZER_H
+#ifndef VOXEL_CHUNK_SERIALIZER_H
+#define VOXEL_CHUNK_SERIALIZER_H
 
 #include "../util/godot/macros.h"
 #include "../util/span.h"
@@ -16,7 +16,7 @@ namespace zylann::voxel {
 
 class VoxelBufferInternal;
 
-namespace BlockSerializer {
+namespace ChunkSerializer {
 
 // Latest version, used when serializing
 static const uint8_t BLOCK_FORMAT_VERSION = 4;
@@ -41,7 +41,7 @@ bool decompress_and_deserialize(FileAccess &f, unsigned int size_to_read, VoxelB
 std::vector<uint8_t> &get_tls_data();
 std::vector<uint8_t> &get_tls_compressed_data();
 
-} // namespace BlockSerializer
+} // namespace ChunkSerializer
 } // namespace zylann::voxel
 
-#endif // VOXEL_BLOCK_SERIALIZER_H
+#endif // VOXEL_CHUNK_SERIALIZER_H

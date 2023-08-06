@@ -1,6 +1,6 @@
 #include "voxel_terrain_multiplayer_synchronizer.h"
 #include "../../constants/voxel_string_names.h"
-#include "../../streams/voxel_block_serializer.h"
+#include "../../streams/voxel_chunk_serializer.h"
 #include "../../util/container_funcs.h"
 #include "../../util/godot/classes/multiplayer_api.h"
 #include "../../util/godot/classes/multiplayer_peer.h"
@@ -43,7 +43,7 @@ void VoxelTerrainMultiplayerSynchronizer::send_block(
 		int viewer_peer_id, const VoxelChunkData &chunk, Vector3i bpos) {
 	ZN_PROFILE_SCOPE();
 
-	BlockSerializer::SerializeResult result = BlockSerializer::serialize_and_compress(chunk.get_voxels_const());
+	ChunkSerializer::SerializeResult result = ChunkSerializer::serialize_and_compress(chunk.get_voxels_const());
 	ZN_ASSERT_RETURN(result.success);
 
 	PackedByteArray message_data;
@@ -85,7 +85,7 @@ void VoxelTerrainMultiplayerSynchronizer::send_area(Box3i voxel_box) {
 	voxels.create(voxel_box.size);
 	_terrain->get_storage().copy(voxel_box.pos, voxels, 0xff);
 
-	BlockSerializer::SerializeResult result = BlockSerializer::serialize_and_compress(voxels);
+	ChunkSerializer::SerializeResult result = ChunkSerializer::serialize_and_compress(voxels);
 	ZN_ASSERT_RETURN(result.success);
 
 	PackedByteArray pba;
@@ -196,7 +196,7 @@ void VoxelTerrainMultiplayerSynchronizer::_b_receive_blocks(PackedByteArray mess
 		// print_line(String("Client: receive block {0} data {1}").format(varray(bpos, voxel_data_size)));
 
 		VoxelBufferInternal voxels;
-		ZN_ASSERT_RETURN(BlockSerializer::decompress_and_deserialize(mr.data.sub(mr.pos, voxel_data_size), voxels));
+		ZN_ASSERT_RETURN(ChunkSerializer::decompress_and_deserialize(mr.data.sub(mr.pos, voxel_data_size), voxels));
 
 		mr.pos += voxel_data_size;
 
@@ -221,7 +221,7 @@ void VoxelTerrainMultiplayerSynchronizer::_b_receive_area(PackedByteArray messag
 	const int voxel_data_size = mr.get_32();
 
 	VoxelBufferInternal voxels;
-	ZN_ASSERT_RETURN(BlockSerializer::decompress_and_deserialize(mr.data.sub(mr.pos, voxel_data_size), voxels));
+	ZN_ASSERT_RETURN(ChunkSerializer::decompress_and_deserialize(mr.data.sub(mr.pos, voxel_data_size), voxels));
 
 	_terrain->get_storage().paste(pos, voxels, 0xff, false);
 	_terrain->post_edit_area(Box3i(pos, voxels.get_size()),

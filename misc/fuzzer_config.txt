@@ -4,7 +4,7 @@ add_to_tree: true
 
 custom_classes:
 FastNoise2
-VoxelBlockSerializer
+VoxelChunkSerializer
 VoxelBlockyLibrary
 VoxelBlockyModel
 VoxelBoxMover

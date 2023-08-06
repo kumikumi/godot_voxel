@@ -1,13 +1,13 @@
-#include "test_block_serializer.h"
+#include "test_chunk_serializer.h"
 #include "../storage/voxel_buffer_gd.h"
-#include "../streams/voxel_block_serializer.h"
-#include "../streams/voxel_block_serializer_gd.h"
+#include "../streams/voxel_chunk_serializer.h"
+#include "../streams/voxel_chunk_serializer_gd.h"
 #include "../util/godot/classes/stream_peer.h"
 #include "testing.h"
 
 namespace zylann::voxel::tests {
 
-void test_block_serializer() {
+void test_chunk_serializer() {
 	// Create an example buffer
 	const Vector3i chunk_size(8, 9, 10);
 	VoxelBufferInternal voxel_buffer;
@@ -18,23 +18,23 @@ void test_block_serializer() {
 
 	{
 		// Serialize without compression wrapper
-		BlockSerializer::SerializeResult result = BlockSerializer::serialize(voxel_buffer);
+		ChunkSerializer::SerializeResult result = ChunkSerializer::serialize(voxel_buffer);
 		ZN_TEST_ASSERT(result.success);
 		std::vector<uint8_t> data = result.data;
 
 		ZN_TEST_ASSERT(data.size() > 0);
-		ZN_TEST_ASSERT(data[0] == BlockSerializer::BLOCK_FORMAT_VERSION);
+		ZN_TEST_ASSERT(data[0] == ChunkSerializer::BLOCK_FORMAT_VERSION);
 
 		// Deserialize
 		VoxelBufferInternal deserialized_voxel_buffer;
-		ZN_TEST_ASSERT(BlockSerializer::deserialize(to_span_const(data), deserialized_voxel_buffer));
+		ZN_TEST_ASSERT(ChunkSerializer::deserialize(to_span_const(data), deserialized_voxel_buffer));
 
 		// Must be equal
 		ZN_TEST_ASSERT(voxel_buffer.equals(deserialized_voxel_buffer));
 	}
 	{
 		// Serialize
-		BlockSerializer::SerializeResult result = BlockSerializer::serialize_and_compress(voxel_buffer);
+		ChunkSerializer::SerializeResult result = ChunkSerializer::serialize_and_compress(voxel_buffer);
 		ZN_TEST_ASSERT(result.success);
 		std::vector<uint8_t> data = result.data;
 
@@ -42,14 +42,14 @@ void test_block_serializer() {
 
 		// Deserialize
 		VoxelBufferInternal deserialized_voxel_buffer;
-		ZN_TEST_ASSERT(BlockSerializer::decompress_and_deserialize(to_span_const(data), deserialized_voxel_buffer));
+		ZN_TEST_ASSERT(ChunkSerializer::decompress_and_deserialize(to_span_const(data), deserialized_voxel_buffer));
 
 		// Must be equal
 		ZN_TEST_ASSERT(voxel_buffer.equals(deserialized_voxel_buffer));
 	}
 }
 
-void test_block_serializer_stream_peer() {
+void test_chunk_serializer_stream_peer() {
 	// Create an example buffer
 	const Vector3i chunk_size(8, 9, 10);
 	Ref<gd::VoxelBuffer> voxel_buffer;
@@ -63,7 +63,7 @@ void test_block_serializer_stream_peer() {
 	peer.instantiate();
 	// peer->clear();
 
-	const int size = gd::VoxelBlockSerializer::serialize_to_stream_peer(peer, voxel_buffer, true);
+	const int size = gd::VoxelChunkSerializer::serialize_to_stream_peer(peer, voxel_buffer, true);
 
 	PackedByteArray data_array = peer->get_data_array();
 
@@ -76,7 +76,7 @@ void test_block_serializer_stream_peer() {
 	peer2.instantiate();
 	peer2->set_data_array(data_array);
 
-	gd::VoxelBlockSerializer::deserialize_from_stream_peer(peer2, voxel_buffer2, size, true);
+	gd::VoxelChunkSerializer::deserialize_from_stream_peer(peer2, voxel_buffer2, size, true);
 
 	ZN_TEST_ASSERT(voxel_buffer2->get_buffer().equals(voxel_buffer->get_buffer()));
 }

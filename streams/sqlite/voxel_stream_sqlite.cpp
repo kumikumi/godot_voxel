@@ -750,7 +750,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 
 		if (res == RESULT_BLOCK_FOUND) {
 			// TODO Not sure if we should actually expect non-null. There can be legit not found blocks.
-			BlockSerializer::decompress_and_deserialize(to_span_const(temp_block_data), q.voxel_buffer);
+			ChunkSerializer::decompress_and_deserialize(to_span_const(temp_block_data), q.voxel_buffer);
 		}
 
 		q.result = res;
@@ -915,7 +915,7 @@ void VoxelStreamSQLite::load_all_blocks(FullLoadingResult &result) {
 
 			if (voxel_data.size() > 0) {
 				std::shared_ptr<VoxelBufferInternal> voxels = make_shared_instance<VoxelBufferInternal>();
-				ERR_FAIL_COND(!BlockSerializer::decompress_and_deserialize(voxel_data, *voxels));
+				ERR_FAIL_COND(!ChunkSerializer::decompress_and_deserialize(voxel_data, *voxels));
 				result_block.voxels = voxels;
 			}
 
@@ -982,7 +982,7 @@ void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_c
 				const std::vector<uint8_t> empty;
 				p_connection->save_chunk(loc, empty, VoxelStreamSQLiteInternal::VOXELS);
 			} else {
-				BlockSerializer::SerializeResult res = BlockSerializer::serialize_and_compress(block.voxels);
+				ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block.voxels);
 				ERR_FAIL_COND(!res.success);
 				p_connection->save_chunk(loc, res.data, VoxelStreamSQLiteInternal::VOXELS);
 			}

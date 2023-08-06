@@ -34,7 +34,7 @@ nav:
   - 'Scripting API':
     # <generated_class_list>
     - api/FastNoise2.md
-    - api/VoxelBlockSerializer.md
+    - api/VoxelChunkSerializer.md
     - api/VoxelBlockyAttribute.md
     - api/VoxelBlockyAttributeAxis.md
     - api/VoxelBlockyAttributeCustom.md

@@ -41,7 +41,7 @@
 #include "streams/region/voxel_stream_region_files.h"
 #include "streams/sqlite/voxel_stream_sqlite.h"
 #include "streams/vox/vox_loader.h"
-#include "streams/voxel_block_serializer_gd.h"
+#include "streams/voxel_chunk_serializer_gd.h"
 #include "streams/voxel_stream_script.h"
 #include "terrain/fixed_lod/voxel_box_mover.h"
 #include "terrain/fixed_lod/voxel_terrain.h"
@@ -262,7 +262,7 @@ void initialize_voxel_module(ModuleInitializationLevel p_level) {
 		// I had to bind this one despite it being useless as-is because otherwise Godot lazily initializes its class.
 		// And this can happen in a thread, causing crashes due to the concurrent access
 		register_abstract_class<VoxelToolBuffer>();
-		ClassDB::register_class<gd::VoxelBlockSerializer>();
+		ClassDB::register_class<gd::VoxelChunkSerializer>();
 		ClassDB::register_class<VoxelVoxLoader>();
 		ClassDB::register_class<ZN_FastNoiseLite>();
 		ClassDB::register_class<ZN_FastNoiseLiteGradient>();
