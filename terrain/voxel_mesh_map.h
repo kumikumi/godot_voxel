@@ -32,9 +32,9 @@ public:
 		if (it != _blocks_map.end()) {
 			const unsigned int i = it->second.index;
 #ifdef DEBUG_ENABLED
-			CRASH_COND(i >= _blocks.size());
+			CRASH_COND(i >= _chunks.size());
 #endif
-			ChunkMesh_T *block = _blocks[i];
+			ChunkMesh_T *block = _chunks[i];
 			ERR_FAIL_COND(block == nullptr);
 			pre_delete(*block);
 			queue_free_chunk_mesh(block);
@@ -50,8 +50,8 @@ public:
 		if (it != _blocks_map.end()) {
 #ifdef DEBUG_ENABLED
 			const unsigned int i = it->second.index;
-			CRASH_COND(i >= _blocks.size());
-			ChunkMesh_T *block = _blocks[i];
+			CRASH_COND(i >= _chunks.size());
+			ChunkMesh_T *block = _chunks[i];
 			CRASH_COND(block == nullptr); // The map should not contain null chunks
 			CRASH_COND(it->second.block == nullptr);
 #endif
@@ -69,8 +69,8 @@ public:
 		if (it != _blocks_map.end()) {
 #ifdef DEBUG_ENABLED
 			const unsigned int i = it->second.index;
-			CRASH_COND(i >= _blocks.size());
-			ChunkMesh_T *block = _blocks[i];
+			CRASH_COND(i >= _chunks.size());
+			ChunkMesh_T *block = _chunks[i];
 			CRASH_COND(block == nullptr); // The map should not contain null chunks
 			CRASH_COND(it->second.block == nullptr);
 #endif
@@ -90,8 +90,8 @@ public:
 #ifdef DEBUG_ENABLED
 		CRASH_COND(has_block(bpos));
 #endif
-		unsigned int i = _blocks.size();
-		_blocks.push_back(block);
+		unsigned int i = _chunks.size();
+		_chunks.push_back(block);
 		_blocks_map.insert({ bpos, { block, i } });
 	}
 
@@ -101,7 +101,7 @@ public:
 	}
 
 	void clear() {
-		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+		for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 			ChunkMesh_T *block = *it;
 			if (block == nullptr) {
 				ERR_PRINT("Unexpected nullptr in VoxelMap::clear()");
@@ -109,7 +109,7 @@ public:
 				memdelete(block);
 			}
 		}
-		_blocks.clear();
+		_chunks.clear();
 		_blocks_map.clear();
 		_last_accessed_block = nullptr;
 	}
@@ -117,14 +117,14 @@ public:
 	unsigned int get_block_count() const {
 #ifdef DEBUG_ENABLED
 		const unsigned int blocks_map_size = _blocks_map.size();
-		CRASH_COND(_blocks.size() != blocks_map_size);
+		CRASH_COND(_chunks.size() != blocks_map_size);
 #endif
-		return _blocks.size();
+		return _chunks.size();
 	}
 
 	template <typename Op_T>
 	inline void for_each_chunk(Op_T op) {
-		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+		for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 			ChunkMesh_T *block = *it;
 #ifdef DEBUG_ENABLED
 			CRASH_COND(block == nullptr);
@@ -135,7 +135,7 @@ public:
 
 	template <typename Op_T>
 	inline void for_each_chunk(Op_T op) const {
-		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+		for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 			const ChunkMesh_T *block = *it;
 #ifdef DEBUG_ENABLED
 			CRASH_COND(block == nullptr);
@@ -159,14 +159,14 @@ private:
 		// This function assumes the chunk is already freed
 		_blocks_map.erase(rm_it);
 
-		ChunkMesh_T *moved_block = _blocks.back();
+		ChunkMesh_T *moved_block = _chunks.back();
 #ifdef DEBUG_ENABLED
-		CRASH_COND(index >= _blocks.size());
+		CRASH_COND(index >= _chunks.size());
 #endif
-		_blocks[index] = moved_block;
-		_blocks.pop_back();
+		_chunks[index] = moved_block;
+		_chunks.pop_back();
 
-		if (index < _blocks.size()) {
+		if (index < _chunks.size()) {
 			auto moved_chunk_index_it = _blocks_map.find(moved_block->position);
 			CRASH_COND(moved_chunk_index_it == _blocks_map.end());
 			moved_chunk_index_it->second.index = index;
@@ -193,7 +193,7 @@ private:
 	std::unordered_map<Vector3i, MapItem> _blocks_map;
 	// Blocks are stored in a vector to allow faster iteration over all of them.
 	// Use cases for this include updating the transform of the meshes
-	std::vector<ChunkMesh_T *> _blocks;
+	std::vector<ChunkMesh_T *> _chunks;
 
 	// Voxel access will most frequently be in contiguous areas, so the same chunks are accessed.
 	// To prevent too much hashing, this reference is checked before.

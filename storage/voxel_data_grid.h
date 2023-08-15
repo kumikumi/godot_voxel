@@ -43,8 +43,8 @@ public:
 	}
 
 	inline bool has_any_block() const {
-		for (unsigned int i = 0; i < _blocks.size(); ++i) {
-			if (_blocks[i] != nullptr) {
+		for (unsigned int i = 0; i < _chunks.size(); ++i) {
+			if (_chunks[i] != nullptr) {
 				return true;
 			}
 		}
@@ -110,7 +110,7 @@ public:
 			return false;
 		}
 		const unsigned int loc = Vector3iUtil::get_zxy_index(bpos, _size_in_blocks);
-		const VoxelBufferInternal *voxels = _blocks[loc].get();
+		const VoxelBufferInternal *voxels = _chunks[loc].get();
 		if (voxels == nullptr) {
 			return false;
 		}
@@ -160,7 +160,7 @@ public:
 
 	inline void clear() {
 		ZN_ASSERT(!_locked);
-		_blocks.clear();
+		_chunks.clear();
 		_size_in_blocks = Vector3i();
 		_spatial_lock = nullptr;
 	}
@@ -178,7 +178,7 @@ private:
 		for (block_rpos.z = 0; block_rpos.z < _size_in_blocks.z; ++block_rpos.z) {
 			for (block_rpos.x = 0; block_rpos.x < _size_in_blocks.x; ++block_rpos.x) {
 				for (block_rpos.y = 0; block_rpos.y < _size_in_blocks.y; ++block_rpos.y) {
-					VoxelBufferInternal *block = _blocks[index].get();
+					VoxelBufferInternal *block = _chunks[index].get();
 					// Flat grid and iteration order allows us to just increment the index since we iterate them all
 					++index;
 					if (block == nullptr) {
@@ -195,8 +195,8 @@ private:
 
 	inline void create(Vector3i size, unsigned int chunk_size) {
 		ZN_PROFILE_SCOPE();
-		_blocks.clear();
-		_blocks.resize(Vector3iUtil::get_volume(size));
+		_chunks.clear();
+		_chunks.resize(Vector3iUtil::get_volume(size));
 		_size_in_blocks = size;
 		_chunk_size = chunk_size;
 	}
@@ -218,21 +218,21 @@ private:
 		ZN_ASSERT_RETURN(is_valid_block_position(position));
 		position -= _offset_in_blocks;
 		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
-		ZN_ASSERT(index < _blocks.size());
-		_blocks[index] = block;
+		ZN_ASSERT(index < _chunks.size());
+		_chunks[index] = block;
 	}
 
 	inline VoxelBufferInternal *get_block(Vector3i position) {
 		ZN_ASSERT_RETURN_V(is_valid_block_position(position), nullptr);
 		position -= _offset_in_blocks;
 		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
-		ZN_ASSERT(index < _blocks.size());
-		return _blocks[index].get();
+		ZN_ASSERT(index < _chunks.size());
+		return _chunks[index].get();
 	}
 
 	// Flat grid indexed in ZXY order
 	// TODO Ability to use thread-local/stack pool allocator? Such grids are often temporary
-	std::vector<std::shared_ptr<VoxelBufferInternal>> _blocks;
+	std::vector<std::shared_ptr<VoxelBufferInternal>> _chunks;
 	// Size of the grid in chunks
 	Vector3i _size_in_blocks;
 	// Block coordinates offset. This is used for when we cache a sub-region of a map, we need to keep the origin

@@ -243,7 +243,7 @@ private:
 	FixedArray<Lod, MAX_LOD> _lods;
 
 	// Does not have nulls. Indices matter.
-	std::vector<UniquePtr<Block>> _blocks;
+	std::vector<UniquePtr<Block>> _chunks;
 
 	// Each layer corresponds to a library item. Addresses of values in the map are expected to be stable.
 	std::unordered_map<int, Layer> _layers;

@@ -52,7 +52,7 @@ VoxelInstancer::~VoxelInstancer() {
 void VoxelInstancer::clear_blocks() {
 	ZN_PROFILE_SCOPE();
 	// Destroy chunks, keep configured layers
-	for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+	for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 		Block &block = **it;
 		for (unsigned int i = 0; i < block.bodies.size(); ++i) {
 			VoxelInstancerRigidBody *body = block.bodies[i];
@@ -66,7 +66,7 @@ void VoxelInstancer::clear_blocks() {
 			instance.root->queue_free();
 		}
 	}
-	_blocks.clear();
+	_chunks.clear();
 	for (auto it = _layers.begin(); it != _layers.end(); ++it) {
 		Layer &layer = it->second;
 		layer.blocks.clear();
@@ -79,8 +79,8 @@ void VoxelInstancer::clear_blocks() {
 
 void VoxelInstancer::clear_blocks_in_layer(int layer_id) {
 	// Not optimal, but should work for now
-	for (size_t i = 0; i < _blocks.size(); ++i) {
-		Block &block = *_blocks[i];
+	for (size_t i = 0; i < _chunks.size(); ++i) {
+		Block &block = *_chunks[i];
 		if (block.layer_id == layer_id) {
 			remove_chunk(i);
 			// remove_chunk does a remove-at-swap so we have to re-iterate on the same slot
@@ -166,7 +166,7 @@ void VoxelInstancer::_notification(int p_what) {
 			const int base_chunk_size_po2 = _parent_chunk_mesh_size_po2;
 			// print_line(String("IP: {0}").format(varray(parent_transform.origin)));
 
-			for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+			for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 				Block &block = **it;
 				if (!block.multimesh_instance.is_valid()) {
 					// The chunk exists as an empty chunk (if it did not exist, it would get generated)
@@ -291,7 +291,7 @@ void VoxelInstancer::process_gizmos() {
 	_debug_renderer.begin();
 
 	if (debug_get_draw_flag(DEBUG_DRAW_ALL_BLOCKS)) {
-		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+		for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 			const Block &block = **it;
 
 			Color8 color(0, 255, 0, 255);
@@ -388,7 +388,7 @@ void VoxelInstancer::process_mesh_lods() {
 		}
 	}
 
-	for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+	for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 		Block &block = **it;
 
 		const VoxelInstanceLibraryItem *item_base = _library->get_item_const(block.layer_id);
@@ -449,7 +449,7 @@ void VoxelInstancer::update_visibility() {
 		return;
 	}
 	const bool visible = is_visible_in_tree();
-	for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+	for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 		Block &block = **it;
 		if (block.multimesh_instance.is_valid()) {
 			block.multimesh_instance.set_visible(visible);
@@ -458,7 +458,7 @@ void VoxelInstancer::update_visibility() {
 }
 
 void VoxelInstancer::set_world(World3D *world) {
-	for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+	for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 		Block &block = **it;
 		if (block.multimesh_instance.is_valid()) {
 			block.multimesh_instance.set_world(world);
@@ -587,8 +587,8 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 	};
 
 	// Update existing chunks
-	for (size_t chunk_index = 0; chunk_index < _blocks.size(); ++chunk_index) {
-		Block &block = *_blocks[chunk_index];
+	for (size_t chunk_index = 0; chunk_index < _chunks.size(); ++chunk_index) {
+		Block &block = *_chunks[chunk_index];
 		if (block.layer_id != layer_id) {
 			continue;
 		}
@@ -660,7 +660,7 @@ void VoxelInstancer::update_layer_meshes(int layer_id) {
 
 	const VoxelInstanceLibraryMultiMeshItem::Settings &settings = item->get_multimesh_settings();
 
-	for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+	for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 		Block &block = **it;
 		if (block.layer_id != layer_id || !block.multimesh_instance.is_valid()) {
 			continue;
@@ -688,8 +688,8 @@ void VoxelInstancer::update_layer_scenes(int layer_id) {
 	ERR_FAIL_COND(item == nullptr);
 	const int chunk_size_po2 = _parent_chunk_size_po2;
 
-	for (unsigned int chunk_index = 0; chunk_index < _blocks.size(); ++chunk_index) {
-		Block &block = *_blocks[chunk_index];
+	for (unsigned int chunk_index = 0; chunk_index < _chunks.size(); ++chunk_index) {
+		Block &block = *_chunks[chunk_index];
 
 		for (unsigned int instance_index = 0; instance_index < block.scene_instances.size(); ++instance_index) {
 			SceneInstance prev_instance = block.scene_instances[instance_index];
@@ -801,21 +801,21 @@ void VoxelInstancer::remove_layer(int layer_id) {
 
 void VoxelInstancer::remove_chunk(unsigned int chunk_index) {
 #ifdef DEBUG_ENABLED
-	CRASH_COND(chunk_index >= _blocks.size());
+	CRASH_COND(chunk_index >= _chunks.size());
 #endif
 	// We will move the last chunk to the index previously occupied by the removed chunk.
 	// It is cheaper than offsetting every chunk in the array.
 	// Get this reference first, because if we are removing the last chunk, its address will become null due to move
 	// semantics
-	const Block &moved_block = *_blocks.back();
+	const Block &moved_block = *_chunks.back();
 
-	UniquePtr<Block> block = std::move(_blocks[chunk_index]);
+	UniquePtr<Block> block = std::move(_chunks[chunk_index]);
 	{
 		Layer &layer = get_layer(block->layer_id);
 		layer.blocks.erase(block->grid_position);
 	}
-	_blocks[chunk_index] = std::move(_blocks.back());
-	_blocks.pop_back();
+	_chunks[chunk_index] = std::move(_chunks.back());
+	_chunks.pop_back();
 
 	// Destroy objects linked to the chunk
 
@@ -973,8 +973,8 @@ unsigned int VoxelInstancer::create_chunk(
 	block->lod_index = layer.lod_index;
 	block->grid_position = grid_position;
 	block->pending_instances = pending_instances;
-	const unsigned int chunk_index = _blocks.size();
-	_blocks.push_back(std::move(block));
+	const unsigned int chunk_index = _chunks.size();
+	_chunks.push_back(std::move(block));
 #ifdef DEBUG_ENABLED
 	// The chunk must not already exist
 	CRASH_COND(layer.blocks.find(grid_position) != layer.blocks.end());
@@ -993,10 +993,10 @@ void VoxelInstancer::update_block_from_transforms(int chunk_index, Span<const Tr
 		chunk_index = create_chunk(layer, layer_id, grid_position, false);
 	}
 #ifdef DEBUG_ENABLED
-	ERR_FAIL_COND(chunk_index < 0 || chunk_index >= int(_blocks.size()));
-	ERR_FAIL_COND(_blocks[chunk_index] == nullptr);
+	ERR_FAIL_COND(chunk_index < 0 || chunk_index >= int(_chunks.size()));
+	ERR_FAIL_COND(_chunks[chunk_index] == nullptr);
 #endif
-	Block &block = *_blocks[chunk_index];
+	Block &block = *_chunks[chunk_index];
 
 	// Update multimesh
 	const VoxelInstanceLibraryMultiMeshItem *item = Object::cast_to<VoxelInstanceLibraryMultiMeshItem>(&item_base);
@@ -1333,9 +1333,9 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 
 		const unsigned int render_chunk_index = render_block_it->second;
 #ifdef DEBUG_ENABLED
-		CRASH_COND(render_chunk_index >= _blocks.size());
+		CRASH_COND(render_chunk_index >= _chunks.size());
 #endif
-		Block &render_block = *_blocks[render_chunk_index];
+		Block &render_block = *_chunks[render_chunk_index];
 
 		block_data->layers.push_back(InstanceChunkData::LayerData());
 		InstanceChunkData::LayerData &layer_data = block_data->layers.back();
@@ -1622,7 +1622,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 
 		for (auto layer_it = lod.layers.begin(); layer_it != lod.layers.end(); ++layer_it) {
 			const Layer &layer = get_layer(*layer_it);
-			const std::vector<UniquePtr<Block>> &blocks = _blocks;
+			const std::vector<UniquePtr<Block>> &blocks = _chunks;
 			const int chunk_size_po2 = base_chunk_size_po2 + layer.lod_index;
 
 			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
@@ -1656,7 +1656,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 // This is called if a user destroys or unparents the body node while it's still attached to the ground
 void VoxelInstancer::on_body_removed(
 		Vector3i chunk_position, unsigned int render_chunk_index, unsigned int instance_index) {
-	Block &block = *_blocks[render_chunk_index];
+	Block &block = *_chunks[render_chunk_index];
 	ERR_FAIL_INDEX(instance_index, block.bodies.size());
 
 	if (block.multimesh_instance.is_valid()) {
@@ -1693,7 +1693,7 @@ void VoxelInstancer::on_body_removed(
 
 void VoxelInstancer::on_scene_instance_removed(
 		Vector3i chunk_position, unsigned int render_chunk_index, unsigned int instance_index) {
-	Block &block = *_blocks[render_chunk_index];
+	Block &block = *_chunks[render_chunk_index];
 	ERR_FAIL_INDEX(instance_index, block.scene_instances.size());
 
 	// Unregister the scene instance
@@ -1714,7 +1714,7 @@ void VoxelInstancer::on_scene_instance_removed(
 }
 
 void VoxelInstancer::on_scene_instance_modified(Vector3i chunk_position, unsigned int render_chunk_index) {
-	Block &block = *_blocks[render_chunk_index];
+	Block &block = *_chunks[render_chunk_index];
 
 	// Mark data chunk as modified
 	const Layer &layer = get_layer(block.layer_id);
@@ -1735,7 +1735,7 @@ void VoxelInstancer::set_mesh_lod_distance(float p_lod_distance) {
 }
 
 int VoxelInstancer::debug_get_block_count() const {
-	return _blocks.size();
+	return _chunks.size();
 }
 
 void VoxelInstancer::debug_get_instance_counts(std::unordered_map<uint32_t, uint32_t> &counts_per_layer) const {
@@ -1743,7 +1743,7 @@ void VoxelInstancer::debug_get_instance_counts(std::unordered_map<uint32_t, uint
 
 	counts_per_layer.clear();
 
-	for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
+	for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 		const Block &block = **it;
 
 		uint32_t count = block.scene_instances.size();
@@ -1806,8 +1806,8 @@ Node *VoxelInstancer::debug_dump_as_nodes() const {
 		// For each chunk in layer
 		for (auto block_it = layer.blocks.begin(); block_it != layer.blocks.end(); ++block_it) {
 			const unsigned int chunk_index = block_it->second;
-			CRASH_COND(chunk_index >= _blocks.size());
-			const Block &block = *_blocks[chunk_index];
+			CRASH_COND(chunk_index >= _chunks.size());
+			const Block &block = *_chunks[chunk_index];
 
 			if (block.multimesh_instance.is_valid()) {
 				const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_chunk_size));
