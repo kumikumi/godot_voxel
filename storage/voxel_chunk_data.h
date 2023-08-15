@@ -8,7 +8,7 @@
 namespace zylann::voxel {
 
 // Stores voxel data for a chunk of the volume. Mesh and colliders are stored separately.
-// Voxel data can be present, or not. If not present, it means we know the block contains no edits, and voxels can be
+// Voxel data can be present, or not. If not present, it means we know the chunk contains no edits, and voxels can be
 // obtained by querying generators.
 // Voxel data can also be present as a cache of generators, for cheaper repeated queries.
 class VoxelChunkData {
@@ -63,7 +63,7 @@ public:
 	}
 
 	// Tests if voxel data is present.
-	// If false, it means the block has no edits and does not contain cached generated data,
+	// If false, it means the chunk has no edits and does not contain cached generated data,
 	// so we may fallback on procedural generators on the fly or request a cache.
 	inline bool has_voxels() const {
 		return _voxels != nullptr;
@@ -133,26 +133,26 @@ private:
 	// For now it can remain here since in practice it doesn't cost space, due to other stored flags and alignment.
 	uint8_t _lod_index = 0;
 
-	// Indicates mipmaps need to be computed since this block was modified.
+	// Indicates mipmaps need to be computed since this chunk was modified.
 	bool _needs_lodding = false;
 
-	// Indicates if this block is different from the time it was loaded (should be saved)
+	// Indicates if this chunk is different from the time it was loaded (should be saved)
 	bool _modified = false;
 
-	// Tells if the block has ever been edited.
+	// Tells if the chunk has ever been edited.
 	// If `false`, then the data is a cache of generators and modifiers. It can be re-generated.
 	// Once it becomes `true`, it usually never comes back to `false` unless reverted.
 	bool _edited = false;
 
 	// TODO Optimization: design a proper way to implement client-side caching for multiplayer
 	//
-	// Represents how many times the block was edited.
+	// Represents how many times the chunk was edited.
 	// This allows to implement client-side caching in multiplayer.
 	//
-	// Note: when doing client-side caching, if the server decides to revert a block to generator output,
+	// Note: when doing client-side caching, if the server decides to revert a chunk to generator output,
 	// resetting version to 0 might not be a good idea, because if a client had version 1, it could mismatch with
 	// the "new version 1" after the next edit. All clients having ever joined the server would have to be aware
-	// of the revert before they start getting blocks with the server,
+	// of the revert before they start getting chunks with the server,
 	// or need to be told which version is the "generated" one.
 	//uint32_t _version;
 

@@ -392,7 +392,7 @@ void test_spatial_lock_dependent_map_chunks() {
 	EventList events;
 	RandomPCG rng;
 
-	// Schedule tasks that will want to access overlapping blocks
+	// Schedule tasks that will want to access overlapping chunks
 	Vector2i column_pos;
 	for (column_pos.y = 0; column_pos.y < MAP_SIZE; ++column_pos.y) {
 		for (column_pos.x = 0; column_pos.x < MAP_SIZE; ++column_pos.x) {

@@ -278,7 +278,7 @@ SerializeResult serialize(const VoxelBufferInternal &voxel_buffer) {
 	dst_data.clear();
 	metadata_tmp.clear();
 
-	// Cannot serialize an empty block
+	// Cannot serialize an empty chunk
 	ERR_FAIL_COND_V(Vector3iUtil::get_volume(voxel_buffer.get_size()) == 0, SerializeResult(dst_data, false));
 
 	size_t expected_metadata_size = 0;

@@ -25,7 +25,7 @@ static const unsigned int MAX_TRIANGLES_PER_CELL = 5;
 
 enum TexturingMode {
 	TEXTURES_NONE,
-	// Blends the 4 most-represented textures in the given block, ignoring the others.
+	// Blends the 4 most-represented textures in the given chunk, ignoring the others.
 	// Texture indices and blend factors have 4-bit precision (maximum 16 textures and 16 transition gradients),
 	// and are respectively encoded in UV.x and UV.y.
 	TEXTURES_BLEND_4_OVER_16
@@ -33,7 +33,7 @@ enum TexturingMode {
 
 struct LodAttrib {
 	Vector3f secondary_position;
-	// Mask telling if a cell the vertex belongs to is on a side of the block.
+	// Mask telling if a cell the vertex belongs to is on a side of the chunk.
 	// Each bit corresponds to a side.
 	// 0: -X
 	// 1: +X
@@ -42,7 +42,7 @@ struct LodAttrib {
 	// 4: -Z
 	// 5: +Z
 	uint8_t cell_border_mask;
-	// Mask telling if the vertex is on a side of the block. Same convention as above.
+	// Mask telling if the vertex is on a side of the chunk. Same convention as above.
 	uint8_t vertex_border_mask;
 	// Flag telling if the vertex belongs to a transition mesh.
 	uint8_t transition;

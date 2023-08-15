@@ -9,7 +9,7 @@
 namespace zylann::voxel {
 
 // In-memory database for voxel streams.
-// It allows to cache blocks so we can save to the filesystem later less frequently, or quickly reload recent blocks.
+// It allows to cache chunks so we can save to the filesystem later less frequently, or quickly reload recent chunks.
 class VoxelStreamCache {
 public:
 	struct Block {
@@ -26,16 +26,16 @@ public:
 		UniquePtr<InstanceChunkData> instances;
 	};
 
-	// Copies cached block into provided buffer
+	// Copies cached chunk into provided buffer
 	bool load_voxel_chunk(Vector3i position, uint8_t lod_index, VoxelBufferInternal &out_voxels);
 
-	// Stores provided block into the cache. The cache will take ownership of the provided data.
+	// Stores provided chunk into the cache. The cache will take ownership of the provided data.
 	void save_voxel_chunk(Vector3i position, uint8_t lod_index, VoxelBufferInternal &voxels);
 
 	// Copies cached data into the provided pointer. A new instance will be made if found.
 	bool load_instance_block(Vector3i position, uint8_t lod_index, UniquePtr<InstanceChunkData> &out_instances);
 
-	// Stores provided block into the cache. The cache will take ownership of the provided data.
+	// Stores provided chunk into the cache. The cache will take ownership of the provided data.
 	void save_instance_block(Vector3i position, uint8_t lod_index, UniquePtr<InstanceChunkData> instances);
 
 	unsigned int get_indicative_block_count() const;

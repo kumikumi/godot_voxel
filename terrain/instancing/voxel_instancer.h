@@ -185,15 +185,15 @@ private:
 		uint16_t layer_id;
 		uint8_t current_mesh_lod = 0;
 		uint8_t lod_index;
-		// If true, the block is waiting to be populated asynchronously. We create blocks in this state so when async
-		// generation completes, we can check if the block is still present.
+		// If true, the chunk is waiting to be populated asynchronously. We create chunks in this state so when async
+		// generation completes, we can check if the chunk is still present.
 		bool pending_instances = false;
-		// Position in mesh block coordinate system
+		// Position in mesh chunk coordinate system
 		Vector3i grid_position;
 		DirectMultiMeshInstance multimesh_instance;
 		// For physics we use nodes because it's easier to manage.
 		// Such instances may be less numerous.
-		// If the item associated to this block has no collisions, this will be empty.
+		// If the item associated to this chunk has no collisions, this will be empty.
 		// Indices in the vector correspond to index of the instance in multimesh.
 		std::vector<VoxelInstancerRigidBody *> bodies;
 		std::vector<SceneInstance> scene_instances;
@@ -202,12 +202,12 @@ private:
 	struct Layer {
 		unsigned int lod_index;
 		// Blocks indexed by grid position.
-		// Keys follow the mesh block coordinate system.
+		// Keys follow the mesh chunk coordinate system.
 		std::unordered_map<Vector3i, unsigned int> blocks;
 	};
 
 	struct MeshLodDistances {
-		// Multimesh LOD updates based on the distance between the camera and the center of the block.
+		// Multimesh LOD updates based on the distance between the camera and the center of the chunk.
 		// Two distances are used to implement hysteresis, which allows to avoid oscillating too fast between lods.
 
 		// TODO Need to investigate if Godot 4 implements LOD for multimeshes
@@ -225,13 +225,13 @@ private:
 		std::vector<int> layers;
 
 		// Blocks that have have unsaved changes.
-		// Keys follows the data block coordinate system.
+		// Keys follows the data chunk coordinate system.
 		std::unordered_set<Vector3i> modified_blocks;
 
 		// This is a temporary place to store loaded instances data while it's not visible yet.
-		// These instances are user-authored ones. If a block does not have an entry there,
+		// These instances are user-authored ones. If a chunk does not have an entry there,
 		// it will get generated instances.
-		// Keys follows the data block coordinate system.
+		// Keys follows the data chunk coordinate system.
 		// Can't use Godot's `HashMap` because it lacks move semantics.
 		std::unordered_map<Vector3i, UniquePtr<InstanceChunkData>> loaded_instances_data;
 

@@ -13,8 +13,8 @@
 
 namespace zylann::voxel {
 
-// Pool based on a scenario where allocated blocks are often the same size.
-// A pool of blocks is assigned for each power of two.
+// Pool based on a scenario where allocated chunks are often the same size.
+// A pool of chunks is assigned for each power of two.
 // The majority of VoxelBuffers use powers of two so most of the time
 // we won't waste memory. Sometimes non-power-of-two buffers are created,
 // but they are often temporary and less numerous.

@@ -29,7 +29,7 @@ public:
 	void recycle(Ref<ShaderMaterial> material);
 };
 
-// Paged terrain made of voxel blocks of variable level of detail.
+// Paged terrain made of voxel chunks of variable level of detail.
 // Designed for highest view distances, preferably using smooth voxels.
 // Voxels are polygonized around the viewer by distance in a very large sphere, usually extending beyond far clip.
 // VoxelStream and VoxelGenerator must support LOD.
@@ -168,13 +168,13 @@ public:
 	struct Stats {
 		// Amount of octree nodes waiting for data. It should reach zero when everything is loaded.
 		uint32_t blocked_lods = 0;
-		// How many data blocks were rejected this frame (due to loading too late for example).
+		// How many data chunks were rejected this frame (due to loading too late for example).
 		uint32_t dropped_block_loads = 0;
-		// How many mesh blocks were rejected this frame (due to loading too late for example).
+		// How many chunk meshes were rejected this frame (due to loading too late for example).
 		uint32_t dropped_block_meshes = 0;
-		// Time spent in the last update unloading unused blocks and detecting required ones, in microseconds
+		// Time spent in the last update unloading unused chunks and detecting required ones, in microseconds
 		uint32_t time_detect_required_blocks = 0;
-		// Time spent in the last update requesting data blocks, in microseconds
+		// Time spent in the last update requesting data chunks, in microseconds
 		uint32_t time_io_requests = 0;
 		// Time spent in the last update requesting meshes, in microseconds
 		uint32_t time_mesh_requests = 0;
@@ -357,9 +357,9 @@ private:
 	FixedArray<std::vector<Vector3i>, constants::MAX_LOD> _deferred_collision_updates_per_lod;
 
 	float _lod_fade_duration = 0.f;
-	// Note, direct pointers to mesh blocks should be safe because these blocks are always destroyed from the same
-	// thread that updates fading blocks. If a mesh block is destroyed, these maps should be updated at the same time.
-	// TODO Optimization: use FlatMap? Need to check how many blocks get in there, probably not many
+	// Note, direct pointers to chunk meshes should be safe because these chunks are always destroyed from the same
+	// thread that updates fading chunks. If a chunk mesh is destroyed, these maps should be updated at the same time.
+	// TODO Optimization: use FlatMap? Need to check how many chunks get in there, probably not many
 	FixedArray<std::map<Vector3i, VoxelChunkMeshVLT *>, constants::MAX_LOD> _fading_blocks_per_lod;
 
 	struct FadingDetailTexture {

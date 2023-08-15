@@ -30,14 +30,14 @@ TaskPriority PriorityDependency::evaluate(uint8_t lod_index, uint8_t band2_prior
 
 	// TODO Any way to optimize out the sqrt? Maybe with a fast integer version?
 	// I added it because the LOD modifier was not working with squared distances,
-	// which led blocks to subdivide too much compared to their neighbors, making cracks more likely to happen
+	// which led chunks to subdivide too much compared to their neighbors, making cracks more likely to happen
 	const int distance = static_cast<int>(Math::sqrt(closest_distance_sq));
 
 	// TODO Prioritizing LOD makes generation slower... but not prioritizing makes cracks more likely to appear...
-	// This could be fixed by allowing the volume to preemptively request blocks of the next LOD?
+	// This could be fixed by allowing the volume to preemptively request chunks of the next LOD?
 	//
 	// Higher lod indexes come first to allow the octree to subdivide.
-	// Then comes distance, which is modified by how much in view the block is
+	// Then comes distance, which is modified by how much in view the chunk is
 	//priority += (constants::MAX_LOD - lod_index) * 10000;
 
 	// Closer is higher priority. Decreases over distance.

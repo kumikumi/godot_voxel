@@ -207,7 +207,7 @@ void query_sdf_with_edits(VoxelGenerator &generator, const VoxelModifierStack &m
 					for (int x = 0; x < 2; ++x) {
 						const Vector3i posi = posi0 + Vector3i(x, y, z);
 						// TODO Optimize: instead of locking for individual samples, lock the area with a spatial lock
-						//      (because we can't lock multiple blocks at once otherwise it causes deadlocks)
+						//      (because we can't lock multiple chunks at once otherwise it causes deadlocks)
 						// TODO Optimize: the grid could be told to gather raw channels so we get direct access
 						//      (requires the former optimization)
 						if (grid.try_get_voxel_f(posi, sd_samples[i], channel)) {
@@ -251,7 +251,7 @@ void query_sdf_with_edits(VoxelGenerator &generator, const VoxelModifierStack &m
 	}
 }
 
-// Maximum grid size in which edited blocks can be fetched inside a tile.
+// Maximum grid size in which edited chunks can be fetched inside a tile.
 // Beyond this size, there are too many cells to query so the algorithm will fallback to generator.
 static const unsigned int MAX_EDITED_BLOCKS_ACROSS = 8;
 
@@ -259,7 +259,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 		Vector3f query_max_pos, uint32_t &skipped_count_due_to_high_volume) {
 	ZN_PROFILE_SCOPE();
 
-	// Pad by 1 in case there are neighboring edited voxels. If not done, it creates a grid pattern following LOD0 block
+	// Pad by 1 in case there are neighboring edited voxels. If not done, it creates a grid pattern following LOD0 chunk
 	// boundaries because samples near there assume there was no edited neighbors when interpolating
 	const Vector3i query_min_pos_i = math::floor_to_int(query_min_pos) - Vector3iUtil::create(1);
 	const Vector3i query_max_pos_i = math::ceil_to_int(query_max_pos) + Vector3iUtil::create(1);
@@ -268,7 +268,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 		const Box3i voxel_box = Box3i::from_min_max(query_min_pos_i, query_max_pos_i);
 		const Vector3i block_box_size = voxel_box.size >> constants::DEFAULT_CHUNK_SIZE_PO2;
 		const int64_t block_volume = Vector3iUtil::get_volume(block_box_size);
-		// TODO Don't hardcode block size (even though for now I have no plan to make it configurable)
+		// TODO Don't hardcode chunk size (even though for now I have no plan to make it configurable)
 		if (block_volume > math::cubed(MAX_EDITED_BLOCKS_ACROSS)) {
 			// Box too big for quick sparse readings, won't handle edits. Fallback on generator.
 			// One way to speed this up would be to have an octree storing where edited data is.

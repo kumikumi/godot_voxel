@@ -56,8 +56,8 @@ bool RegionFormat::verify_block(const VoxelBufferInternal &block) const {
 }
 
 static uint32_t get_header_size_v3(const RegionFormat &format) {
-	// Which file offset blocks data is starting
-	// magic + version + blockinfos
+	// Which file offset chunk data is starting
+	// magic + version + chunkinfos
 	return MAGIC_AND_VERSION_SIZE + FIXED_HEADER_DATA_SIZE + (format.has_palette ? PALETTE_SIZE_IN_BYTES : 0) +
 			Vector3iUtil::get_volume(format.region_size) * sizeof(RegionBlockInfo);
 }
@@ -223,7 +223,7 @@ Error RegionFile::open(const String &fpath, bool create_if_not_found) {
 
 	_file_access = f;
 
-	// Precalculate location of sectors and which block they contain.
+	// Precalculate location of sectors and which chunk they contain.
 	// This will be useful to know when sectors get moved on insertion and removal
 
 	struct BlockInfoAndIndex {
@@ -231,7 +231,7 @@ Error RegionFile::open(const String &fpath, bool create_if_not_found) {
 		unsigned int i;
 	};
 
-	// Filter only present blocks and keep the index around because it represents the 3D position of the block
+	// Filter only present chunks and keep the index around because it represents the 3D position of the chunk
 	std::vector<BlockInfoAndIndex> blocks_sorted_by_offset;
 	for (unsigned int i = 0; i < _header.blocks.size(); ++i) {
 		const RegionBlockInfo b = _header.blocks[i];
@@ -324,7 +324,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	}
 
 	ERR_FAIL_COND_V(out_block.get_size() != out_block.get_size(), ERR_INVALID_PARAMETER);
-	// Configure block format
+	// Configure chunk format
 	for (unsigned int channel_index = 0; channel_index < _header.format.channel_depths.size(); ++channel_index) {
 		out_block.set_channel_depth(channel_index, _header.format.channel_depths[channel_index]);
 	}
@@ -360,7 +360,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 	RegionBlockInfo &block_info = _header.blocks[lut_index];
 
 	if (block_info.data == 0) {
-		// The block isn't in the file yet, append at the end
+		// The chunk isn't in the file yet, append at the end
 
 		const unsigned int end_offset = _blocks_begin_offset + _sectors.size() * _header.format.sector_size;
 		f.seek(end_offset);
@@ -390,7 +390,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		_header_modified = true;
 
 	} else {
-		// The block is already in the file
+		// The chunk is already in the file
 
 		CRASH_COND(_sectors.size() == 0);
 
@@ -407,10 +407,10 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		CRASH_COND(new_sector_count < 1);
 
 		if (new_sector_count <= old_sector_count) {
-			// We can write the block at the same spot
+			// We can write the chunk at the same spot
 
 			if (new_sector_count < old_sector_count) {
-				// The block now uses less sectors, we can compact others.
+				// The chunk now uses less sectors, we can compact others.
 				remove_sectors_from_block(position, old_sector_count - new_sector_count);
 				_header_modified = true;
 			}
@@ -425,8 +425,8 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 			CRASH_COND(written_size != (end_pos - block_offset));
 
 		} else {
-			// The block now uses more sectors, we have to move others.
-			// Note: we could shift blocks forward, but we can also remove the block entirely and rewrite it at the end.
+			// The chunk now uses more sectors, we have to move others.
+			// Note: we could shift chunks forward, but we can also remove the chunk entirely and rewrite it at the end.
 			// Need to investigate if it's worth implementing forward shift instead.
 			// TODO Prefer doing an end swap kind of thing?
 
@@ -475,8 +475,8 @@ void RegionFile::pad_to_sector_size(FileAccess &f) {
 void RegionFile::remove_sectors_from_block(Vector3i block_pos, unsigned int p_sector_count) {
 	ZN_PROFILE_SCOPE();
 
-	// Removes sectors from a block, starting from the last ones.
-	// So if a block has 5 sectors and we remove 2, the first 3 will be preserved.
+	// Removes sectors from a chunk, starting from the last ones.
+	// So if a chunk has 5 sectors and we remove 2, the first 3 will be preserved.
 	// Then all following sectors are moved earlier in the file to fill the gap.
 
 	CRASH_COND(_file_access == nullptr);
@@ -527,7 +527,7 @@ void RegionFile::remove_sectors_from_block(Vector3i block_pos, unsigned int p_se
 
 	const unsigned int old_sector_index = block_info.get_sector_index();
 
-	// Reduce sectors of current block in header.
+	// Reduce sectors of current chunk in header.
 	if (block_info.get_sector_count() > p_sector_count) {
 		block_info.set_sector_count(block_info.get_sector_count() - p_sector_count);
 	} else {
@@ -535,7 +535,7 @@ void RegionFile::remove_sectors_from_block(Vector3i block_pos, unsigned int p_se
 		block_info.data = 0;
 	}
 
-	// Shift sector index of following blocks
+	// Shift sector index of following chunks
 	if (old_sector_index < _sectors.size()) {
 		for (unsigned int i = 0; i < _header.blocks.size(); ++i) {
 			RegionBlockInfo &b = _header.blocks[i];
@@ -563,8 +563,8 @@ bool RegionFile::migrate_from_v2_to_v3(FileAccess &f, RegionFormat &format) {
 	// We can migrate if we know in advance what format the file should contain.
 	ERR_FAIL_COND_V_MSG(format.chunk_size_po2 == 0, false, "Cannot migrate without knowing the correct format");
 
-	// Which file offset blocks data is starting
-	// magic + version + blockinfos
+	// Which file offset chunk data is starting
+	// magic + version + chunkinfos
 	const unsigned int old_header_size = Vector3iUtil::get_volume(format.region_size) * sizeof(uint32_t);
 
 	const unsigned int new_header_size = get_header_size_v3(format) - MAGIC_AND_VERSION_SIZE;

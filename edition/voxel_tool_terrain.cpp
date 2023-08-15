@@ -30,7 +30,7 @@ bool VoxelToolTerrain::is_area_editable(const Box3i &box) const {
 
 Ref<VoxelRaycastResult> VoxelToolTerrain::raycast(
 		Vector3 p_pos, Vector3 p_dir, float p_max_distance, uint32_t p_collision_mask) {
-	// TODO Implement broad-phase on blocks to minimize locking and increase performance
+	// TODO Implement broad-phase on chunks to minimize locking and increase performance
 
 	// TODO Optimization: voxel raycast uses `get_voxel` which is the slowest, but could be made faster.
 	// See `VoxelToolLodTerrain` for information about how to implement improvements.
@@ -317,7 +317,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 
 	const VoxelBlockyLibraryBase::BakedData &lib_data = lib.get_baked_data();
 
-	// Choose blocks at random
+	// Choose chunks at random
 	for (int bi = 0; bi < block_count; ++bi) {
 		const Vector3i block_pos = block_box.pos + L::urand_vec3i(random, block_box.size);
 
@@ -340,7 +340,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 					if (lib_data.has_model(v)) {
 						const VoxelBlockyModel::BakedData &vt = lib_data.models[v];
 						if (vt.is_random_tickable) {
-							// Skip whole block
+							// Skip whole chunk
 							continue;
 						}
 					}
@@ -352,8 +352,8 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 				const float volume_ratio = Vector3iUtil::get_volume(local_voxel_box.size) / block_volume;
 				const int local_batch_count = Math::ceil(batch_count * volume_ratio);
 
-				// Choose a bunch of voxels at random within the block.
-				// Batching this way improves performance a little by reducing block lookups.
+				// Choose a bunch of voxels at random within the chunk.
+				// Batching this way improves performance a little by reducing chunk lookups.
 				for (int vi = 0; vi < local_batch_count; ++vi) {
 					const Vector3i rpos = local_voxel_box.pos + L::urand_vec3i(random, local_voxel_box.size);
 
@@ -388,7 +388,7 @@ static Ref<VoxelBlockyLibraryBase> get_voxel_library(const VoxelTerrain &terrain
 	return Ref<VoxelBlockyLibraryBase>();
 }
 
-// TODO This function snaps the given AABB to blocks, this is not intuitive. Should figure out a way to respect the
+// TODO This function snaps the given AABB to chunks, this is not intuitive. Should figure out a way to respect the
 // area. Executes a function on random voxels in the provided area, using the type channel. This allows to implement
 // slow "natural" cellular automata behavior, as can be seen in Minecraft.
 void VoxelToolTerrain::run_blocky_random_tick(
@@ -462,7 +462,7 @@ void VoxelToolTerrain::for_each_voxel_metadata_in_area(AABB voxel_area, const Ca
 
 		const Vector3i block_origin = block_pos * data.get_chunk_size();
 		const Box3i rel_voxel_box(voxel_box.pos - block_origin, voxel_box.size);
-		// TODO Worth it locking blocks for metadata?
+		// TODO Worth it locking chunks for metadata?
 
 #if defined(ZN_GODOT)
 		voxels_ptr->for_each_voxel_metadata_in_area(

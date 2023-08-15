@@ -9,12 +9,12 @@ namespace zylann::voxel {
 // Stores data to pass around until it either gets saved or turned into actual instances
 struct InstanceChunkData {
 	struct InstanceData {
-		// Transform of the instance, relative to the origin of the data block.
+		// Transform of the instance, relative to the origin of the data chunk.
 		Transform3f transform;
 	};
 
 	enum VoxelInstanceFormat {
-		// Position is lossy-compressed based on the size of the block
+		// Position is lossy-compressed based on the size of the chunk
 		// - uint16_t x;
 		// - uint16_t y;
 		// - uint16_t z;

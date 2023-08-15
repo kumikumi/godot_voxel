@@ -16,12 +16,12 @@ struct BeforeUnloadSaveAction {
 
 	inline void operator()(VoxelChunkData &block) {
 		if (block.is_modified()) {
-			// If a modified block has no voxels, it is equivalent to removing the block from the stream
+			// If a modified chunk has no voxels, it is equivalent to removing the chunk from the stream
 			VoxelData::BlockToSave b;
 			b.position = position;
 			b.lod_index = lod_index;
 			if (block.has_voxels()) {
-				// No copy is necessary because the block will be removed anyways
+				// No copy is necessary because the chunk will be removed anyways
 				b.voxels = block.get_voxels_shared();
 			}
 			to_save->push_back(b);
@@ -36,9 +36,9 @@ struct ScheduleSaveAction {
 
 	void operator()(const Vector3i &bpos, VoxelChunkData &block) {
 		if (block.is_modified()) {
-			// print_line(String("Scheduling save for block {0}").format(varray(block->position.to_vec3())));
+			// print_line(String("Scheduling save for chunk {0}").format(varray(chunk->position.to_vec3())));
 			VoxelData::BlockToSave b;
-			// If a modified block has no voxels, it is equivalent to removing the block from the stream
+			// If a modified chunk has no voxels, it is equivalent to removing the chunk from the stream
 			if (block.has_voxels()) {
 				if (with_copy) {
 					b.voxels = make_shared_instance<VoxelBufferInternal>();
@@ -231,7 +231,7 @@ bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel
 
 			RWLockWrite wlock(data_lod0.map_lock);
 			if (data_lod0.map.has_block(block_pos_lod0)) {
-				// A block was loaded by another thread, cancel our edit.
+				// A chunk was loaded by another thread, cancel our edit.
 				return false;
 			}
 
@@ -268,7 +268,7 @@ void VoxelData::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsigned
 
 	if (is_streaming_enabled() || generator.is_null()) {
 		RWLockRead rlock(data_lod0.map_lock);
-		// Only gets blocks we have voxel data of. Other blocks will be air.
+		// Only gets chunks we have voxel data of. Other chunks will be air.
 		// TODO Maybe in the end we should just do the same in either case?
 		data_lod0.map.copy(min_pos, dst_buffer, channels_mask);
 
@@ -282,7 +282,7 @@ void VoxelData::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsigned
 
 		RWLockRead rlock(data_lod0.map_lock);
 		data_lod0.map.copy(min_pos, dst_buffer, channels_mask, &gctx,
-				// Generate on the fly in areas where blocks aren't edited
+				// Generate on the fly in areas where chunks aren't edited
 				[](void *callback_data, VoxelBufferInternal &voxels, Vector3i pos) {
 					// Suffixed with `2` because GCC warns it shadows a previous local...
 					GenContext *gctx2 = reinterpret_cast<GenContext *>(callback_data);
@@ -373,10 +373,10 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 		{
 			RWLockRead rlock(data_lod.map_lock);
 			block_box.for_each_cell([&data_lod, lod_index, &todo, streaming](Vector3i block_pos) {
-				// We don't check "loading blocks", because this function wants to complete the task right now.
+				// We don't check "loading chunks", because this function wants to complete the task right now.
 				const VoxelChunkData *block = data_lod.map.get_block(block_pos);
 				if (streaming) {
-					// Non-loaded blocks must not be touched because we don't know what's in them.
+					// Non-loaded chunks must not be touched because we don't know what's in them.
 					// We can generate caches if loaded ones have no voxel data.
 					if (block != nullptr && !block->has_voxels()) {
 						todo.push_back(Task{ block_pos, lod_index, nullptr });
@@ -428,8 +428,8 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 				ZN_ASSERT(task.lod_index == lod_index);
 				const VoxelChunkData *prev_block = data_lod.map.get_block(task.block_pos);
 				if (prev_block != nullptr && prev_block->has_voxels()) {
-					// Sorry, that block has been set in the meantime by another thread.
-					// We'll assume the block we just generated is redundant and discard it.
+					// Sorry, that chunk has been set in the meantime by another thread.
+					// We'll assume the chunk we just generated is redundant and discard it.
 					continue;
 				}
 				data_lod.map.set_block_buffer(task.block_pos, task.voxels, true);
@@ -473,17 +473,17 @@ void VoxelData::mark_area_modified(
 
 		bbox.for_each_cell([&data_lod0, lod0_new_blocks_to_lod, require_lod_updates](Vector3i block_pos_lod0) {
 			VoxelChunkData *block = data_lod0.map.get_block(block_pos_lod0);
-			// We can get null blocks due to the added padding...
-			// ERR_FAIL_COND(block == nullptr);
+			// We can get null chunks due to the added padding...
+			// ERR_FAIL_COND(chunk == nullptr);
 			if (block == nullptr) {
 				return;
 			}
-			// We can get blocks without voxels in them due to the added padding...
+			// We can get chunks without voxels in them due to the added padding...
 			if (!block->has_voxels()) {
 				return;
 			}
 
-			// RWLockWrite wlock(block->get_voxels_shared()->get_lock());
+			// RWLockWrite wlock(chunk->get_voxels_shared()->get_lock());
 			block->set_modified(true);
 			block->set_edited(true);
 
@@ -542,9 +542,9 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 	ZN_PROFILE_SCOPE();
 	// Propagates edits performed so far to other LODs.
 	// These LODs must be currently in memory, otherwise terrain data will miss it.
-	// This is currently ensured by the fact we load blocks in a "pyramidal" way,
-	// i.e there is no way for a block to be loaded if its parent LOD isn't loaded already.
-	// In the future we may implement storing of edits to be applied later if blocks can't be found.
+	// This is currently ensured by the fact we load chunks in a "pyramidal" way,
+	// i.e there is no way for a chunk to be loaded if its parent LOD isn't loaded already.
+	// In the future we may implement storing of edits to be applied later if chunks can't be found.
 
 	const int chunk_size = get_chunk_size();
 	const int chunk_size_po2 = get_chunk_size_po2();
@@ -581,7 +581,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 	const int half_bs = chunk_size >> 1;
 
 	// Process downscales upwards in pairs of consecutive LODs.
-	// This ensures we don't process multiple times the same blocks.
+	// This ensures we don't process multiple times the same chunks.
 	// Only LOD0 is editable at the moment, so we'll downscale from there
 	for (uint8_t dst_lod_index = 1; dst_lod_index < lod_count; ++dst_lod_index) {
 		const uint8_t src_lod_index = dst_lod_index - 1;
@@ -599,12 +599,12 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 
 			// TODO Investigate better locking strategy.
 			// Maps have to be locked after the spatial lock to prevent deadlocks. They have to stay locked because
-			// data blocks are not shared pointers. It would be nice to have the spatial lock after the potential
-			// generation... perhaps data blocks need to be shared instead of voxel buffers
+			// data chunks are not shared pointers. It would be nice to have the spatial lock after the potential
+			// generation... perhaps data chunks need to be shared instead of voxel buffers
 			VoxelSpatialLockRead srlock(src_data_lod.spatial_lock, BoxBounds3i::from_position(src_bpos));
 			RWLockRead src_data_lod_map_rlock(src_data_lod.map_lock);
 			// TODO Could take long locking this, we may generate things first and assign to the map at the end.
-			// Besides, in per-block streaming mode, it is not needed because blocks are supposed to be present
+			// Besides, in per-chunk streaming mode, it is not needed because chunks are supposed to be present
 			RWLockRead wlock(dst_data_lod.map_lock);
 
 			VoxelChunkData *src_block = src_data_lod.map.get_block(src_bpos);
@@ -639,11 +639,11 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 				}
 			}
 
-			// The block and its lower LOD indices are expected to be available.
+			// The chunk and its lower LOD indices are expected to be available.
 			// Otherwise it means the function was called too late?
 			ZN_ASSERT(src_block != nullptr);
-			// ZN_ASSERT(dst_block != nullptr);
-			// The block should have voxels if it has been edited or mipped.
+			// ZN_ASSERT(dst_chunk != nullptr);
+			// The chunk should have voxels if it has been edited or mipped.
 			ZN_ASSERT(src_block->has_voxels());
 
 			if (out_updated_blocks != nullptr) {
@@ -662,10 +662,10 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 			// Update lower LOD
 			// This must always be done after an edit before it gets saved, otherwise LODs won't match and it will look
 			// ugly.
-			// TODO Optimization: try to narrow to edited region instead of taking whole block
+			// TODO Optimization: try to narrow to edited region instead of taking whole chunk
 			{
 				ZN_PROFILE_SCOPE_NAMED("Downscale");
-				// TODO The destination block should be locked!
+				// TODO The destination chunk should be locked!
 				// Maybe it hasn't been done so far because nothing else accesses higher LOD indices yet, or because we
 				// are holding a lock on the map that contains it
 				src_block->get_voxels().downscale_to(
@@ -674,7 +674,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 		}
 
 		src_lod_blocks_to_process.clear();
-		// No need to clear the last list because we never add blocks to it
+		// No need to clear the last list because we never add chunks to it
 	}
 
 	//	uint64_t time_spent = profiling_clock.restart();
@@ -782,8 +782,8 @@ void VoxelData::get_blocks_with_voxel_data(
 	// Iteration order matters for thread access.
 	p_blocks_box.for_each_cell_zxy([&index, &data_lod, &out_blocks](Vector3i chunk_pos) {
 		const VoxelChunkData *nblock = data_lod.map.get_block(chunk_pos);
-		// The block can actually be null on some occasions. Not sure yet if it's that bad
-		// CRASH_COND(nblock == nullptr);
+		// The chunk can actually be null on some occasions. Not sure yet if it's that bad
+		// CRASH_COND(nchunk == nullptr);
 		if (nblock != nullptr && nblock->has_voxels()) {
 			out_blocks[index] = nblock->get_voxels_shared();
 		}
@@ -818,7 +818,7 @@ bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	// Find if edited mips exist
 	const Lod &mip_data_lod = _lods[top_lod_index];
 	{
-		// Ideally this box shouldn't intersect more than 8 blocks if the box is cubic.
+		// Ideally this box shouldn't intersect more than 8 chunks if the box is cubic.
 		const Box3i mip_blocks_box = box_in_voxels.downscaled(mip_data_lod.map.get_chunk_size() << top_lod_index);
 
 		RWLockRead rlock(mip_data_lod.map_lock);
@@ -908,7 +908,7 @@ void VoxelData::set_voxel_metadata(Vector3i pos, Variant meta) {
 	ZN_ASSERT_RETURN_MSG(block != nullptr, "Area not editable");
 	VoxelSpatialLockWrite swlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
 	// TODO Ability to have metadata in areas where voxels have not been allocated?
-	// Otherwise we have to generate the block, because that's where it is stored at the moment.
+	// Otherwise we have to generate the chunk, because that's where it is stored at the moment.
 	ZN_ASSERT_RETURN_MSG(block->has_voxels(), "Area not cached");
 	VoxelMetadata *meta_storage = block->get_voxels().get_or_create_voxel_metadata(lod.map.to_local(pos));
 	ZN_ASSERT_RETURN(meta_storage != nullptr);

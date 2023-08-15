@@ -84,10 +84,10 @@ Ref<VoxelRaycastResult> VoxelToolLodTerrain::raycast(
 	// TODO Implement reverse raycast? (going from inside ground to air, could be useful for undigging)
 
 	// TODO Optimization: voxel raycast uses `get_voxel` which is the slowest, but could be made faster.
-	// Instead, do a broad-phase on blocks. If a block's voxels need to be parsed, get all positions the ray could go
-	// through in that block, then query them all at once (better for bulk processing without going again through
+	// Instead, do a broad-phase on chunks. If a chunk's voxels need to be parsed, get all positions the ray could go
+	// through in that chunk, then query them all at once (better for bulk processing without going again through
 	// locking and data structures, and allows SIMD). Then check results in order.
-	// If no hit is found, carry on with next blocks.
+	// If no hit is found, carry on with next chunks.
 
 	struct RaycastPredicate {
 		VoxelData &data;
@@ -233,7 +233,7 @@ public:
 	void run(ThreadedTaskContext &ctx) override {
 		ZN_PROFILE_SCOPE();
 		ZN_ASSERT(_data != nullptr);
-		// TODO May want to fail if not all blocks were found
+		// TODO May want to fail if not all chunks were found
 		// TODO Need to apply modifiers
 		_data->get_blocks_grid(_op.blocks, _op.box, 0);
 		_op();
@@ -782,7 +782,7 @@ void VoxelToolLodTerrain::stamp_sdf(
 	const AABB aabb = box_to_world.xform(local_aabb);
 	const Box3i voxel_box = Box3i::from_min_max(aabb.position.floor(), (aabb.position + aabb.size).ceil());
 
-	// TODO Sometimes it will fail near unloaded blocks, even though the transformed box does not intersect them.
+	// TODO Sometimes it will fail near unloaded chunks, even though the transformed box does not intersect them.
 	// This could be avoided with a box/transformed-box intersection algorithm. Might investigate if the use case
 	// occurs. It won't happen with full load mode. This also affects other shapes.
 	if (!is_area_editable(voxel_box)) {

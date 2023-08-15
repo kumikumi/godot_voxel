@@ -697,7 +697,7 @@ void VoxelStreamSQLite::save_voxel_chunk(VoxelStream::VoxelQueryData &q) {
 void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
 	ZN_PROFILE_SCOPE();
 
-	// TODO Get block size from database
+	// TODO Get chunk size from database
 	const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// Check the cache first
@@ -749,7 +749,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 		const ResultCode res = con->load_chunk(loc, temp_block_data, VoxelStreamSQLiteInternal::VOXELS);
 
 		if (res == RESULT_BLOCK_FOUND) {
-			// TODO Not sure if we should actually expect non-null. There can be legit not found blocks.
+			// TODO Not sure if we should actually expect non-null. There can be legit not found chunks.
 			ChunkSerializer::decompress_and_deserialize(to_span_const(temp_block_data), q.voxel_buffer);
 		}
 
@@ -762,7 +762,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 }
 
 void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
-	// TODO Get block size from database
+	// TODO Get chunk size from database
 	const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// First put in cache
@@ -794,7 +794,7 @@ bool VoxelStreamSQLite::supports_instance_blocks() const {
 void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryData> out_blocks) {
 	ZN_PROFILE_SCOPE();
 
-	// TODO Get block size from database
+	// TODO Get chunk size from database
 	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// Check the cache first
@@ -861,7 +861,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 }
 
 void VoxelStreamSQLite::save_instance_blocks(Span<VoxelStream::InstancesQueryData> p_blocks) {
-	// TODO Get block size from database
+	// TODO Get chunk size from database
 	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// First put in cache

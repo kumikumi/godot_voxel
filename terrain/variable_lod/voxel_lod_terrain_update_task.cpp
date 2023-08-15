@@ -58,7 +58,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 		Vector3 p_viewer_pos, std::vector<VoxelData::BlockToSave> &blocks_to_save, bool can_save,
 		const VoxelLodTerrainUpdateData::Settings &settings) {
 	ZN_PROFILE_SCOPE_NAMED("Sliding box data unload");
-	// TODO Could it actually be enough to have a rolling update on all blocks?
+	// TODO Could it actually be enough to have a rolling update on all chunks?
 
 	// This should be the same distance relatively to each LOD
 	const int chunk_size = data.get_chunk_size();
@@ -75,13 +75,13 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 	tls_to_remove.clear();
 
 	// Ignore largest lod because it can extend a little beyond due to the view distance setting.
-	// Instead, those blocks are unloaded by the octree forest management.
+	// Instead, those chunks are unloaded by the octree forest management.
 	// Iterating from big to small LOD so we can exit earlier if bounds don't intersect.
 	for (int lod_index = lod_count - 2; lod_index >= 0; --lod_index) {
 		ZN_PROFILE_SCOPE();
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
 
-		// Each LOD keeps a box of loaded blocks, and only some of the blocks will get polygonized.
+		// Each LOD keeps a box of loaded chunks, and only some of the chunks will get polygonized.
 		// The player can edit them so changes can be propagated to lower lods.
 
 		const unsigned int chunk_size_po2_lod = chunk_size_po2 + lod_index;
@@ -102,7 +102,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 			break;
 		}
 
-		// Eliminate pending blocks that aren't needed
+		// Eliminate pending chunks that aren't needed
 
 		if (prev_box != new_box) {
 			ZN_PROFILE_SCOPE_NAMED("Unload data");
@@ -119,7 +119,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 
 		{
 			ZN_PROFILE_SCOPE_NAMED("Cancel updates");
-			// Cancel block updates that are not within the padded region
+			// Cancel chunk updates that are not within the padded region
 			// (since neighbors are always required to remesh)
 
 			const Box3i padded_new_box = new_box.padded(-1);
@@ -152,7 +152,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector3 p_viewer_pos,
 		const VoxelLodTerrainUpdateData::Settings &settings, const VoxelData &data) {
 	ZN_PROFILE_SCOPE_NAMED("Sliding box mesh unload");
-	// TODO Could it actually be enough to have a rolling update on all blocks?
+	// TODO Could it actually be enough to have a rolling update on all chunks?
 
 	// This should be the same distance relatively to each LOD
 	const int chunk_mesh_size_po2 = settings.chunk_mesh_size_po2;
@@ -163,7 +163,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 	const Box3i bounds_in_voxels = data.get_bounds();
 
 	// Ignore largest lod because it can extend a little beyond due to the view distance setting.
-	// Instead, those blocks are unloaded by the octree forest management.
+	// Instead, those chunks are unloaded by the octree forest management.
 	// Iterating from big to small LOD so we can exit earlier if bounds don't intersect.
 	for (int lod_index = lod_count - 2; lod_index >= 0; --lod_index) {
 		ZN_PROFILE_SCOPE();
@@ -186,7 +186,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 			break;
 		}
 
-		// Eliminate pending blocks that aren't needed
+		// Eliminate pending chunks that aren't needed
 
 		if (prev_box != new_box) {
 			ZN_PROFILE_SCOPE_NAMED("Unload meshes");
@@ -203,7 +203,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 
 		{
 			ZN_PROFILE_SCOPE_NAMED("Cancel updates");
-			// Cancel block updates that are not within the new region
+			// Cancel chunk updates that are not within the new region
 			unordered_remove_if(lod.blocks_pending_update, [new_box](Vector3i bpos) { //
 				return !new_box.contains(bpos);
 			});
@@ -267,7 +267,7 @@ void process_octrees_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector
 
 				const unsigned int last_lod_index = lod_count - 1;
 
-				// We just drop the octree and hide blocks it was considering as visible.
+				// We just drop the octree and hide chunks it was considering as visible.
 				// Normally such octrees shouldn't bee too deep as they will likely be at the edge
 				// of the loaded area, unless the player teleported far away.
 				CleanOctreeAction a{ state, block_pos_maxlod << last_lod_index };
@@ -354,15 +354,15 @@ bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const Vox
 				ERR_FAIL_COND_V(!check_chunk_sizes(chunk_size, chunk_mesh_size), false);
 #endif
 				// TODO Why are we only checking neighbors?
-				// This is also redundant when called from `check_block_loaded_and_meshed`
+				// This is also redundant when called from `check_chunk_loaded_and_meshed`
 
-				// Find data block neighbors positions
+				// Find data chunk neighbors positions
 				const int factor = chunk_mesh_size / chunk_size;
 				const Vector3i chunk_pos0 = factor * chunk_mesh_pos;
 				const Box3i data_box(
 						chunk_pos0 - Vector3i(1, 1, 1), Vector3iUtil::create(factor) + Vector3i(2, 2, 2));
 				const Box3i bounds = data.get_bounds().downscaled(chunk_size);
-				// 56 is the maximum amount of positions that can be gathered this way with mesh block size 32.
+				// 56 is the maximum amount of positions that can be gathered this way with mesh chunk size 32.
 				FixedArray<Vector3i, 56> neighbor_positions;
 				unsigned int neighbor_positions_count = 0;
 				data_box.for_inner_outline([bounds, &neighbor_positions, &neighbor_positions_count](Vector3i pos) {
@@ -447,9 +447,9 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 #ifdef DEBUG_ENABLED
 		ERR_FAIL_COND_V(!check_chunk_sizes(chunk_size, chunk_mesh_size), false);
 #endif
-		// We want to know everything about the data intersecting this mesh block.
+		// We want to know everything about the data intersecting this chunk mesh.
 		// This is not known in advance when we stream it, it has to be requested.
-		// When not streaming, `block == null` is the same as `!block->has_voxels()` so we wouldn't need to enter here.
+		// When not streaming, `chunk == null` is the same as `!chunk->has_voxels()` so we wouldn't need to enter here.
 
 		static thread_local std::vector<Vector3i> tls_missing;
 		tls_missing.clear();
@@ -493,14 +493,14 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 	uint8_t transition_mask = 0;
 
 	if (lod_index + 1 >= lod_count) {
-		// We do transitions on higher-resolution blocks.
-		// Therefore, lowest-resolution blocks never have transitions.
+		// We do transitions on higher-resolution chunks.
+		// Therefore, lowest-resolution chunks never have transitions.
 		return transition_mask;
 	}
 
 	const VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
 
-	// Based on octree rules, and the fact it must have run before, check neighbor blocks of same LOD:
+	// Based on octree rules, and the fact it must have run before, check neighbor chunks of same LOD:
 	// If one is missing or not visible, it means either of the following:
 	// - The neighbor at lod+1 is visible or not loaded (there must be a transition)
 	// - The neighbor at lod-1 is visible (no transition)
@@ -544,7 +544,7 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 
 				if (lower_neighbor_block_it != lower_lod.mesh_map_state.map.end() &&
 						lower_neighbor_block_it->second.active) {
-					// The block has a visible neighbor of lower LOD
+					// The chunk has a visible neighbor of lower LOD
 					transition_mask |= dir_mask;
 					continue;
 				}
@@ -568,7 +568,7 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 
 				if (upper_neighbor_block_it == upper_lod.mesh_map_state.map.end() ||
 						upper_neighbor_block_it->second.active == false) {
-					// The block has no visible neighbor yet. World border? Assume lower LOD.
+					// The chunk has no visible neighbor yet. World border? Assume lower LOD.
 					transition_mask |= dir_mask;
 				}
 			}
@@ -631,7 +631,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				CRASH_COND(chunk_mesh_it == lod.mesh_map_state.map.end());
 				CRASH_COND(chunk_mesh_it->second.state != VoxelLodTerrainUpdateData::MESH_UP_TO_DATE);
 
-				// self->set_chunk_mesh_active(*block, true);
+				// self->set_chunk_mesh_active(*chunk, true);
 				lod.chunk_meshes_to_activate.push_back(bpos);
 				chunk_mesh_it->second.active = true;
 				lods_to_update_transitions |= (0b111 << lod_index);
@@ -643,7 +643,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				if (chunk_mesh_it != lod.mesh_map_state.map.end()) {
-					// self->set_chunk_mesh_active(*block, false);
+					// self->set_chunk_mesh_active(*chunk, false);
 					chunk_mesh_it->second.active = false;
 					lod.chunk_meshes_to_deactivate.push_back(bpos);
 					lods_to_update_transitions |= (0b111 << lod_index);
@@ -656,12 +656,12 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				// If we teleport far away, the area we were in is going to merge,
-				// and blocks may have been unloaded completely.
-				// So in that case it's normal to not find any block.
+				// and chunks may have been unloaded completely.
+				// So in that case it's normal to not find any chunk.
 				// Otherwise, there must always be a visible parent in the end, unless the octree vanished.
 				if (chunk_mesh_it != lod.mesh_map_state.map.end() &&
 						chunk_mesh_it->second.state == VoxelLodTerrainUpdateData::MESH_UP_TO_DATE) {
-					// self->set_chunk_mesh_active(*block, true);
+					// self->set_chunk_mesh_active(*chunk, true);
 					chunk_mesh_it->second.active = true;
 					lod.chunk_meshes_to_activate.push_back(bpos);
 					lods_to_update_transitions |= (0b111 << lod_index);
@@ -694,21 +694,21 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 
 				// Can only subdivide if higher detail meshes are ready to be shown, otherwise it will produce holes
 				for (int i = 0; i < 8; ++i) {
-					// Get block pos local-to-region + convert to local-to-terrain
+					// Get chunk pos local-to-region + convert to local-to-terrain
 					const Vector3i child_pos = LodOctree::get_child_position(node_pos, i) + offset;
 					// We have to ping ALL children, because the reason we are here is we want them loaded
 					can &= check_block_loaded_and_meshed(
 							state, settings, data, child_pos, child_lod_index, chunks_to_load);
 				}
 
-				// Can only subdivide if blocks of a higher LOD index are present around,
+				// Can only subdivide if chunks of a higher LOD index are present around,
 				// otherwise it will cause cracks.
 				// Need to check meshes, not voxels?
 				// const int lod_index = child_lod_index + 1;
 				// if (lod_index < self->get_lod_count()) {
-				// 	const Vector3i parent_offset = block_offset_lod0 >> lod_index;
+				// 	const Vector3i parent_offset = chunk_offset_lod0 >> lod_index;
 				// 	const Lod &lod = self->_lods[lod_index];
-				// 	can &= self->is_block_surrounded(node_pos + parent_offset, lod_index, lod.map);
+				// 	can &= self->is_chunk_surrounded(node_pos + parent_offset, lod_index, lod.map);
 				// }
 
 				if (!can) {
@@ -731,13 +731,13 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				if (chunk_mesh_it == lod.mesh_map_state.map.end()) {
-					// The block got unloaded. Exceptionally, we can join.
+					// The chunk got unloaded. Exceptionally, we can join.
 					// There will always be a grand-parent because we never destroy them when they split,
 					// and we never create a child without creating a parent first.
 					return true;
 				}
 
-				// The block is loaded (?) but the mesh isn't up to date, we need to ping and wait.
+				// The chunk is loaded (?) but the mesh isn't up to date, we need to ping and wait.
 				const bool can = check_block_mesh_updated(
 						state, data, chunk_mesh_it->second, bpos, parent_lod_index, chunks_to_load, settings);
 
@@ -771,15 +771,15 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 	}
 
 	// Ideally, this stat should stabilize to zero.
-	// If not, something in block management prevents LODs from properly show up and should be fixed.
+	// If not, something in chunk management prevents LODs from properly show up and should be fixed.
 	state.stats.blocked_lods = blocked_octree_nodes;
 	state.had_blocked_octree_nodes_previous_update = blocked_octree_nodes > 0;
 
 	// TODO Optimize: this works but it's not smart.
 	// It doesn't take too long (100 microseconds when octrees update with lod distance 60).
-	// We used to only update positions based on which blocks were added/removed in the octree update,
+	// We used to only update positions based on which chunks were added/removed in the octree update,
 	// which was faster than this. However it missed some spots, which caused annoying cracks to show up.
-	// So instead, when any block changes state in LOD N, we update all transitions in LODs N-1, N, and N+1.
+	// So instead, when any chunk changes state in LOD N, we update all transitions in LODs N-1, N, and N+1.
 	// It is unclear yet why the old approach didn't work, maybe because it didn't properly made N-1 and N+1 update.
 	// If you find a better approach, it has to comply with the validation check below.
 	if (lods_to_update_transitions != 0) {
@@ -838,7 +838,7 @@ static void init_sparse_octree_priority_dependency(PriorityDependency &dep, Vect
 	const float transformed_block_radius =
 			volume_transform.basis.xform(Vector3(block_radius, block_radius, block_radius)).length();
 
-	// Distance beyond which it is safe to drop a block without risking to block LOD subdivision.
+	// Distance beyond which it is safe to drop a chunk without risking to chunk LOD subdivision.
 	// This does not depend on viewer's view distance, but on LOD precision instead.
 	// TODO Should `chunk_size` be used here? Should it be chunk_mesh_size instead?
 	dep.drop_distance_squared = math::squared(2.f * transformed_block_radius *
@@ -875,7 +875,7 @@ static void request_block_generate(VolumeID volume_id, unsigned int chunk_size,
 	task_scheduler.push_main_task(task);
 }
 
-// Used only when streaming block by block
+// Used only when streaming chunk by chunk
 static void request_block_load(VolumeID volume_id, unsigned int chunk_size,
 		std::shared_ptr<StreamingDependency> &stream_dependency, const std::shared_ptr<VoxelData> &data,
 		Vector3i block_pos, int lod, bool request_instances,
@@ -897,7 +897,7 @@ static void request_block_load(VolumeID volume_id, unsigned int chunk_size,
 		task_scheduler.push_io_task(task);
 
 	} else if (settings.cache_generated_blocks) {
-		// Directly generate the block without checking the stream.
+		// Directly generate the chunk without checking the stream.
 		request_block_generate(volume_id, chunk_size, stream_dependency, data, block_pos, lod, shared_viewers_data,
 				volume_transform, settings, nullptr, true, task_scheduler);
 
@@ -987,15 +987,15 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 			const Vector3i chunk_mesh_pos = lod.blocks_pending_update[bi];
 
 			auto chunk_mesh_it = lod.mesh_map_state.map.find(chunk_mesh_pos);
-			// A block must have been allocated before we ask for a mesh update
+			// A chunk must have been allocated before we ask for a mesh update
 			ZN_ASSERT_CONTINUE(chunk_mesh_it != lod.mesh_map_state.map.end());
 			VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh = chunk_mesh_it->second;
-			// All blocks we get here must be in the scheduled state
+			// All chunks we get here must be in the scheduled state
 			ZN_ASSERT_CONTINUE(chunk_mesh.state == VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT);
 
-			// Get block and its neighbors
+			// Get chunk and its neighbors
 			// VoxelEngine::ChunkMeshInput mesh_request;
-			// mesh_request.render_block_position = chunk_mesh_pos;
+			// mesh_request.render_chunk_position = chunk_mesh_pos;
 			// mesh_request.lod = lod_index;
 
 			// We'll allocate this quite often. If it becomes a problem, it should be easy to pool.
@@ -1027,13 +1027,13 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 							.padded(1);
 
 			// Iteration order matters for thread access.
-			// The array also implicitly encodes block position due to the convention being used,
+			// The array also implicitly encodes chunk position due to the convention being used,
 			// so there is no need to also include positions in the request
 			data.get_blocks_with_voxel_data(data_box, lod_index, to_span(task->blocks));
 			task->blocks_count = Vector3iUtil::get_volume(data_box.size);
 
 			// TODO There is inconsistency with coordinates sent to this function.
-			// Sometimes we send data block coordinates, sometimes we send mesh block coordinates. They aren't always
+			// Sometimes we send data chunk coordinates, sometimes we send mesh chunk coordinates. They aren't always
 			// the same, it might cause issues in priority sorting?
 			init_sparse_octree_priority_dependency(task->priority_dependency, task->chunk_mesh_position,
 					task->lod_index, chunk_mesh_size, shared_viewers_data, volume_transform, settings.lod_distance);
@@ -1047,8 +1047,8 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 	}
 }
 
-// Generates all non-present blocks in preparation for an edit.
-// This function schedules one parallel task for every block.
+// Generates all non-present chunks in preparation for an edit.
+// This function schedules one parallel task for every chunk.
 // The returned tracker may be polled to detect when it is complete.
 static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerrainUpdateData::State &state,
 		const VoxelLodTerrainUpdateData::Settings &settings, const std::shared_ptr<VoxelData> data_ptr,
@@ -1083,7 +1083,7 @@ static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerra
 			const Box3i block_box = voxel_box.downscaled(chunk_size << lod_index);
 
 			// ZN_PRINT_VERBOSE(String("Preloading box {0} at lod {1}")
-			// 						.format(varray(block_box.to_string(), lod_index)));
+			// 						.format(varray(chunk_box.to_string(), lod_index)));
 
 			static thread_local std::vector<Vector3i> tls_missing;
 			tls_missing.clear();
@@ -1191,7 +1191,7 @@ static void process_changed_generated_areas(VoxelLodTerrainUpdateData::State &st
 			const Box3i &voxel_box = *box_it;
 			const Box3i bbox = voxel_box.padded(1).downscaled(chunk_mesh_size << lod_index);
 
-			// TODO If there are cached generated blocks, they need to be re-cached or removed
+			// TODO If there are cached generated chunks, they need to be re-cached or removed
 
 			RWLockRead rlock(lod.mesh_map_state.map_lock);
 
@@ -1255,7 +1255,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 
 	// Update pending LOD data modifications due to edits.
 	// These are deferred from edits so we can batch them.
-	// It has to happen first because blocks can be unloaded afterwards.
+	// It has to happen first because chunks can be unloaded afterwards.
 	// This is also what causes meshes to update after edits.
 	flush_pending_lod_edits(state, data, 1 << settings.chunk_mesh_size_po2);
 
@@ -1268,22 +1268,22 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 
 	profiling_clock.restart();
 	{
-		// Unload data blocks falling out of block region extent
+		// Unload data chunks falling out of chunk region extent
 		if (data.is_streaming_enabled()) {
 			process_unload_chunks_sliding_box(
 					state, data, _viewer_pos, chunks_to_save, stream.is_valid(), settings);
 		}
 
-		// Unload mesh blocks falling out of block region extent
+		// Unload mesh chunks falling out of chunk region extent
 		process_unload_chunk_meshes_sliding_box(state, _viewer_pos, settings, data);
 
 		// Create and remove octrees in a grid around the viewer.
-		// Mesh blocks drive the loading of voxel data and visuals.
+		// Mesh chunks drive the loading of voxel data and visuals.
 		process_octrees_sliding_box(state, _viewer_pos, settings, data);
 
 		state.stats.blocked_lods = 0;
 
-		// Find which blocks we need to load and see, within each octree
+		// Find which chunks we need to load and see, within each octree
 		if (stream_enabled) {
 			process_octrees_fitting(state, settings, data, _viewer_pos, chunks_to_load);
 		}
@@ -1304,7 +1304,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 
 			if (stream.is_null() && !settings.cache_generated_blocks) {
 				// TODO Optimization: not ideal because a bit delayed. It requires a second update cycle for meshes to
-				// get requested. We could instead set those empty blocks right away instead of putting them in that
+				// get requested. We could instead set those empty chunks right away instead of putting them in that
 				// list, but it's simpler code for now.
 				apply_block_data_requests_as_empty(to_span(chunks_to_load), data, state);
 

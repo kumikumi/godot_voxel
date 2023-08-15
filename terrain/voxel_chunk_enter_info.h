@@ -10,7 +10,7 @@ namespace gd {
 class VoxelBuffer;
 }
 
-// Information sent with data block entering notifications.
+// Information sent with data chunk entering notifications.
 // It is a class for script API convenience.
 // You may neither create this object on your own, nor keep a reference to it.
 class VoxelChunkEnterInfo : public Object {
@@ -18,8 +18,8 @@ class VoxelChunkEnterInfo : public Object {
 public:
 	int network_peer_id = -1;
 	Vector3i block_position;
-	// Shallow copy of the block. We don't use a pointer due to thread-safety, so this information represents only the
-	// moment where the block was inserted into the map.
+	// Shallow copy of the chunk. We don't use a pointer due to thread-safety, so this information represents only the
+	// moment where the chunk was inserted into the map.
 	VoxelChunkData voxel_block;
 
 private:

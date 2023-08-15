@@ -34,10 +34,10 @@ public:
 	VoxelGenerator();
 
 	struct Result {
-		// Used for block optimization when LOD is used.
+		// Used for chunk optimization when LOD is used.
 		// If this is `false`, more precise data may be found if a lower LOD index is requested.
-		// If `true`, any block below this LOD are considered to not bring more details or will be the same.
-		// This allows to reduce the number of blocks to load when LOD is used.
+		// If `true`, any chunk below this LOD are considered to not bring more details or will be the same.
+		// This allows to reduce the number of chunks to load when LOD is used.
 		bool max_lod_hint = false;
 	};
 
@@ -114,8 +114,8 @@ public:
 	void invalidate_shaders();
 
 	// Requests to generate a broad result, which is supposed to be faster to obtain than full generation.
-	// If it returns true, the returned block may be used as if it was a result from `generate_chunk`.
-	// If it returns false, no block is returned and full generation should be used.
+	// If it returns true, the returned chunk may be used as if it was a result from `generate_chunk`.
+	// If it returns false, no chunk is returned and full generation should be used.
 	// Usually, `generate_chunk` can do this anyways internally, but in some cases like GPU generation it may be used
 	// to avoid sending work to the graphics card.
 	virtual bool generate_broad_block(VoxelQueryData &input);

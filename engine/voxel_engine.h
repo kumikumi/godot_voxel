@@ -45,7 +45,7 @@ public:
 		// TODO Optimize: candidate for small vector optimization. A big majority of meshes will have a handful of
 		// surfaces, which would fit here without allocating.
 		std::vector<uint8_t> mesh_material_indices;
-		// In mesh block coordinates
+		// In chunk mesh coordinates
 		Vector3i position;
 		// TODO Rename lod_index
 		uint8_t lod;
@@ -64,8 +64,8 @@ public:
 		};
 
 		Type type;
-		// If voxels are null with TYPE_LOADED, it means no block was found in the stream (if any) and no generator task
-		// was scheduled. This is the case when we don't want to cache blocks of generated data.
+		// If voxels are null with TYPE_LOADED, it means no chunk was found in the stream (if any) and no generator task
+		// was scheduled. This is the case when we don't want to cache chunks of generated data.
 		std::shared_ptr<VoxelBufferInternal> voxels;
 		UniquePtr<InstanceChunkData> instances;
 		Vector3i position;
@@ -73,7 +73,7 @@ public:
 		bool dropped;
 		bool max_lod_hint;
 		// Blocks with this flag set should not be ignored.
-		// This is used when data streaming is off, all blocks are loaded at once.
+		// This is used when data streaming is off, all chunks are loaded at once.
 		bool initial_load;
 	};
 
@@ -187,8 +187,8 @@ public:
 	}
 
 	static inline int get_octree_lod_block_region_extent(float lod_distance, float chunk_size) {
-		// This is a bounding radius of blocks around a viewer within which we may load them.
-		// `lod_distance` is the distance under which a block should subdivide into a smaller one.
+		// This is a bounding radius of chunks around a viewer within which we may load them.
+		// `lod_distance` is the distance under which a chunk should subdivide into a smaller one.
 		// Each LOD is fractal so that value is the same for each of them, multiplied by 2^lod.
 		return static_cast<int>(Math::ceil(lod_distance / chunk_size)) * 2 + 2;
 	}

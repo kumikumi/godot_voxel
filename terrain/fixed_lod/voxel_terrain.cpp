@@ -232,7 +232,7 @@ void VoxelTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 		});
 	}
 
-	// Unload all mesh blocks regardless of refcount
+	// Unload all chunk meshes regardless of refcount
 	_mesh_map.clear();
 
 	// Make paired viewers re-view the new meshable area
@@ -246,7 +246,7 @@ void VoxelTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 
 	// VoxelEngine::get_singleton().set_volume_render_chunk_size(_volume_id, chunk_mesh_size);
 
-	// No update on bounds because we can support a mismatch, as long as it is a multiple of data block size
+	// No update on bounds because we can support a mismatch, as long as it is a multiple of data chunk size
 	// set_bounds(_bounds_in_voxels);
 }
 
@@ -413,7 +413,7 @@ void VoxelTerrain::try_schedule_mesh_update(VoxelChunkMeshVT &chunk_mesh) {
 		return;
 	}
 	if (chunk_mesh.mesh_viewers.get() == 0 && chunk_mesh.collision_viewers.get() == 0) {
-		// No viewers want mesh on this block (why even call this function then?)
+		// No viewers want mesh on this chunk (why even call this function then?)
 		return;
 	}
 
@@ -428,8 +428,8 @@ void VoxelTerrain::try_schedule_mesh_update(VoxelChunkMeshVT &chunk_mesh) {
 	const bool data_available = _data->has_all_blocks_in_area(data_box);
 
 	if (data_available) {
-		// Regardless of if the updater is updating the block already,
-		// the block could have been modified again so we schedule another update
+		// Regardless of if the updater is updating the chunk already,
+		// the chunk could have been modified again so we schedule another update
 		chunk_mesh.is_in_update_list = true;
 		_blocks_pending_update.push_back(chunk_mesh.position);
 	}
@@ -458,9 +458,9 @@ void VoxelTerrain::view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision
 		block->collision_viewers.add();
 	}
 
-	// This is needed in case a viewer wants to view meshes in places data blocks are already present.
-	// Before that, meshes were updated only when a data block was loaded or modified,
-	// so changing block size or viewer flags did not make meshes appear.
+	// This is needed in case a viewer wants to view meshes in places data chunks are already present.
+	// Before that, meshes were updated only when a data chunk was loaded or modified,
+	// so changing chunk size or viewer flags did not make meshes appear.
 	try_schedule_mesh_update(*block);
 
 	// TODO viewers with varying flags during the game is not supported at the moment.
@@ -469,7 +469,7 @@ void VoxelTerrain::view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision
 
 void VoxelTerrain::unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag) {
 	VoxelChunkMeshVT *block = _mesh_map.get_block(bpos);
-	// Mesh blocks are created on first view call,
+	// Chunk meshes are created on first view call,
 	// so that would mean we unview one without viewing it in the first place
 	ERR_FAIL_COND(block == nullptr);
 
@@ -499,8 +499,8 @@ void VoxelTerrain::unload_chunk_mesh(Vector3i bpos) {
 
 	_mesh_map.remove_block(bpos, [&blocks_pending_update](const VoxelChunkMeshVT &block) {
 		if (block.is_in_update_list) {
-			// That block was in the list of blocks to update later in the process loop, we'll need to unregister
-			// it. We expect that block to be in that list. If it isn't, something wrong happened with its state.
+			// That chunk was in the list of chunks to update later in the process loop, we'll need to unregister
+			// it. We expect that chunk to be in that list. If it isn't, something wrong happened with its state.
 			ERR_FAIL_COND(!unordered_remove_value(blocks_pending_update, block.position));
 		}
 	});
@@ -637,7 +637,7 @@ void VoxelTerrain::generate_chunk_async(Vector3i block_position) {
 	}
 
 	// if (require_notification) {
-	// 	new_loading_block.viewers_to_notify.push_back(viewer_id);
+	// 	new_loading_chunk.viewers_to_notify.push_back(viewer_id);
 	// }
 
 	LoadingBlock new_loading_block;
@@ -698,11 +698,11 @@ void VoxelTerrain::post_edit_voxel(Vector3i pos) {
 
 void VoxelTerrain::try_schedule_mesh_update_from_data(const Box3i &box_in_voxels) {
 	ZN_PROFILE_SCOPE();
-	// We pad by 1 because neighbor blocks might be affected visually (for example, baked ambient occlusion)
+	// We pad by 1 because neighbor chunks might be affected visually (for example, baked ambient occlusion)
 	const Box3i mesh_box = box_in_voxels.padded(1).downscaled(get_chunk_mesh_size());
 	mesh_box.for_each_cell([this](Vector3i pos) {
 		VoxelChunkMeshVT *block = _mesh_map.get_block(pos);
-		// There isn't necessarily a mesh block, if the edit happens in a boundary,
+		// There isn't necessarily a chunk mesh, if the edit happens in a boundary,
 		// or if it is done next to a viewer that doesn't need meshes
 		if (block != nullptr) {
 			try_schedule_mesh_update(*block);
@@ -831,8 +831,8 @@ static void init_sparse_grid_priority_dependency(PriorityDependency &dep, Vector
 	const float transformed_block_radius =
 			volume_transform.basis.xform(Vector3(block_radius, block_radius, block_radius)).length();
 
-	// Distance beyond which no field of view can overlap the block.
-	// Doubling block radius to account for an extra margin of blocks,
+	// Distance beyond which no field of view can overlap the chunk.
+	// Doubling chunk radius to account for an extra margin of chunks,
 	// since they are used to provide neighbors when meshing
 	dep.drop_distance_squared =
 			math::squared(shared_viewers_data->highest_view_distance + 2.f * transformed_block_radius);
@@ -861,7 +861,7 @@ static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDepe
 		scheduler.push_io_task(task);
 
 	} else {
-		// Directly generate the block without checking the stream
+		// Directly generate the chunk without checking the stream
 		ERR_FAIL_COND(stream_dependency->generator.is_null());
 
 		GenerateChunkTask *task = ZN_NEW(GenerateChunkTask);
@@ -925,11 +925,11 @@ void VoxelTerrain::consume_block_data_save_requests(
 	}
 
 	if (saving_tracker != nullptr) {
-		// Using buffered count instead of `_blocks_to_save` because it can also contain tasks from VoxelInstancer
+		// Using buffered count instead of `_chunks_to_save` because it can also contain tasks from VoxelInstancer
 		saving_tracker->set_count(task_scheduler.get_io_count());
 	}
 
-	// print_line(String("Sending {0} block requests").format(varray(input.blocks_to_emerge.size())));
+	// print_line(String("Sending {0} chunk requests").format(varray(input.chunks_to_emerge.size())));
 	_blocks_to_save.clear();
 }
 
@@ -941,7 +941,7 @@ void VoxelTerrain::emit_chunk_data_loaded(Vector3i bpos) {
 	// them). It isn't planned to expose VoxelBuffer locks because there are too many of them, it may likely shift
 	// to another system in the future, and might even be changed to no longer inherit Reference. So unless this is
 	// absolutely necessary, buffers aren't exposed. Workaround: use VoxelTool
-	// const Variant vbuffer = block->voxels;
+	// const Variant vbuffer = chunk->voxels;
 	// const Variant *args[2] = { &vpos, &vbuffer };
 	emit_signal(VoxelStringNames::get_singleton().chunk_data_loaded, bpos);
 }
@@ -958,7 +958,7 @@ void VoxelTerrain::emit_chunk_mesh_entered(Vector3i bpos) {
 	// them). It isn't planned to expose VoxelBuffer locks because there are too many of them, it may likely shift
 	// to another system in the future, and might even be changed to no longer inherit Reference. So unless this is
 	// absolutely necessary, buffers aren't exposed. Workaround: use VoxelTool
-	// const Variant vbuffer = block->voxels;
+	// const Variant vbuffer = chunk->voxels;
 	// const Variant *args[2] = { &vpos, &vbuffer };
 	emit_signal(VoxelStringNames::get_singleton().chunk_mesh_entered, bpos);
 }
@@ -981,7 +981,7 @@ bool VoxelTerrain::try_get_paired_viewer_index(ViewerID id, size_t &out_i) const
 // TODO It is unclear yet if this API will stay. I have a feeling it might consume a lot of CPU
 void VoxelTerrain::notify_chunk_enter(const VoxelChunkData &block, Vector3i bpos, ViewerID viewer_id) {
 	if (!VoxelEngine::get_singleton().viewer_exists(viewer_id)) {
-		// The viewer might have been removed between the moment we requested the block and the moment we finished
+		// The viewer might have been removed between the moment we requested the chunk and the moment we finished
 		// loading it
 		return;
 	}
@@ -1040,7 +1040,7 @@ void VoxelTerrain::process_viewers() {
 			PairedViewer &p = _paired_viewers[i];
 			if (!VoxelEngine::get_singleton().viewer_exists(p.id)) {
 				ZN_PRINT_VERBOSE(format("Detected destroyed viewer {} in VoxelTerrain", p.id));
-				// Interpret removal as nullified view distance so the same code handling loading of blocks
+				// Interpret removal as nullified view distance so the same code handling loading of chunks
 				// will be used to unload those viewed by this viewer.
 				// We'll actually remove unpaired viewers in a second pass.
 				p.state.view_distance_voxels = 0;
@@ -1111,7 +1111,7 @@ void VoxelTerrain::process_viewers() {
 					const int render_to_data_factor = (chunk_mesh_size / chunk_size);
 					const Vector3i chunk_mesh_pos = math::floordiv(state.local_position_voxels, chunk_mesh_size);
 
-					// Adding one block of padding because meshing requires neighbors
+					// Adding one chunk of padding because meshing requires neighbors
 					view_distance_chunks = view_distance_chunk_meshes * render_to_data_factor + 1;
 
 					chunk_pos = chunk_mesh_pos * render_to_data_factor;
@@ -1144,7 +1144,7 @@ void VoxelTerrain::process_viewers() {
 					(get_stream().is_valid() || get_generator().is_valid())) &&
 			(Engine::get_singleton()->is_editor_hint() == false || _run_stream_in_editor);
 
-	// Find out which blocks need to appear and which need to be unloaded
+	// Find out which chunks need to appear and which need to be unloaded
 	{
 		ZN_PROFILE_SCOPE();
 
@@ -1167,11 +1167,11 @@ void VoxelTerrain::process_viewers() {
 				if (prev_mesh_box != new_mesh_box) {
 					ZN_PROFILE_SCOPE();
 
-					// TODO Any reason to unview old blocks before viewing new blocks?
+					// TODO Any reason to unview old chunks before viewing new chunks?
 					// Because if a viewer is removed and another is added, it will reload the whole area even if their
 					// box is the same.
 
-					// Unview blocks that just fell out of range
+					// Unview chunks that just fell out of range
 					prev_mesh_box.difference(new_mesh_box, [this, &viewer](Box3i out_of_range_box) {
 						out_of_range_box.for_each_cell([this, &viewer](Vector3i bpos) {
 							unview_chunk_mesh(
@@ -1179,17 +1179,17 @@ void VoxelTerrain::process_viewers() {
 						});
 					});
 
-					// View blocks that just entered the range
+					// View chunks that just entered the range
 					new_mesh_box.difference(prev_mesh_box, [this, &viewer](Box3i box_to_load) {
 						box_to_load.for_each_cell([this, &viewer](Vector3i bpos) {
-							// Load or update block
+							// Load or update chunk
 							view_chunk_mesh(bpos, viewer.state.requires_meshes, viewer.state.requires_collisions);
 						});
 					});
 				}
 
 				// Blocks that remained within range of the viewer may need some changes too if viewer flags were
-				// modified. This operates on a DISTINCT set of blocks than the one above.
+				// modified. This operates on a DISTINCT set of chunks than the one above.
 
 				if (viewer.state.requires_collisions != viewer.prev_state.requires_collisions) {
 					const Box3i box = new_mesh_box.clipped(prev_mesh_box);
@@ -1253,9 +1253,9 @@ void VoxelTerrain::process_viewer_data_box_change(
 	static thread_local std::vector<Vector3i> tls_missing_blocks;
 	static thread_local std::vector<Vector3i> tls_found_blocks_positions;
 
-	// Unview blocks that just fell out of range
+	// Unview chunks that just fell out of range
 	//
-	// TODO Any reason to unview old blocks before viewing new blocks?
+	// TODO Any reason to unview old chunks before viewing new chunks?
 	// Because if a viewer is removed and another is added, it will reload the whole area even if their box is the same.
 	{
 		const bool may_save =
@@ -1264,20 +1264,20 @@ void VoxelTerrain::process_viewer_data_box_change(
 		tls_missing_blocks.clear();
 		tls_found_blocks_positions.clear();
 
-		// Decrement refcounts from loaded blocks, and unload them
+		// Decrement refcounts from loaded chunks, and unload them
 		prev_data_box.difference(new_data_box, [this, may_save](Box3i out_of_range_box) {
 			// ZN_PRINT_VERBOSE(format("Unview data box {}", out_of_range_box));
 			_data->unview_area(out_of_range_box, tls_missing_blocks, tls_found_blocks_positions,
 					may_save ? &_blocks_to_save : nullptr);
 		});
 
-		// Remove loading blocks (those were loaded and had their refcount reach zero)
+		// Remove loading chunks (those were loaded and had their refcount reach zero)
 		for (const Vector3i bpos : tls_found_blocks_positions) {
 			emit_chunk_data_unloaded(bpos);
 			_loading_blocks.erase(bpos);
 		}
 
-		// Remove refcount from loading blocks, and cancel loading if it reaches zero
+		// Remove refcount from loading chunks, and cancel loading if it reaches zero
 		for (const Vector3i bpos : tls_missing_blocks) {
 			auto loading_block_it = _loading_blocks.find(bpos);
 			if (loading_block_it == _loading_blocks.end()) {
@@ -1305,7 +1305,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 		}
 	}
 
-	// View blocks coming into range
+	// View chunks coming into range
 	if (can_load_blocks) {
 		const bool require_notifications =
 				(_block_enter_notification_enabled ||
@@ -1324,7 +1324,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 			_data->view_area(box_to_load, tls_missing_blocks, tls_found_blocks_positions, tls_found_blocks);
 		});
 
-		// Schedule loading of missing blocks
+		// Schedule loading of missing chunks
 		for (const Vector3i missing_bpos : tls_missing_blocks) {
 			auto loading_block_it = _loading_blocks.find(missing_bpos);
 
@@ -1353,7 +1353,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 		}
 
 		if (require_notifications) {
-			// Notifications for blocks that were already loaded
+			// Notifications for chunks that were already loaded
 			for (unsigned int i = 0; i < tls_found_blocks.size(); ++i) {
 				const Vector3i bpos = tls_found_blocks_positions[i];
 				const VoxelChunkData &block = tls_found_blocks[i];
@@ -1373,7 +1373,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	ZN_PROFILE_SCOPE();
 
-	// print_line(String("Receiving {0} blocks").format(varray(output.emerged_blocks.size())));
+	// print_line(String("Receiving {0} chunks").format(varray(output.emerged_chunks.size())));
 
 	if (ob.type == VoxelEngine::ChunkDataOutput::TYPE_SAVED) {
 		if (ob.dropped) {
@@ -1388,7 +1388,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	const Vector3i block_pos = ob.position;
 
 	if (ob.dropped) {
-		// That block was cancelled by the server, but we are still expecting it.
+		// That chunk was cancelled by the server, but we are still expecting it.
 		// We'll have to request it again.
 		ZN_PRINT_VERBOSE(format("Received a block loading drop while we were still expecting it: "
 								"lod{} ({}, {}, {}), re-requesting it",
@@ -1405,7 +1405,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		auto loading_block_it = _loading_blocks.find(block_pos);
 
 		if (loading_block_it == _loading_blocks.end()) {
-			// That block was not requested or is no longer needed, drop it.
+			// That chunk was not requested or is no longer needed, drop it.
 			++_stats.dropped_block_loads;
 			return;
 		}
@@ -1413,7 +1413,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		// Using move semantics because it can contain an allocated vector
 		loading_block = std::move(loading_block_it->second);
 
-		// Now we got the block. If we still have to drop it, the cause will be an error.
+		// Now we got the chunk. If we still have to drop it, the cause will be an error.
 		_loading_blocks.erase(loading_block_it);
 	}
 
@@ -1421,11 +1421,11 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	VoxelChunkData block(ob.voxels, ob.lod_index);
 	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
-	// Viewers will be set only if the block doesn't already exist
+	// Viewers will be set only if the chunk doesn't already exist
 	block.viewers = loading_block.viewers;
 
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
-		// Voxel block size is incorrect, drop it
+		// Voxel chunk size is incorrect, drop it
 		ZN_PRINT_ERROR("Block is different from expected size");
 		++_stats.dropped_block_loads;
 		return;
@@ -1443,15 +1443,15 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		notify_chunk_enter(block, block_pos, viewer_id);
 	}
 
-	// The block itself might not be suitable for meshing yet, but blocks surrounding it might be now
+	// The chunk itself might not be suitable for meshing yet, but chunks surrounding it might be now
 	// TODO Optimize: initial loading can hang for a while here.
-	// Because lots of blocks are loaded at once, which leads to many block queries.
+	// Because lots of chunks are loaded at once, which leads to many chunk queries.
 	try_schedule_mesh_update_from_data(
 			Box3i(_data->block_to_voxel(block_pos), Vector3iUtil::create(get_chunk_size())));
 
-	// We might have requested some blocks again (if we got a dropped one while we still need them)
+	// We might have requested some chunks again (if we got a dropped one while we still need them)
 	// if (stream_enabled) {
-	// 	send_block_data_requests();
+	// 	send_chunk_data_requests();
 	// }
 
 	if (_instancer != nullptr && ob.instances != nullptr) {
@@ -1459,9 +1459,9 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	}
 }
 
-// Sets voxel data of a block, discarding existing data if any.
-// If the given block coordinates are not inside any viewer's area, this function won't do anything and return
-// false. If a block is already loading or generating at this position, it will be cancelled.
+// Sets voxel data of a chunk, discarding existing data if any.
+// If the given chunk coordinates are not inside any viewer's area, this function won't do anything and return
+// false. If a chunk is already loading or generating at this position, it will be cancelled.
 bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data) {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND_V(voxel_data == nullptr, false);
@@ -1472,7 +1472,7 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 				   "Expected {0}, got {1}")
 					.format(varray(expected_chunk_size, voxel_data->get_size())));
 
-	// Setup viewers count intersecting with this block
+	// Setup viewers count intersecting with this chunk
 	RefCount refcount;
 	for (unsigned int i = 0; i < _paired_viewers.size(); ++i) {
 		const PairedViewer &viewer = _paired_viewers[i];
@@ -1482,8 +1482,8 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 	}
 
 	if (refcount.get() == 0) {
-		// Actually, this block is not even in range. So we may ignore it.
-		// If we don't want this behavior, we could introduce a fake viewer that adds a reference to all blocks in
+		// Actually, this chunk is not even in range. So we may ignore it.
+		// If we don't want this behavior, we could introduce a fake viewer that adds a reference to all chunks in
 		// this volume as long as it is enabled?
 		ZN_PRINT_VERBOSE("Trying to set a data block outside of any viewer range");
 		return false;
@@ -1497,13 +1497,13 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 	block.set_edited(true);
 	block.viewers = refcount;
 
-	// Create or update block data
+	// Create or update chunk data
 	_data->try_set_block(position, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
 		existing_block.set_voxels(incoming_block.get_voxels_shared());
 		existing_block.set_edited(incoming_block.is_edited());
 	});
 
-	// The block itself might not be suitable for meshing yet, but blocks surrounding it might be now
+	// The chunk itself might not be suitable for meshing yet, but chunks surrounding it might be now
 	try_schedule_mesh_update_from_data(
 			Box3i(_data->block_to_voxel(position), Vector3iUtil::create(get_chunk_size())));
 
@@ -1546,14 +1546,14 @@ void VoxelTerrain::process_meshing() {
 				Box3i(chunk_mesh_pos * mesh_to_data_factor, Vector3iUtil::create(mesh_to_data_factor)).padded(1);
 
 #ifdef DEBUG_ENABLED
-		// We must have picked up a valid data block
+		// We must have picked up a valid data chunk
 		{
 			const Vector3i anchor_pos = data_box.pos + Vector3i(1, 1, 1);
 			ZN_ASSERT_CONTINUE(_data->has_block(anchor_pos, 0));
 		}
 #endif
 
-		// print_line(String("DDD request {0}").format(varray(mesh_request.render_block_position.to_vec3())));
+		// print_line(String("DDD request {0}").format(varray(mesh_request.render_chunk_position.to_vec3())));
 		// We'll allocate this quite often. If it becomes a problem, it should be easy to pool.
 		ChunkMeshTask *task = ZN_NEW(ChunkMeshTask);
 		task->volume_id = _volume_id;
@@ -1598,8 +1598,8 @@ void VoxelTerrain::process_meshing() {
 
 	_stats.time_request_blocks_to_update = profiling_clock.restart();
 
-	// print_line(String("d:") + String::num(_dirty_blocks.size()) + String(", q:") +
-	// String::num(_block_update_queue.size()));
+	// print_line(String("d:") + String::num(_dirty_chunks.size()) + String(", q:") +
+	// String::num(_chunk_update_queue.size()));
 }
 
 void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
@@ -1609,13 +1609,13 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 	VoxelChunkMeshVT *block = _mesh_map.get_block(ob.position);
 	if (block == nullptr) {
 		// print_line("- no longer loaded");
-		// That block is no longer loaded, drop the result
+		// That chunk is no longer loaded, drop the result
 		++_stats.dropped_block_meshes;
 		return;
 	}
 
 	if (ob.type == VoxelEngine::ChunkMeshOutput::TYPE_DROPPED) {
-		// That block is loaded, but its meshing request was dropped.
+		// That chunk is loaded, but its meshing request was dropped.
 		// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 		ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");
 		++_stats.dropped_block_meshes;
@@ -1651,7 +1651,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 	}
 
 	if (mesh.is_null() && block != nullptr) {
-		// No surface anymore in this block
+		// No surface anymore in this chunk
 		if (_instancer != nullptr) {
 			_instancer->on_chunk_mesh_exit(ob.position, ob.lod);
 		}
@@ -1689,7 +1689,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 	block->set_parent_transform(get_global_transform());
 	// TODO We don't set MESH_UP_TO_DATE anywhere, but it seems to work?
 	// Can't set the state because there could be more than one update in progress. Perhaps it needs refactoring.
-	// block->set_mesh_state(VoxelChunkMeshVT::MESH_UP_TO_DATE);
+	// chunk->set_mesh_state(VoxelChunkMeshVT::MESH_UP_TO_DATE);
 
 	block->is_loaded = true;
 }
@@ -1733,7 +1733,7 @@ void VoxelTerrain::set_bounds(Box3i box) {
 	Box3i bounds_in_voxels =
 			box.clipped(Box3i::from_center_extents(Vector3i(), Vector3iUtil::create(constants::MAX_VOLUME_EXTENT)));
 
-	// Round to block size
+	// Round to chunk size
 	bounds_in_voxels = bounds_in_voxels.snapped(get_chunk_size());
 
 	_data->set_bounds(bounds_in_voxels);
@@ -1763,7 +1763,7 @@ const VoxelTerrainMultiplayerSynchronizer *VoxelTerrain::get_multiplayer_synchro
 }
 
 bool VoxelTerrain::is_area_meshed(const Box3i &box_in_voxels) const {
-	// This assumes we store mesh blocks even when there is no mesh
+	// This assumes we store chunk meshes even when there is no mesh
 	const Box3i mesh_box = box_in_voxels.downscaled(get_chunk_mesh_size());
 	return mesh_box.all_cells_match([this](Vector3i bpos) {
 		const VoxelChunkMeshVT *block = _mesh_map.get_block(bpos);
@@ -1802,7 +1802,7 @@ Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_blocks() {
 	return VoxelSaveCompletionTracker::create(tracker);
 }
 
-// Explicitly ask to save a block if it was modified
+// Explicitly ask to save a chunk if it was modified
 void VoxelTerrain::_b_save_chunk(Vector3i p_block_pos) {
 	VoxelData::BlockToSave to_save;
 	if (_data->consume_block_modifications(p_block_pos, to_save)) {
@@ -1964,7 +1964,7 @@ void VoxelTerrain::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "area_edit_notification_enabled"), "set_area_edit_notification_enabled",
 			"is_area_edit_notification_enabled");
 
-	// This may be set to false in multiplayer designs where the server is the one sending the blocks
+	// This may be set to false in multiplayer designs where the server is the one sending the chunks
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "automatic_loading_enabled"), "set_automatic_loading_enabled",
 			"is_automatic_loading_enabled");
 
@@ -1976,7 +1976,7 @@ void VoxelTerrain::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "chunk_mesh_size"), "set_chunk_mesh_size", "get_chunk_mesh_size");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_gpu_generation"), "set_generator_use_gpu", "get_generator_use_gpu");
 
-	// TODO Add back access to block, but with an API securing multithreaded access
+	// TODO Add back access to chunk, but with an API securing multithreaded access
 	ADD_SIGNAL(MethodInfo("chunk_data_loaded", PropertyInfo(Variant::VECTOR3I, "position")));
 	ADD_SIGNAL(MethodInfo("chunk_data_unloaded", PropertyInfo(Variant::VECTOR3I, "position")));
 

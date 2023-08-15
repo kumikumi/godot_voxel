@@ -178,12 +178,12 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 	bool any_intersection = false;
 
 	// This version can be slower because we are trying to workaround a side-effect of fixed-point compression.
-	// Processing through the whole block is easier, but it can introduce artifacts because scaling and applying
+	// Processing through the whole chunk is easier, but it can introduce artifacts because scaling and applying
 	// modifiers can cause tiny changes all over the area when encoded back to snorm/i16/i8, not just inside the shape.
-	// Even if modifiers are made to do nothing, the presence of one in a mesh block and not in another block can
+	// Even if modifiers are made to do nothing, the presence of one in a mesh chunk and not in another chunk can
 	// produce a seam in between them (one will have evaluated SDF with it, and the other without). So we try to
-	// modify only the area that intersects the block, and we re-encode only what was modified.
-	// Another option later could be to use uncompressed blocks (32-bit float) when doing on-the-fly sampling?
+	// modify only the area that intersects the chunk, and we re-encode only what was modified.
+	// Another option later could be to use uncompressed chunks (32-bit float) when doing on-the-fly sampling?
 
 	thread_local std::vector<float> tls_block_sdf_initial;
 	thread_local std::vector<float> tls_block_sdf;
@@ -230,7 +230,7 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 			ctx.sdf = to_span(area_sdf);
 			modifier->apply(ctx);
 
-			// Write modifications back to the full-block decompressed buffer
+			// Write modifications back to the full-chunk decompressed buffer
 			// TODO Maybe use an unchecked version for a bit more speed?
 			copy_3d_region_zxy(to_span(tls_block_sdf), voxels.get_size(), local_origin_in_voxels,
 					Span<const float>(ctx.sdf), modifier_box.size, Vector3i(), modifier_box.size);
@@ -238,7 +238,7 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 	}
 
 	if (any_intersection) {
-		// scale_and_store_sdf(voxels, to_span(tls_block_sdf));
+		// scale_and_store_sdf(voxels, to_span(tls_chunk_sdf));
 		scale_and_store_sdf_if_modified(voxels, to_span(tls_block_sdf), to_span(tls_block_sdf_initial));
 		voxels.compress_uniform_channels();
 	}

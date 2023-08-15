@@ -152,7 +152,7 @@ void VoxelTool::_set_voxel_f(Vector3i pos, float v) {
 }
 
 // TODO May be worth using VoxelBuffer::read_write_action() in the future with a lambda,
-// so we avoid the burden of going through get/set, validation and rehash access to blocks.
+// so we avoid the burden of going through get/set, validation and rehash access to chunks.
 // Would work well by avoiding virtual as well using a specialized implementation.
 
 namespace {

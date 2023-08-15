@@ -21,7 +21,7 @@ void test_region_file() {
 			buffer.create(Vector3iUtil::create(chunk_size));
 			buffer.set_channel_depth(0, VoxelBufferInternal::DEPTH_16_BIT);
 
-			// Make a block with enough data to take some significant space even if compressed
+			// Make a chunk with enough data to take some significant space even if compressed
 			for (int z = 0; z < buffer.get_size().z; ++z) {
 				for (int x = 0; x < buffer.get_size().x; ++x) {
 					for (int y = 0; y < buffer.get_size().y; ++y) {
@@ -34,7 +34,7 @@ void test_region_file() {
 
 	RandomBlockGenerator generator;
 
-	// Create a block of voxels
+	// Create a chunk of voxels
 	VoxelBufferInternal voxel_buffer;
 	generator.generate(voxel_buffer);
 
@@ -53,7 +53,7 @@ void test_region_file() {
 		const Error open_error = region_file.open(region_file_path, true);
 		ZN_TEST_ASSERT(open_error == OK);
 
-		// Save block
+		// Save chunk
 		const Error save_error = region_file.save_chunk(Vector3i(1, 2, 3), voxel_buffer);
 		ZN_TEST_ASSERT(save_error == OK);
 
@@ -81,7 +81,7 @@ void test_region_file() {
 		// Must be equal
 		ZN_TEST_ASSERT(voxel_buffer.equals(loaded_voxel_buffer));
 	}
-	// Save many blocks
+	// Save many chunks
 	{
 		RegionFile region_file;
 
@@ -102,7 +102,7 @@ void test_region_file() {
 			);
 			generator.generate(voxel_buffer);
 
-			// Save block
+			// Save chunk
 			const Error save_error = region_file.save_chunk(pos, voxel_buffer);
 			ZN_TEST_ASSERT(save_error == OK);
 
@@ -154,7 +154,7 @@ void test_voxel_stream_region_files() {
 		VoxelBufferInternal buffer;
 		buffer.create(chunk_size, chunk_size, chunk_size);
 
-		// Make a block with enough data to take some significant space even if compressed
+		// Make a chunk with enough data to take some significant space even if compressed
 		for (int z = 0; z < buffer.get_size().z; ++z) {
 			for (int x = 0; x < buffer.get_size().x; ++x) {
 				for (int y = 0; y < buffer.get_size().y; ++y) {
@@ -163,8 +163,8 @@ void test_voxel_stream_region_files() {
 			}
 		}
 
-		// The position isn't a correct use because it's in voxels, not blocks, but it remains a case that should
-		// not cause errors or crash. The same blocks will simply get written to several times.
+		// The position isn't a correct use because it's in voxels, not chunks, but it remains a case that should
+		// not cause errors or crash. The same chunks will simply get written to several times.
 		VoxelStream::VoxelQueryData q{ buffer, Vector3(cycle, 0, 0), 0, VoxelStream::RESULT_ERROR };
 		stream->save_voxel_chunk(q);
 	}

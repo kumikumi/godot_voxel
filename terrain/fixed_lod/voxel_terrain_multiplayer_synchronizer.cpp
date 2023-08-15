@@ -59,10 +59,10 @@ void VoxelTerrainMultiplayerSynchronizer::send_block(
 	mw.store_16(result.data.size());
 	mw.store_buffer(to_span(result.data));
 
-	// print_line(String("Server: send block {0}").format(varray(bpos)));
+	// print_line(String("Server: send chunk {0}").format(varray(bpos)));
 
-	// rpc_id(viewer_peer_id, VoxelStringNames::get_singleton().receive_block, data);
-	// Instead of sending it right away, defer it until the terrain finished processing. Sending individual blocks with
+	// rpc_id(viewer_peer_id, VoxelStringNames::get_singleton().receive_chunk, data);
+	// Instead of sending it right away, defer it until the terrain finished processing. Sending individual chunks with
 	// the RPC system is too slow.
 	_deferred_block_messages_per_peer[viewer_peer_id].push_back(DeferredBlockMessage{ message_data });
 }
@@ -178,7 +178,7 @@ void VoxelTerrainMultiplayerSynchronizer::_b_receive_blocks(PackedByteArray mess
 	ZN_PROFILE_SCOPE();
 	ZN_ASSERT_RETURN(_terrain != nullptr);
 
-	// print_line(String("Client: receive blocks data {1}").format(varray(data.size())));
+	// print_line(String("Client: receive chunks data {1}").format(varray(data.size())));
 	//  print_data_hex(Span<const uint8_t>(data.ptr(), data.size()));
 
 	MemoryReader mr(Span<const uint8_t>(message_data.ptr(), message_data.size()), ENDIANESS_LITTLE_ENDIAN);
@@ -193,7 +193,7 @@ void VoxelTerrainMultiplayerSynchronizer::_b_receive_blocks(PackedByteArray mess
 		bpos.y = int16_t(mr.get_16());
 		bpos.z = int16_t(mr.get_16());
 		const int voxel_data_size = mr.get_16();
-		// print_line(String("Client: receive block {0} data {1}").format(varray(bpos, voxel_data_size)));
+		// print_line(String("Client: receive chunk {0} data {1}").format(varray(bpos, voxel_data_size)));
 
 		VoxelBufferInternal voxels;
 		ZN_ASSERT_RETURN(ChunkSerializer::decompress_and_deserialize(mr.data.sub(mr.pos, voxel_data_size), voxels));

@@ -61,7 +61,7 @@ void GenerateChunkTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 	ERR_FAIL_COND(generator.is_null());
 
 	// TODO Broad-phase to avoid the GPU part entirely?
-	// Implement and call `VoxelGenerator::generate_broad_block()`
+	// Implement and call `VoxelGenerator::generate_broad_chunk()`
 
 	std::shared_ptr<ComputeShader> generator_shader = generator->get_block_rendering_shader();
 	ERR_FAIL_COND(generator_shader == nullptr);
@@ -133,7 +133,7 @@ void GenerateChunkTask::run_stream_saving_and_finish() {
 		Ref<VoxelStream> stream = stream_dependency->stream;
 
 		// TODO In some cases we don't want this to run all the time, do we?
-		// Like in full load mode, where non-edited blocks remain generated on the fly...
+		// Like in full load mode, where non-edited chunks remain generated on the fly...
 		if (stream.is_valid() && stream->get_save_generator_output()) {
 			ZN_PRINT_VERBOSE(
 					format("Requesting save of generator output for block {} lod {}", position, int(lod_index)));
@@ -183,8 +183,8 @@ void GenerateChunkTask::apply_result() {
 			o.lod_index = lod_index;
 			o.dropped = !has_run;
 			if (stream.is_valid() && stream->get_save_generator_output()) {
-				// We can't consider the block as "generated" since there is no state to tell that once saved,
-				// so it has to be considered an edited block
+				// We can't consider the chunk as "generated" since there is no state to tell that once saved,
+				// so it has to be considered an edited chunk
 				o.type = VoxelEngine::ChunkDataOutput::TYPE_LOADED;
 			} else {
 				o.type = VoxelEngine::ChunkDataOutput::TYPE_GENERATED;
@@ -204,8 +204,8 @@ void GenerateChunkTask::apply_result() {
 		ZN_PRINT_VERBOSE("Gemerated data request response came back but volume wasn't found");
 	}
 
-	// TODO We could complete earlier inside run() if we had access to the data structure to write the block into.
-	// This would reduce latency a little. The rest of things the terrain needs to do with the generated block could
+	// TODO We could complete earlier inside run() if we had access to the data structure to write the chunk into.
+	// This would reduce latency a little. The rest of things the terrain needs to do with the generated chunk could
 	// run later.
 	if (tracker != nullptr) {
 		if (aborted) {

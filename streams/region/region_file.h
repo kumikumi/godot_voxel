@@ -19,9 +19,9 @@ struct RegionFormat {
 	static_assert(
 			CHANNEL_COUNT == VoxelBufferInternal::MAX_CHANNELS, "This format doesn't support variable channel count");
 
-	// How many voxels in a cubic block, as power of two
+	// How many voxels in a cubic chunk, as power of two
 	uint8_t chunk_size_po2 = 0;
-	// How many blocks across all dimensions (stored as 3 bytes)
+	// How many chunks across all dimensions (stored as 3 bytes)
 	Vector3i region_size;
 	FixedArray<VoxelBufferInternal::Depth, CHANNEL_COUNT> channel_depths;
 	// Blocks are stored at offsets multiple of that size
@@ -39,7 +39,7 @@ struct RegionBlockInfo {
 
 	// AAAB
 	// A: 3 bytes for sector index
-	// B: 1 byte for size of the block, in sectors
+	// B: 1 byte for size of the chunk, in sectors
 	uint32_t data = 0;
 
 	inline uint32_t get_sector_index() const {
@@ -112,7 +112,7 @@ private:
 	struct Header {
 		uint8_t version = -1;
 		RegionFormat format;
-		// Location and size of blocks, indexed by flat position.
+		// Location and size of chunks, indexed by flat position.
 		// This table always has the same size,
 		// and the same index always corresponds to the same 3D position.
 		std::vector<RegionBlockInfo> blocks;
@@ -133,8 +133,8 @@ private:
 
 	// TODO Is it ever read?
 	// List of sectors in the order they appear in the file,
-	// and which position their block is. The same block can span multiple sectors.
-	// This is essentially a reverse table of `Header::blocks`.
+	// and which position their chunk is. The same chunk can span multiple sectors.
+	// This is essentially a reverse table of `Header::chunks`.
 	std::vector<Vector3u16> _sectors;
 	uint32_t _blocks_begin_offset;
 	String _file_path;

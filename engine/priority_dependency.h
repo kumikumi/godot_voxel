@@ -11,7 +11,7 @@ namespace zylann::voxel {
 // Information to calculate the priority of a voxel task having a specific location
 struct PriorityDependency {
 	struct ViewersData {
-		// These positions are written by the main thread and read by block processing threads.
+		// These positions are written by the main thread and read by chunk processing threads.
 		// Order doesn't matter.
 		// It's only used to adjust task priority so using a lock isn't worth it. In worst case scenario,
 		// a task will run much sooner or later than expected, but it will run in any case.

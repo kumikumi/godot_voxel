@@ -1198,7 +1198,7 @@ CompilationResult Runtime::compile(const VoxelGraphFunction &function, bool debu
 }
 
 // Optimize parts of the graph that only depend on inputs tagged as "outer group",
-// so they can be moved in the outer loop when blocks are generated, running less times.
+// so they can be moved in the outer loop when chunks are generated, running less times.
 // Moves them all at the beginning.
 // `order` is a previously computed order of execution of each node.
 static uint32_t move_outer_group_operations_up(std::vector<uint32_t> &order, const ProgramGraph &graph) {

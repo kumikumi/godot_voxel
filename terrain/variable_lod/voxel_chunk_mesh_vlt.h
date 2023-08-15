@@ -9,7 +9,7 @@
 namespace zylann::voxel {
 
 // Stores mesh and collider for one chunk of `VoxelTerrain`.
-// It doesn't store voxel data, because it may be using different block size, or different data structure.
+// It doesn't store voxel data, because it may be using different chunk size, or different data structure.
 class VoxelChunkMeshVLT : public VoxelChunkMesh {
 public:
 	enum FadingState { //
@@ -22,11 +22,11 @@ public:
 
 	FadingState fading_state = FADING_NONE;
 	float fading_progress = 0.f;
-	// Voxel LOD works by splitting a block into up to 8 higher-resolution blocks.
-	// The parent block and its children can be called a "LOD group".
-	// Only non-overlapping blocks in a LOD group can be considered active at once.
-	// So when LOD fading is used, we no longer use `visible` to find which block is active,
-	// because blocks can use a cross-fade effect. Overlapping blocks of the same LOD group can be visible at once.
+	// Voxel LOD works by splitting a chunk into up to 8 higher-resolution chunks.
+	// The parent chunk and its children can be called a "LOD group".
+	// Only non-overlapping chunks in a LOD group can be considered active at once.
+	// So when LOD fading is used, we no longer use `visible` to find which chunk is active,
+	// because chunks can use a cross-fade effect. Overlapping chunks of the same LOD group can be visible at once.
 	// Hence the need to use this boolean.
 	bool active = false;
 

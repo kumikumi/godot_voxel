@@ -269,7 +269,7 @@ void VoxelChunkMeshVLT::update_transition_mesh_transform(unsigned int side, cons
 
 // Returns `true` when finished
 bool VoxelChunkMeshVLT::update_fading(float speed) {
-	// TODO Should probably not be on the block directly?
+	// TODO Should probably not be on the chunk directly?
 	// Because we may want to fade transition meshes only
 
 	bool finished = false;

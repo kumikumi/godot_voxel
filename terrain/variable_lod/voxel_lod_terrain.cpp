@@ -70,7 +70,7 @@ void ShaderMaterialPoolVLT::recycle(Ref<ShaderMaterial> material) {
 	material->set_shader_parameter(sn.u_voxel_cell_lookup, Ref<Texture2D>());
 	material->set_shader_parameter(sn.u_voxel_virtual_texture_offset_scale, Vector4(0, 0, 0, 1));
 	// TODO Would be nice if we repurposed `u_transition_mask` to store extra flags.
-	// Here we exploit cell_size==0 as "there is no virtual normalmaps on this block"
+	// Here we exploit cell_size==0 as "there is no virtual normalmaps on this chunk"
 	material->set_shader_parameter(sn.u_voxel_cell_size, 0.f);
 	material->set_shader_parameter(sn.u_voxel_virtual_texture_fade, 0.f);
 
@@ -109,7 +109,7 @@ void VoxelLodTerrain::ApplyMeshUpdateTask::run(TimeSpreadTaskContext &ctx) {
 		RefCount &count = it->second;
 		count.remove();
 		if (count.get() > 0) {
-			// This is not the only main thread task queued for this block.
+			// This is not the only main thread task queued for this chunk.
 			// Cancel it to avoid buildup.
 			return;
 		}
@@ -200,7 +200,7 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 		return;
 	}
 
-	// TODO Update existing block surfaces
+	// TODO Update existing chunk surfaces
 	_material = p_material;
 
 	Ref<ShaderMaterial> shader_material = p_material;
@@ -235,7 +235,7 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 				Ref<ShaderMaterial> prev_material = block.get_shader_material();
 				if (prev_material.is_valid()) {
 					ZN_ASSERT_RETURN(sm.is_valid());
-					// Each block can have specific shader parameters so we have to keep them
+					// Each chunk can have specific shader parameters so we have to keep them
 					copy_vlt_block_params(**prev_material, **sm);
 				}
 				block.set_shader_material(sm);
@@ -442,11 +442,11 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 }
 
 void VoxelLodTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
-	// Mesh block size cannot be smaller than data block size, for now
+	// Chunk mesh size cannot be smaller than data chunk size, for now
 	chunk_mesh_size = math::clamp(chunk_mesh_size, get_chunk_size(), constants::MAX_CHUNK_SIZE);
 
 	// Only these sizes are allowed at the moment. This stuff is still not supported in a generic way yet,
-	// some code still exploits the fact it's a multiple of data block size, for performance
+	// some code still exploits the fact it's a multiple of data chunk size, for performance
 	unsigned int po2;
 	switch (chunk_mesh_size) {
 		case 16:
@@ -476,7 +476,7 @@ void VoxelLodTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 		_instancer->set_chunk_mesh_size_po2(chunk_mesh_size);
 	}
 
-	// Update voxel bounds because block size change can affect octree size
+	// Update voxel bounds because chunk size change can affect octree size
 	set_voxel_bounds(_data->get_bounds());
 }
 
@@ -531,7 +531,7 @@ void VoxelLodTerrain::set_chunk_mesh_active(VoxelChunkMeshVLT &block, bool activ
 			}
 
 		} else if (active && _lod_fade_duration > 0.f) {
-			// WHen LOD fade is enabled, it is possible that a block is disabled with a fade out, but later has to be
+			// When LOD fade is enabled, it is possible that a chunk is disabled with a fade out, but later has to be
 			// enabled without a fade-in (because behind the camera for example). In this case we have to reset the
 			// parameter. Otherwise, it would be active but invisible due to still being faded out.
 			Ref<ShaderMaterial> mat = block.get_shader_material();
@@ -568,16 +568,16 @@ void VoxelLodTerrain::set_chunk_mesh_active(VoxelChunkMeshVLT &block, bool activ
 	}
 }
 
-// Marks intersecting blocks in the area as modified, updates LODs and schedules remeshing.
+// Marks intersecting chunks in the area as modified, updates LODs and schedules remeshing.
 // The provided box must be at LOD0 coordinates.
 void VoxelLodTerrain::post_edit_area(Box3i p_box, bool update_mesh) {
 	ZN_PROFILE_SCOPE();
 	// TODO Better decoupling is needed here.
-	// In the past this padding was necessary for mesh blocks because visuals depend on neighbor voxels.
-	// So when editing voxels at the boundary of two mesh blocks, both must update.
-	// However on data blocks it doesn't make sense, neighbors are not affected (at least for now).
-	// this can cause false positive errors as if we were editing a block that's not loaded (coming up as null).
-	// For now, this is worked around by ignoring cases where blocks are null,
+	// In the past this padding was necessary for chunk meshes because visuals depend on neighbor voxels.
+	// So when editing voxels at the boundary of two chunk meshes, both must update.
+	// However on data chunks it doesn't make sense, neighbors are not affected (at least for now).
+	// this can cause false positive errors as if we were editing a chunk that's not loaded (coming up as null).
+	// For now, this is worked around by ignoring cases where chunks are null,
 	// But it might mip more lods than necessary when editing on borders.
 	const Box3i box = p_box.padded(1);
 	{
@@ -597,9 +597,9 @@ void VoxelLodTerrain::post_edit_area(Box3i p_box, bool update_mesh) {
 }
 
 void VoxelLodTerrain::post_edit_modifiers(Box3i p_voxel_box) {
-	// clear_cached_blocks_in_voxel_area(*_data, p_voxel_box);
+	// clear_cached_chunks_in_voxel_area(*_data, p_voxel_box);
 	_data->clear_cached_blocks_in_voxel_area(p_voxel_box);
-	// Not sure if it is worth re-caching these blocks. We may see about that in the future if performance is an issue.
+	// Not sure if it is worth re-caching these chunks. We may see about that in the future if performance is an issue.
 
 	MutexLock lock(_update_data->state.changed_generated_areas_mutex);
 	_update_data->state.changed_generated_areas.push_back(p_voxel_box);
@@ -641,7 +641,7 @@ int VoxelLodTerrain::get_view_distance() const {
 void VoxelLodTerrain::set_view_distance(int p_distance_in_voxels) {
 	ERR_FAIL_COND(p_distance_in_voxels <= 0);
 	// Note: this is a hint distance, the terrain will attempt to have this radius filled with loaded voxels.
-	// It is possible for blocks to still load beyond that distance.
+	// It is possible for chunks to still load beyond that distance.
 	_update_data->wait_for_end_of_task();
 	_update_data->settings.view_distance_voxels = p_distance_in_voxels;
 	_update_data->state.force_update_octrees_next_update = true;
@@ -776,7 +776,7 @@ void VoxelLodTerrain::_set_lod_count(int p_lod_count) {
 }
 
 void VoxelLodTerrain::reset_maps() {
-	// Clears all blocks and reconfigures maps to account for new LOD count and block sizes
+	// Clears all chunks and reconfigures maps to account for new LOD count and chunk sizes
 
 	// Don't reset while streaming, the result can be dirty?
 	// CRASH_COND(_stream_thread != nullptr);
@@ -808,12 +808,12 @@ void VoxelLodTerrain::reset_mesh_maps() {
 			});
 		}
 
-		// mesh_map.for_each_block(BeforeUnloadMeshAction{ _shader_material_pool });
+		// mesh_map.for_each_chunk(BeforeUnloadMeshAction{ _shader_material_pool });
 
 		// Instance new maps if we have more lods, or clear them otherwise
 		if (lod_index < lod_count) {
 			mesh_map.clear();
-			// Reset view distance cache so blocks will be re-entered due to the difference
+			// Reset view distance cache so chunks will be re-entered due to the difference
 			lod.last_view_distance_chunks = 0;
 			lod.last_view_distance_chunk_meshes = 0;
 		} else {
@@ -1118,10 +1118,10 @@ void VoxelLodTerrain::process(float delta) {
 		}
 	}
 
-	// Get block loading responses
-	// Note: if block loading is too fast, this can cause stutters.
+	// Get chunk loading responses
+	// Note: if chunk loading is too fast, this can cause stutters.
 	// It should only happen on first load, though.
-	// process_block_loading_responses();
+	// process_chunk_loading_responses();
 
 	// TODO This could go into time spread tasks too
 	process_deferred_collision_updates(VoxelEngine::get_singleton().get_main_thread_time_budget_usec());
@@ -1160,7 +1160,7 @@ void VoxelLodTerrain::process(float delta) {
 		}
 	}
 
-	// Do it after we change mesh block states so materials are updated
+	// Do it after we change chunk mesh states so materials are updated
 	process_fading_blocks(delta);
 }
 
@@ -1192,12 +1192,12 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			if (block == nullptr) {
 				continue;
 			}
-			// ERR_CONTINUE(block == nullptr);
+			// ERR_CONTINUE(chunk == nullptr);
 			bool with_fading = false;
 			if (_lod_fade_duration > 0.f) {
 				const Vector3 block_center = volume_transform.xform(
 						to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
-				// Don't start fading on blocks behind the camera
+				// Don't start fading on chunks behind the camera
 				with_fading = camera.forward.dot(block_center - camera.position) > 0.0;
 			}
 			set_chunk_mesh_active(*block, true, with_fading);
@@ -1211,12 +1211,12 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			if (block == nullptr) {
 				continue;
 			}
-			// ERR_CONTINUE(block == nullptr);
+			// ERR_CONTINUE(chunk == nullptr);
 			bool with_fading = false;
 			if (_lod_fade_duration > 0.f) {
 				const Vector3 block_center = volume_transform.xform(
 						to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
-				// Don't start fading on blocks behind the camera
+				// Don't start fading on chunks behind the camera
 				with_fading = camera.forward.dot(block_center - camera.position) > 0.0;
 			}
 			set_chunk_mesh_active(*block, false, with_fading);
@@ -1246,7 +1246,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 #endif
 			*/
 			// Blocks in the update queue will be cancelled in _process,
-			// because it's too expensive to linear-search all blocks for each block
+			// because it's too expensive to linear-search all chunks for each chunk
 		}
 
 		for (unsigned int i = 0; i < lod.chunk_meshes_to_update_transitions.size(); ++i) {
@@ -1256,7 +1256,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			if (block == nullptr) {
 				/*
 #ifdef DEBUG_ENABLED
-				// If the block was removed for a different reason then it is unexpected
+				// If the chunk was removed for a different reason then it is unexpected
 				ERR_CONTINUE(debug_removed_blocks.find(tu.block_position) == debug_removed_blocks.end());
 #endif
 				ZN_PRINT_VERBOSE(String("Skipping TransitionUpdate at {0} lod {1}, block not found")
@@ -1264,12 +1264,12 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 				*/
 				continue;
 			}
-			// CRASH_COND(block == nullptr);
+			// CRASH_COND(chunk == nullptr);
 			if (block->active) {
 				Ref<ShaderMaterial> shader_material = block->get_shader_material();
 
 				// Fade stitching transitions to avoid cracks.
-				// This is done by triggering a fade-in on the block, while a copy of it fades out with the previous
+				// This is done by triggering a fade-in on the chunk, while a copy of it fades out with the previous
 				// material settings. This causes a bit of overdraw, but LOD fading does anyways.
 				if (_lod_fade_duration > 0.f && shader_material.is_valid() &&
 						activated_blocks.find(block) == activated_blocks.end() &&
@@ -1278,7 +1278,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 					const Vector3 block_center = volume_transform.xform(
 							to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 
-					// Don't do fading for blocks behind the camera.
+					// Don't do fading for chunks behind the camera.
 					if (camera.forward.dot(block_center - camera.position) > 0.f) {
 						FadingOutMesh item;
 
@@ -1361,15 +1361,15 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	if (ob.type == VoxelEngine::ChunkDataOutput::TYPE_SAVED) {
 		// That's a save confirmation event.
-		// Note: in the future, if blocks don't get copied before being sent for saving,
-		// we will need to use block versioning to know when we can reset the `modified` flag properly
+		// Note: in the future, if chunks don't get copied before being sent for saving,
+		// we will need to use chunk versioning to know when we can reset the `modified` flag properly
 
 		// TODO Now that's the case. Use version? Or just keep copying?
 		return;
 	}
 
 	if (ob.lod_index >= get_lod_count()) {
-		// That block was requested at a time where LOD was higher... drop it
+		// That chunk was requested at a time where LOD was higher... drop it
 		++_stats.dropped_block_loads;
 		return;
 	}
@@ -1379,7 +1379,7 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[ob.lod_index];
 	if (!ob.initial_load) {
 		if (!thread_safe_contains(lod.loading_blocks, ob.position, lod.loading_blocks_mutex)) {
-			// That block was not requested, or is no longer needed. drop it...
+			// That chunk was not requested, or is no longer needed. drop it...
 			ZN_PRINT_VERBOSE(
 					format("Ignoring block {} lod {}, it was not in loading blocks", ob.position, ob.lod_index));
 			++_stats.dropped_block_loads;
@@ -1388,11 +1388,11 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	}
 
 	if (ob.dropped) {
-		// That block was dropped by the data loader thread, but we were still expecting it...
+		// That chunk was dropped by the data loader thread, but we were still expecting it...
 		// This is most likely caused by the loader not keeping up with the speed at which the player is moving.
-		// We should recover with the removal from `loading_blocks` so it will be re-queried again later...
+		// We should recover with the removal from `loading_chunks` so it will be re-queried again later...
 
-		//				print_line(String("Received a block loading drop while we were still expecting it: lod{0} ({1},
+		//				print_line(String("Received a chunk loading drop while we were still expecting it: lod{0} ({1},
 		//{2}, {3})") 								   .format(varray(ob.lod, ob.position.x, ob.position.y,
 		// ob.position.z)));
 
@@ -1404,22 +1404,22 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	block.set_edited(ob.type == VoxelEngine::ChunkDataOutput::TYPE_LOADED);
 
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
-		// Voxel block size is incorrect, drop it
+		// Voxel chunk size is incorrect, drop it
 		ZN_PRINT_ERROR("Block is different from expected size");
 		++_stats.dropped_block_loads;
 		return;
 	}
 
 	const bool inserted = _data->try_set_block(ob.position, block);
-	// TODO Might not ignore these blocks in the future, see `VoxelTerrain`
+	// TODO Might not ignore these chunks in the future, see `VoxelTerrain`
 	if (!inserted) {
 		++_stats.dropped_block_loads;
 		return;
 	}
 
 	{
-		// We have to do this after adding the block to the map, otherwise there would be a small period of time where
-		// the threaded update task could request the block again needlessly
+		// We have to do this after adding the chunk to the map, otherwise there would be a small period of time where
+		// the threaded update task could request the chunk again needlessly
 		MutexLock lock(lod.loading_blocks_mutex);
 		lod.loading_blocks.erase(ob.position);
 	}
@@ -1459,12 +1459,12 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 		RWLockRead rlock(lod.mesh_map_state.map_lock);
 		auto chunk_mesh_state_it = lod.mesh_map_state.map.find(ob.position);
 		if (chunk_mesh_state_it == lod.mesh_map_state.map.end()) {
-			// That block is no longer loaded in the update map, drop the result
+			// That chunk is no longer loaded in the update map, drop the result
 			++_stats.dropped_block_meshes;
 			return;
 		}
 		if (ob.type == VoxelEngine::ChunkMeshOutput::TYPE_DROPPED) {
-			// That block is loaded, but its meshing request was dropped.
+			// That chunk is loaded, but its meshing request was dropped.
 			// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 			ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");
 			++_stats.dropped_block_meshes;
@@ -1509,14 +1509,14 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 	if (mesh.is_null()) {
 		// The mesh is empty
 		if (block != nullptr) {
-			// No surface anymore in this block, destroy it
+			// No surface anymore in this chunk, destroy it
 			// TODO Factor removal in a function, it's done in a few places
 			mesh_map.remove_block(ob.position, BeforeUnloadMeshAction{ _shader_material_pool });
 			if (_instancer != nullptr) {
 				_instancer->on_chunk_mesh_exit(ob.position, ob.lod);
 			}
 		}
-		// ZN_PRINT_VERBOSE(format("Empty block pos {} lod {} time {}", ob.position, int(ob.lod),
+		// ZN_PRINT_VERBOSE(format("Empty chunk pos {} lod {} time {}", ob.position, int(ob.lod),
 		// 		Time::get_singleton()->get_ticks_msec()));
 		return;
 	}
@@ -1526,7 +1526,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 		block->active = active;
 		block->set_visible(active);
 		mesh_map.set_block(ob.position, block);
-		// ZN_PRINT_VERBOSE(format("Created block pos {} lod {} time {}", ob.position, int(ob.lod),
+		// ZN_PRINT_VERBOSE(format("Created chunk pos {} lod {} time {}", ob.position, int(ob.lod),
 		// 		Time::get_singleton()->get_ticks_msec()));
 	}
 
@@ -1535,7 +1535,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 		has_collision = ob.lod < _collision_lod_count;
 	}
 
-	// TODO Is this boolean needed anymore now that we create blocks only if a surface is present?
+	// TODO Is this boolean needed anymore now that we create chunks only if a surface is present?
 	if (block->got_first_mesh_update == false) {
 		block->got_first_mesh_update = true;
 
@@ -1548,8 +1548,8 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 
 		// Lazy initialization
 
-		// print_line(String("Adding block {0} at lod {1}").format(varray(eo.block_position.to_vec3(), eo.lod)));
-		// set_chunk_mesh_active(*block, false);
+		// print_line(String("Adding chunk {0} at lod {1}").format(varray(eo.chunk_position.to_vec3(), eo.lod)));
+		// set_chunk_mesh_active(*chunk, false);
 		block->set_parent_visible(is_visible());
 		block->set_world(get_world_3d());
 
@@ -1562,7 +1562,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 			// See https://github.com/godotengine/godot/issues/34741
 			Ref<ShaderMaterial> sm = _shader_material_pool.allocate();
 
-			// Set individual shader material, because each block can have dynamic parameters,
+			// Set individual shader material, because each chunk can have dynamic parameters,
 			// used to smooth seams without re-uploading meshes and allow to implement LOD fading
 			block->set_shader_material(sm);
 		}
@@ -1574,8 +1574,8 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 			RenderingServer::ShadowCastingSetting(get_shadow_casting()));
 
 	if (!ob.has_mesh_resource) {
-		// Profiling has shown Godot takes as much time to build a transition mesh as the main mesh of a block, so
-		// because there are 6 transition meshes per block, we would spend about 80% of the time on these if we build
+		// Profiling has shown Godot takes as much time to build a transition mesh as the main mesh of a chunk, so
+		// because there are 6 transition meshes per chunk, we would spend about 80% of the time on these if we build
 		// them all. Which is counter-intuitive because transition meshes are tiny in comparison... (collision meshes
 		// still take 5x more time than building ALL rendering meshes but that's a different issue).
 		// Therefore I recommend combining them with the main mesh. This code might not do anything now.
@@ -1642,10 +1642,10 @@ void VoxelLodTerrain::apply_detail_texture_update(VoxelEngine::BlockDetailTextur
 
 	// This can happen if:
 	// - Virtual texture rendering results are handled before the first meshing results which that have created the
-	//   block. In this case it will be applied when meshing results get handled, since the data is shared with it.
-	// - The block was indeed unloaded early.
+	//   chunk. In this case it will be applied when meshing results get handled, since the data is shared with it.
+	// - The chunk was indeed unloaded early.
 	if (block == nullptr) {
-		// ZN_PRINT_VERBOSE(format("Ignored virtual texture update, block not found. pos {} lod {} time {}",
+		// ZN_PRINT_VERBOSE(format("Ignored virtual texture update, chunk not found. pos {} lod {} time {}",
 		// ob.position, 		ob.lod_index, Time::get_singleton()->get_ticks_msec()));
 		return;
 	}
@@ -1864,7 +1864,7 @@ void VoxelLodTerrain::process_fading_blocks(float delta) {
 			while (it != fading_blocks.end()) {
 				VoxelChunkMeshVLT *block = it->second;
 				ZN_ASSERT(block != nullptr);
-				// The collection of fading blocks must only contain fading blocks
+				// The collection of fading chunks must only contain fading chunks
 				ERR_FAIL_COND(block->fading_state == VoxelChunkMeshVLT::FADING_NONE);
 
 				const bool finished = block->update_fading(speed);
@@ -1891,9 +1891,9 @@ void VoxelLodTerrain::process_fading_blocks(float delta) {
 				// TODO Optimize: mesh instances destroyed here can be really slow due to materials...
 				// Profiling has shown that `RendererSceneCull::free` of a mesh instance
 				// leads to `RendererRD::MaterialStorage::_update_queued_materials()` to be called, which internally
-				// updates hundreds of materials (supposedly from every block). Can take 1ms for a single instance,
+				// updates hundreds of materials (supposedly from every chunk). Can take 1ms for a single instance,
 				// while the rest of the work is barely 1%! Why is Godot doing this? I tried resetting the material like
-				// with blocks, but that didn't improve anything...
+				// with chunks, but that didn't improve anything...
 				// item.mesh_instance.set_material_override(Ref<Material>());
 				_fading_out_meshes[i] = std::move(_fading_out_meshes.back());
 				_fading_out_meshes.pop_back();
@@ -2097,7 +2097,7 @@ void VoxelLodTerrain::restart_stream() {
 }
 
 void VoxelLodTerrain::remesh_all_blocks() {
-	// Requests a new mesh for all mesh blocks, without dropping everything first
+	// Requests a new mesh for all chunk meshes, without dropping everything first
 	_update_data->wait_for_end_of_task();
 	const unsigned int lod_count = get_lod_count();
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
@@ -2110,7 +2110,7 @@ void VoxelLodTerrain::remesh_all_blocks() {
 
 bool VoxelLodTerrain::is_area_meshed(const Box3i &box_in_voxels, unsigned int lod_index) const {
 	const Box3i box_in_blocks = box_in_voxels.downscaled(1 << (get_chunk_mesh_size_pow2() + lod_index));
-	// We have to check this separate map instead of the mesh map, because the mesh map will not contain blocks in areas
+	// We have to check this separate map instead of the mesh map, because the mesh map will not contain chunks in areas
 	// that have no mesh (one reason is so it reduces the time it takes to update all mesh positions when the terrain is
 	// moved)
 	VoxelLodTerrainUpdateData::MeshMapState &mms = _update_data->state.lods[lod_index].mesh_map_state;
@@ -2517,7 +2517,7 @@ Array VoxelLodTerrain::debug_get_octrees_detailed() const {
 	//     Octree[8] or null
 	// ]
 	// State {
-	//     0: no block
+	//     0: no chunk
 	//     1: no mesh
 	//     2: mesh
 	// }
@@ -2693,7 +2693,7 @@ void VoxelLodTerrain::update_gizmos() {
 		}
 	}
 
-	// Edited blocks
+	// Edited chunks
 	if (debug_get_draw_flag(DEBUG_DRAW_EDITED_BLOCKS) && _edited_blocks_gizmos_lod_index < lod_count) {
 		const int chunk_size = get_chunk_size() << _edited_blocks_gizmos_lod_index;
 		const Basis basis(Basis().scaled(Vector3(chunk_size, chunk_size, chunk_size)));

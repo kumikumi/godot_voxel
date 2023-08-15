@@ -85,7 +85,7 @@ void VoxelDataMap::set_voxel(int value, Vector3i pos, unsigned int c) {
 float VoxelDataMap::get_voxel_f(Vector3i pos, unsigned int c) const {
 	Vector3i bpos = voxel_to_block(pos);
 	const VoxelChunkData *block = get_block(bpos);
-	// TODO The generator needs to be invoked if the block has no voxels
+	// TODO The generator needs to be invoked if the chunk has no voxels
 	if (block == nullptr || !block->has_voxels()) {
 		// TODO Not valid for a float return value
 		return VoxelBufferInternal::get_default_value_static(c);
@@ -97,7 +97,7 @@ float VoxelDataMap::get_voxel_f(Vector3i pos, unsigned int c) const {
 void VoxelDataMap::set_voxel_f(real_t value, Vector3i pos, unsigned int c) {
 	VoxelChunkData *block = get_or_create_block_at_voxel_pos(pos);
 	Vector3i lpos = to_local(pos);
-	// TODO In this situation, the generator must be invoked to fill the block
+	// TODO In this situation, the generator must be invoked to fill the chunk
 	ZN_ASSERT_RETURN_MSG(block->has_voxels(), "Block not cached");
 	VoxelBufferInternal &voxels = block->get_voxels();
 	voxels.set_voxel_f(value, lpos.x, lpos.y, lpos.z, c);
@@ -174,7 +174,7 @@ bool VoxelDataMap::has_block(Vector3i pos) const {
 }
 
 bool VoxelDataMap::is_block_surrounded(Vector3i pos) const {
-	// TODO If that check proves to be too expensive with all blocks we deal with, cache it in VoxelBlocks
+	// TODO If that check proves to be too expensive with all chunks we deal with, cache it in VoxelBlocks
 	for (unsigned int i = 0; i < Cube::MOORE_NEIGHBORING_3D_COUNT; ++i) {
 		Vector3i bpos = pos + Cube::g_moore_neighboring_3d[i];
 		if (!has_block(bpos)) {
@@ -232,7 +232,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 				} else {
 					for (unsigned int ci = 0; ci < channels_count; ++ci) {
 						const uint8_t channel = channels[ci];
-						// For now, inexistent blocks default to hardcoded defaults, corresponding to "empty space".
+						// For now, inexistent chunks default to hardcoded defaults, corresponding to "empty space".
 						// If we want to change this, we may have to add an API for that.
 						dst_buffer.fill_area(VoxelBufferInternal::get_default_value_static(channel),
 								src_block_origin - min_pos, src_block_origin - min_pos + chunk_size_v, channel);

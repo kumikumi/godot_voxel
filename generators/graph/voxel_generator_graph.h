@@ -146,24 +146,24 @@ private:
 	Ref<pg::VoxelGraphFunction> _main_function;
 
 	// This generator performs range analysis using nodes of the graph. Terrain surface can only appear when SDF
-	// crosses zero within a block. For each generated block, an estimated range of the output is calculated.
-	// If that range is beyond this threshold (either negatively or positively), then blocks will be given a uniform
+	// crosses zero within a chunk. For each generated chunk, an estimated range of the output is calculated.
+	// If that range is beyond this threshold (either negatively or positively), then chunks will be given a uniform
 	// value, either air or matter, skipping generation of all voxels.
 	// Setting a high threshold turns it off, providing consistent SDF, but it may severely impact performance.
 	float _sdf_clip_threshold = 1.5f;
-	// Sometimes block size can be larger, but it makes range analysis less precise. So it is possible to subdivide
-	// generation within areas of the block instead of doing it whole.
+	// Sometimes chunk size can be larger, but it makes range analysis less precise. So it is possible to subdivide
+	// generation within areas of the chunk instead of doing it whole.
 	// Blocks size must be a multiple of the subdivision size.
 	bool _use_subdivision = true;
 	int _subdivision_size = 16;
 	// When enabled, the generator will attempt to optimize out nodes that don't need to run in specific areas,
 	// if their output range is considered to not affect the final result.
 	bool _use_optimized_execution_map = true;
-	// When enabled, nodes using only the X and Z coordinates will be cached when generating blocks in slices along Y.
+	// When enabled, nodes using only the X and Z coordinates will be cached when generating chunks in slices along Y.
 	// This prevents recalculating values that would otherwise be the same on each slice.
 	// It helps a lot when part of the graph is generating a heightmap for example.
 	bool _use_xz_caching = true;
-	// If true, inverts clipped blocks so they create visual artifacts making the clipped area visible.
+	// If true, inverts clipped chunks so they create visual artifacts making the clipped area visible.
 	bool _debug_clipped_blocks = false;
 
 	// Only compiling and generation methods are thread-safe.

@@ -23,7 +23,7 @@ class VoxelInstancer;
 class VoxelSaveCompletionTracker;
 class VoxelTerrainMultiplayerSynchronizer;
 
-// Infinite paged terrain made of voxel blocks all with the same level of detail.
+// Infinite paged terrain made of voxel chunks all with the same level of detail.
 // Voxels are polygonized around the viewer by distance in a large cubic space.
 // Data is streamed using a VoxelStream.
 class VoxelTerrain : public VoxelNode {
@@ -101,7 +101,7 @@ public:
 
 	Ref<VoxelTool> get_voxel_tool() override;
 
-	// Creates or overrides whatever block data there is at the given position.
+	// Creates or overrides whatever chunk data there is at the given position.
 	// The use case is multiplayer, client-side.
 	// If no local viewer is actually in range, the data will not be applied and the function returns `false`.
 	bool try_set_block_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data);
@@ -117,9 +117,9 @@ public:
 	void restart_stream() override;
 	void remesh_all_blocks() override;
 
-	// Asks to generate (or re-generate) a block at the given position asynchronously.
-	// If the block already exists once the block is generated, it will be cancelled.
-	// If the block is out of range of any viewer, it will be cancelled.
+	// Asks to generate (or re-generate) a chunk at the given position asynchronously.
+	// If the chunk already exists once the chunk is generated, it will be cancelled.
+	// If the chunk is out of range of any viewer, it will be cancelled.
 	void generate_chunk_async(Vector3i block_position);
 
 	struct Stats {
@@ -216,9 +216,9 @@ private:
 	bool is_area_meshed(const Box3i &box_in_voxels) const;
 
 #ifdef ZN_GODOT
-	// Called each time a data block enters a viewer's area.
-	// This can be either when the block exists and the viewer gets close enough, or when it gets loaded.
-	// This only happens if data block enter notifications are enabled.
+	// Called each time a data chunk enters a viewer's area.
+	// This can be either when the chunk exists and the viewer gets close enough, or when it gets loaded.
+	// This only happens if data chunk enter notifications are enabled.
 	GDVIRTUAL1(_on_chunk_entered, VoxelChunkEnterInfo *);
 
 	// Called each time voxels are edited within a region.
@@ -232,7 +232,7 @@ private:
 	// Bindings
 	Vector3i _b_voxel_to_chunk(Vector3 pos) const;
 	Vector3i _b_chunk_to_voxel(Vector3i pos) const;
-	// void _force_load_blocks_binding(Vector3 center, Vector3 extents) { force_load_blocks(center, extents); }
+	// void _force_load_chunks_binding(Vector3 center, Vector3 extents) { force_load_chunks(center, extents); }
 	Ref<VoxelSaveCompletionTracker> _b_save_modified_blocks();
 	void _b_save_chunk(Vector3i p_block_pos);
 	void _b_set_bounds(AABB aabb);
@@ -250,7 +250,7 @@ private:
 	struct PairedViewer {
 		struct State {
 			Vector3i local_position_voxels;
-			Box3i data_box; // In block coordinates
+			Box3i data_box; // In chunk coordinates
 			Box3i mesh_box;
 			int view_distance_voxels = 0;
 			bool requires_collisions = false;
@@ -272,7 +272,7 @@ private:
 
 	unsigned int _max_view_distance_voxels = 128;
 
-	// TODO Terrains only need to handle the visible portion of voxels, which reduces the bounds blocks to handle.
+	// TODO Terrains only need to handle the visible portion of voxels, which reduces the bounds chunks to handle.
 	// Therefore, could a simple grid be better to use than a hashmap?
 
 	struct LoadingBlock {
@@ -308,7 +308,7 @@ private:
 	// bool _stream_enabled = false;
 	bool _block_enter_notification_enabled = false;
 	bool _area_edit_notification_enabled = false;
-	// If enabled, VoxelViewers will cause blocks to automatically load around them.
+	// If enabled, VoxelViewers will cause chunks to automatically load around them.
 	bool _automatic_loading_enabled = true;
 	bool _generator_use_gpu = false;
 

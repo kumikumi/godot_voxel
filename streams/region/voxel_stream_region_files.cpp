@@ -136,7 +136,7 @@ VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_chunk(
 	if (!_meta_loaded) {
 		const FileResult load_res = load_meta();
 		if (load_res != FILE_OK) {
-			// No block was ever saved
+			// No chunk was ever saved
 			return EMERGE_OK_FALLBACK;
 		}
 	}
@@ -148,7 +148,7 @@ VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_chunk(
 	ERR_FAIL_COND_V(lod >= _meta.lod_count, EMERGE_FAILED);
 	ERR_FAIL_COND_V(chunk_size != out_buffer.get_size(), EMERGE_FAILED);
 
-	// Configure depths, as they might not be specified in old block data.
+	// Configure depths, as they might not be specified in old chunk data.
 	// Regions are expected to contain such depths, and use those in the buffer to know how much data to read.
 	for (unsigned int channel_index = 0; channel_index < _meta.channel_depths.size(); ++channel_index) {
 		out_buffer.set_channel_depth(channel_index, _meta.channel_depths[channel_index]);
@@ -186,7 +186,7 @@ void VoxelStreamRegionFiles::_save_chunk(VoxelBufferInternal &voxel_buffer, Vect
 
 	if (!_meta_loaded) {
 		// If it's not loaded, always try to load meta file first if it exists already,
-		// because we could want to save blocks without reading any
+		// because we could want to save chunks without reading any
 		FileResult load_res = load_meta();
 		if (load_res != FILE_OK && load_res != FILE_CANT_OPEN) {
 			// The file is present but there is a problem with it
@@ -197,7 +197,7 @@ void VoxelStreamRegionFiles::_save_chunk(VoxelBufferInternal &voxel_buffer, Vect
 	}
 
 	if (!_meta_saved) {
-		// First time we save the meta file, initialize it from the first block format
+		// First time we save the meta file, initialize it from the first chunk format
 		for (unsigned int i = 0; i < _meta.channel_depths.size(); ++i) {
 			_meta.channel_depths[i] = voxel_buffer.get_channel_depth(i);
 		}
@@ -558,7 +558,7 @@ static Vector3i convert_block_coordinates(Vector3i pos, Vector3i old_size, Vecto
 }
 
 void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
-	// TODO Converting across different block sizes is untested.
+	// TODO Converting across different chunk sizes is untested.
 	// I wrote it because it would be too bad to loose large voxel worlds because of a setting change, so one day we may
 	// need it
 
@@ -572,7 +572,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 
 	Ref<VoxelStreamRegionFiles> old_stream;
 	old_stream.instantiate();
-	// Keep file cache to a minimum for the old stream, we'll query all blocks once anyways
+	// Keep file cache to a minimum for the old stream, we'll query all chunks once anyways
 	old_stream->_max_open_regions = MAX(1, FOPEN_MAX);
 
 	// Backup current folder by renaming it, leaving the current name vacant
@@ -660,7 +660,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 
 	const Vector3i old_region_size = Vector3iUtil::create(1 << old_meta.region_size_po2);
 
-	// Read all blocks from the old stream and write them into the new one
+	// Read all chunks from the old stream and write them into the new one
 
 	for (unsigned int i = 0; i < old_region_list.size(); ++i) {
 		PositionAndLod region_info = old_region_list[i];
@@ -684,7 +684,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 			VoxelBufferInternal new_block;
 			new_block.create(new_chunk_size.x, new_chunk_size.y, new_chunk_size.z);
 
-			// Load block from old stream
+			// Load chunk from old stream
 			Vector3i block_rpos = old_region->region.get_block_position_from_index(j);
 			Vector3i block_pos = block_rpos + region_info.position * old_region_size;
 			VoxelStream::VoxelQueryData old_block_load_query{
@@ -708,12 +708,12 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 			} else {
 				Vector3i new_block_pos = convert_block_coordinates(block_pos, old_chunk_size, new_chunk_size);
 
-				// TODO Support any size? Assuming cubic blocks here
+				// TODO Support any size? Assuming cubic chunks here
 				if (old_chunk_size.x < new_chunk_size.x) {
 					Vector3i ratio = new_chunk_size / old_chunk_size;
 					Vector3i rel = block_pos % ratio;
 
-					// Copy to a sub-area of one block
+					// Copy to a sub-area of one chunk
 					VoxelStream::VoxelQueryData new_block_load_query{ //
 						new_block, //
 						new_block_pos * new_chunk_size << region_info.lod, //
@@ -739,7 +739,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 					save_voxel_chunk(new_block_save_query);
 
 				} else {
-					// Copy to multiple blocks
+					// Copy to multiple chunks
 					Vector3i area = new_chunk_size / old_chunk_size;
 					Vector3i rpos;
 

@@ -221,7 +221,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 
 	// Filter out by octants
 	// This is done so some octants can be filled with user-edited data instead,
-	// because mesh size may not necessarily match data block size
+	// because mesh size may not necessarily match chunk size
 	if ((octant_mask & 0xff) != 0xff) {
 		ZN_PROFILE_SCOPE_NAMED("octant filter");
 		const float h = chunk_size / 2.f;
@@ -240,7 +240,7 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 
 	// Filter out by noise
 	if (_noise.is_valid()) {
-		// Position of the block relative to the instancer node.
+		// Position of the chunk relative to the instancer node.
 		// Use full-precision here because we deal with potentially large coordinates
 		const Vector3 chunk_mesh_origin_d = grid_position * chunk_size;
 		ZN_PROFILE_SCOPE_NAMED("noise filter");

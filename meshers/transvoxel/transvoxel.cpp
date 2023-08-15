@@ -17,11 +17,11 @@ inline uint8_t sign_f(float v) {
 }
 
 Vector3f get_border_offset(const Vector3f pos_scaled, const int lod_index, const Vector3i chunk_size_non_scaled) {
-	// When transition meshes are inserted between blocks of different LOD, we need to make space for them.
+	// When transition meshes are inserted between chunks of different LOD, we need to make space for them.
 	// Secondary vertex positions can be calculated by linearly transforming positions inside boundary cells
 	// so that the full-size cell is scaled to a smaller size that allows space for between one and three
 	// transition cells, as necessary, depending on the location with respect to the edges and corners of the
-	// entire block. This can be accomplished by computing offsets (Δx, Δy, Δz) for the coordinates (x, y, z)
+	// entire chunk. This can be accomplished by computing offsets (Δx, Δy, Δz) for the coordinates (x, y, z)
 	// in any boundary cell.
 
 	Vector3f delta;
@@ -256,7 +256,7 @@ inline void get_cell_texture_data(CellTextureDatas<NVoxels> &cell_textures,
 		const TextureIndicesData &texture_indices_data, const FixedArray<unsigned int, NVoxels> &voxel_indices,
 		const WeightSampler_T &weights_data) {
 	if (texture_indices_data.buffer.size() == 0) {
-		// Indices are known for the whole block, just read weights directly
+		// Indices are known for the whole chunk, just read weights directly
 		cell_textures.indices = texture_indices_data.default_indices;
 		cell_textures.packed_indices = texture_indices_data.packed_default_indices;
 		for (unsigned int ci = 0; ci < voxel_indices.size(); ++ci) {
@@ -447,10 +447,10 @@ void build_regular_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData texture_i
 					corner_positions[i] = (p - min_pos) << lod_index;
 				}
 
-				// For cells occurring along the minimal boundaries of a block,
+				// For cells occurring along the minimal boundaries of a chunk,
 				// the preceding cells needed for vertex reuse may not exist.
 				// In these cases, we allow new vertex creation on additional edges of a cell.
-				// While iterating through the cells in a block, a 3-bit mask is maintained whose bits indicate
+				// While iterating through the cells in a chunk, a 3-bit mask is maintained whose bits indicate
 				// whether corresponding bits in a direction code are valid
 				const uint8_t direction_validity_mask = (pos.x > min_pos.x ? 1 : 0) |
 						((pos.y > min_pos.y ? 1 : 0) << 1) | ((pos.z > min_pos.z ? 1 : 0) << 2);
@@ -514,10 +514,10 @@ void build_regular_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData texture_i
 						const uint8_t reuse_dir = (edge_code_high >> 4) & 0xf;
 						const uint8_t reuse_vertex_index = edge_code_high & 0xf;
 
-						// TODO Some re-use opportunities are missed on negative sides of the block,
+						// TODO Some re-use opportunities are missed on negative sides of the chunk,
 						// but I don't really know how to fix it...
 						// You can check by "shaking" every vertex randomly in a shader based on its index,
-						// you will see vertices touching the -X, -Y or -Z sides of the block aren't connected
+						// you will see vertices touching the -X, -Y or -Z sides of the chunk aren't connected
 
 						const bool present = (reuse_dir & direction_validity_mask) == reuse_dir;
 
@@ -703,7 +703,7 @@ void build_regular_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData texture_i
 //   /
 //  z
 
-// Convert from face-space to block-space coordinates, considering which face we are working on.
+// Convert from face-space to chunk-space coordinates, considering which face we are working on.
 inline Vector3i face_to_block(int x, int y, int z, int dir, const Vector3i &bs) {
 	// There are several possible solutions to this, because we can rotate the axes.
 	// We'll take configurations where XY map different axes at the same relative orientations,
@@ -817,10 +817,10 @@ void build_transition_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData textur
 
 	// This part works in "face space", which is 2D along local X and Y axes.
 	// In this space, -Z points towards the half resolution cells, while +Z points towards full-resolution cells.
-	// Conversion is used to map this space to block space using a direction enum.
+	// Conversion is used to map this space to chunk space using a direction enum.
 
 	// Note: I made a few changes compared to the paper.
-	// Instead of making transition meshes go from low-res blocks to high-res blocks,
+	// Instead of making transition meshes go from low-res chunks to high-res chunks,
 	// I do the opposite, going from high-res to low-res. It's easier because half-res voxels are available for free,
 	// if we compute the transition meshes right after the regular mesh, with the same voxel data.
 	// TODO One issue with this change however, is a "bump" of mesh density which can be noticeable.
@@ -872,7 +872,7 @@ void build_transition_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData textur
 	// Iterating in face space
 	for (int fy = min_fpos_y; fy < max_fpos_y; fy += 2) {
 		for (int fx = min_fpos_x; fx < max_fpos_x; fx += 2) {
-			// Cell positions in block space
+			// Cell positions in chunk space
 			// Warning: temporarily includes padding. It is undone later.
 			cell_positions[0] = face_to_block(fx, fy, fz, direction, chunk_size_with_padding);
 
@@ -1099,7 +1099,7 @@ void build_transition_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData textur
 									(get_border_mask(p0, chunk_size_scaled) & get_border_mask(p1, chunk_size_scaled));
 						} else {
 							// If the vertex is on the half-res side (in our implementation,
-							// it's the side of the block), then we make the mask 0 so that the vertex is never moved.
+							// it's the side of the chunk), then we make the mask 0 so that the vertex is never moved.
 							// We only move the full-res side to connect with the regular mesh,
 							// which will also be moved by the same amount to fit the transition mesh.
 							cell_border_mask2 = 0;
@@ -1213,7 +1213,7 @@ Span<const T> get_or_decompress_channel(
 	if (voxels.get_channel_compression(channel) == VoxelBufferInternal::COMPRESSION_UNIFORM) {
 		backing_buffer.resize(Vector3iUtil::get_volume(voxels.get_size()));
 		const T v = voxels.get_voxel(Vector3i(), channel);
-		// TODO Could use a fast fill using 8-byte blocks or intrinsics?
+		// TODO Could use a fast fill using 8-byte chunks or intrinsics?
 		for (unsigned int i = 0; i < backing_buffer.size(); ++i) {
 			backing_buffer[i] = v;
 		}

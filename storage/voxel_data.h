@@ -106,7 +106,7 @@ public:
 	// Pastes voxel data in a box at LOD0.
 	// `channels_mask` bits tell which channel is pasted.
 	// If `use_mask` is used, will only write voxels of the source buffer that are not equal to `mask_value`.
-	// If `create_new_blocks` is true, blocks will be created if not found in the area.
+	// If `create_new_chunks` is true, chunks will be created if not found in the area.
 	void paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask,
 			bool create_new_blocks);
 
@@ -117,33 +117,33 @@ public:
 	// This is necessary for editing destructively.
 	bool is_area_loaded(const Box3i p_voxels_box) const;
 
-	// Generates all non-present blocks in preparation for an edit.
-	// Every block intersecting with the box at every LOD will be checked.
-	// This function runs sequentially and should be thread-safe. May be used if blocks are immediately needed.
+	// Generates all non-present chunks in preparation for an edit.
+	// Every chunk intersecting with the box at every LOD will be checked.
+	// This function runs sequentially and should be thread-safe. May be used if chunks are immediately needed.
 	// It will block if other threads are accessing the same data.
 	// WARNING: this does not check if the area is editable.
 	void pre_generate_box(Box3i voxel_box);
 
-	// Clears voxel data from blocks that are pure results of generators and modifiers.
+	// Clears voxel data from chunks that are pure results of generators and modifiers.
 	// WARNING: this does not check if the area is editable.
 	// TODO Rename `clear_cached_voxel_data_in_area`
 	void clear_cached_blocks_in_voxel_area(Box3i p_voxel_box);
 
-	// Flags all blocks in the given area as modified at LOD0.
+	// Flags all chunks in the given area as modified at LOD0.
 	// Also marks them as requiring LOD updates (if lod count is 1 this has no effect).
-	// Optionally, returns a list of affected block positions which did not require LOD updates before.
+	// Optionally, returns a list of affected chunk positions which did not require LOD updates before.
 	void mark_area_modified(Box3i p_voxel_box, std::vector<Vector3i> *lod0_new_blocks_to_lod, bool require_lod_updates);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// Block-aware API
+	// Chunk-aware API
 
-	// Sets all the data of a block.
-	// If the block already exists, returns false. Otherwise, returns true.
+	// Sets all the data of a chunk.
+	// If the chunk already exists, returns false. Otherwise, returns true.
 	bool try_set_block(Vector3i block_position, const VoxelChunkData &block);
 
-	// Sets all the data of a block.
-	// If the block already exists, `action_when_exists` is called.
-	// `void action_when_exists(VoxelChunkData &existing_block, const VoxelChunkData &incoming_block)`
+	// Sets all the data of a chunk.
+	// If the chunk already exists, `action_when_exists` is called.
+	// `void action_when_exists(VoxelChunkData &existing_chunk, const VoxelChunkData &incoming_chunk)`
 	template <typename F>
 	void try_set_block(Vector3i block_position, const VoxelChunkData &block, F action_when_exists) {
 		Lod &lod = _lods[block.get_lod_index()];
@@ -161,7 +161,7 @@ public:
 		}
 	}
 
-	// void op(Vector3i bpos, const VoxelChunkData &block)
+	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename F>
 	void for_each_block(F op) const {
 		const unsigned int lod_count = get_lod_count();
@@ -172,7 +172,7 @@ public:
 		}
 	}
 
-	// void op(Vector3i bpos, const VoxelChunkData &block)
+	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename F>
 	void for_each_block_at_lod(F op, unsigned int lod_index) const {
 		const Lod &lod = _lods[lod_index];
@@ -180,14 +180,14 @@ public:
 		lod.map.for_each_block(op);
 	}
 
-	// Tests if a block exists at the specified block position and LOD index.
-	// This is mainly used for debugging so it isn't optimal, don't use this if you plan to query many blocks.
+	// Tests if a chunk exists at the specified chunk position and LOD index.
+	// This is mainly used for debugging so it isn't optimal, don't use this if you plan to query many chunks.
 	bool has_block(Vector3i bpos, unsigned int lod_index) const;
 
-	// Tests if all blocks in a LOD0 area are loaded. If any isn't, returns false. Otherwise, returns true.
+	// Tests if all chunks in a LOD0 area are loaded. If any isn't, returns false. Otherwise, returns true.
 	bool has_all_blocks_in_area(Box3i chunks_box) const;
 
-	// Gets the total amount of allocated blocks. This includes blocks having no voxel data.
+	// Gets the total amount of allocated chunks. This includes chunks having no voxel data.
 	unsigned int get_block_count() const;
 
 	struct BlockLocation {
@@ -195,8 +195,8 @@ public:
 		uint32_t lod_index;
 	};
 
-	// Updates the LODs of all blocks at given positions, and resets their flags telling that they need LOD updates.
-	// Optionally, returns a list of affected block positions.
+	// Updates the LODs of all chunks at given positions, and resets their flags telling that they need LOD updates.
+	// Optionally, returns a list of affected chunk positions.
 	void update_lods(Span<const Vector3i> modified_lod0_blocks, std::vector<BlockLocation> *out_updated_blocks);
 
 	struct BlockToSave {
@@ -205,23 +205,23 @@ public:
 		uint32_t lod_index;
 	};
 
-	// Unloads data blocks in the specified area. If some of them were modified and `to_save` is not null, their data
+	// Unloads data chunks in the specified area. If some of them were modified and `to_save` is not null, their data
 	// will be returned for the caller to save.
 	void unload_blocks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save);
 
-	// Unloads data blocks at specified positions of LOD0. If some of them were modified and `to_save` is not null,
+	// Unloads data chunks at specified positions of LOD0. If some of them were modified and `to_save` is not null,
 	// their data will be returned for the caller to save.
 	void unload_blocks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save);
 
-	// If the block at the specified LOD0 position exists and is modified, marks it as non-modified and returns a copy
+	// If the chunk at the specified LOD0 position exists and is modified, marks it as non-modified and returns a copy
 	// of its data to save. Returns true if there is something to save.
 	bool consume_block_modifications(Vector3i bpos, BlockToSave &out_to_save);
 
-	// Marks all modified blocks as unmodified and returns their data to save. if `with_copy` is true, the returned data
+	// Marks all modified chunks as unmodified and returns their data to save. if `with_copy` is true, the returned data
 	// will be a copy, otherwise it will reference voxel data. Prefer using references when about to quit for example.
 	void consume_all_modifications(std::vector<BlockToSave> &to_save, bool with_copy);
 
-	// Gets missing blocks out of the given block positions.
+	// Gets missing chunks out of the given chunk positions.
 	// WARNING: positions outside bounds will be considered missing too.
 	// TODO Don't consider positions outside bounds to be missing? This is only a byproduct of migrating old
 	// code. It doesn't check this because the code using this function already does it (a bit more efficiently,
@@ -229,18 +229,18 @@ public:
 	void get_missing_blocks(
 			Span<const Vector3i> block_positions, unsigned int lod_index, std::vector<Vector3i> &out_missing) const;
 
-	// Gets missing blocks out of the given area in block coordinates.
+	// Gets missing chunks out of the given area in chunk coordinates.
 	// If the area intersects the outside of the bounds, it will be clipped.
 	void get_missing_blocks(Box3i p_blocks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const;
 
-	// Gets blocks with voxel data in the given area in block coordinates.
+	// Gets chunks with voxel data in the given area in chunk coordinates.
 	// Voxel data references are returned in an array big enough to contain a grid of the size of the area.
 	// Blocks found will be placed at an index computed as if the array was a flat grid (ZXY).
 	// Entries without voxel data will be left to null.
 	void get_blocks_with_voxel_data(
 			Box3i p_blocks_box, unsigned int lod_index, Span<std::shared_ptr<VoxelBufferInternal>> out_blocks) const;
 
-	// Gets blocks with voxels at the given LOD and indexes them in a grid. This will query every location
+	// Gets chunks with voxels at the given LOD and indexes them in a grid. This will query every location
 	// intersecting the box at the specified LOD, so if the area is large, you may want to do a broad check first.
 	// WARNING: data isn't locked, you have to keep a shared reference to VoxelData in order to use VoxelSpatialLock.
 	void get_blocks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsigned int lod_index) const;
@@ -248,26 +248,26 @@ public:
 	// TODO Areas that use this accessor might as well move their logic in this class
 	VoxelSpatialLock &get_spatial_lock(unsigned int lod_index) const;
 
-	// Tests the presence of edited blocks in the given area by looking up LOD mips. It can report false positives due
+	// Tests the presence of edited chunks in the given area by looking up LOD mips. It can report false positives due
 	// to the broad nature of the check, but runs a lot faster than a full test. This is only usable with volumes
-	// using LOD mips (edited blocks have half-resolution counterparts all the way up to maximum LOD).
+	// using LOD mips (edited chunks have half-resolution counterparts all the way up to maximum LOD).
 	bool has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxels) const;
 
 	std::shared_ptr<VoxelBufferInternal> try_get_block_voxels(Vector3i bpos);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Reference-counted API (LOD0 only)
-	// Data blocks have a reference count that can be optionally used.
+	// Data chunks have a reference count that can be optionally used.
 
-	// Increases the reference count of loaded blocks in the area.
-	// Returns positions where blocks were loaded, and where they were missing.
-	// Shallow copies of found blocks are returned (voxel data is referenced).
+	// Increases the reference count of loaded chunks in the area.
+	// Returns positions where chunks were loaded, and where they were missing.
+	// Shallow copies of found chunks are returned (voxel data is referenced).
 	void view_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
 			std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks);
 
-	// Decreases the reference count of loaded blocks in the area. Blocks reaching zero will be unloaded.
-	// Returns positions where blocks were found, and where they were missing.
-	// If `to_save` is not null and some unloaded blocks contained modifications, their data will be returned too.
+	// Decreases the reference count of loaded chunks in the area. Blocks reaching zero will be unloaded.
+	// Returns positions where chunks were found, and where they were missing.
+	// If `to_save` is not null and some unloaded chunks contained modifications, their data will be returned too.
 	void unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks, std::vector<Vector3i> &found_blocks,
 			std::vector<BlockToSave> *to_save);
 
@@ -292,11 +292,11 @@ private:
 		// If two lods need really need to be locked as well, lock the lower index first, and higher index next.
 
 		// Lock protecting the map itself, because it uses a hashmap.
-		// This lock should be locked in write mode only when the map gets modified (adding or removing blocks).
+		// This lock should be locked in write mode only when the map gets modified (adding or removing chunks).
 		// Otherwise it may be locked in read mode.
 		// It is possible to unlock it after we are done querying the map.
 		RWLock map_lock;
-		// This should be used when reading or writing voxels/metadata in blocks. It uses block coordinates as
+		// This should be used when reading or writing voxels/metadata in chunks. It uses chunk coordinates as
 		// spatial unit.
 		mutable VoxelSpatialLock spatial_lock;
 	};
@@ -340,15 +340,15 @@ private:
 
 	uint8_t _lod_count = 1;
 
-	// If enabled, some data blocks can have the "not loaded" and "loaded" status. Which means we can't assume what
+	// If enabled, some data chunks can have the "not loaded" and "loaded" status. Which means we can't assume what
 	// they contain, until we load them from the stream. If disabled, all edits are loaded in memory, and we know if
-	// a block isn't stored, it means we can use the generator and modifiers to obtain its data. This mostly changes
+	// a chunk isn't stored, it means we can use the generator and modifiers to obtain its data. This mostly changes
 	// how this class is used, streaming itself is not directly implemented in this class.
 	bool _streaming_enabled = true;
 
 	// When streaming is disabled, this will tell if all data has finished loading.
 	// This is because *everything* will load, we can't tell in advance what is loaded and what isn't by looking at
-	// individual blocks.
+	// individual chunks.
 	bool _full_load_completed = false;
 
 	// Procedural generation stack

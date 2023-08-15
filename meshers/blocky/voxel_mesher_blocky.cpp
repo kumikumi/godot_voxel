@@ -496,7 +496,7 @@ void VoxelMesherBlocky::build(VoxelMesher::Output &output, const VoxelMesher::In
 	if (voxels.get_channel_compression(channel) == VoxelBufferInternal::COMPRESSION_UNIFORM) {
 		// All voxels have the same type.
 		// If it's all air, nothing to do. If it's all cubes, nothing to do either.
-		// TODO Handle edge case of uniform block with non-cubic voxels!
+		// TODO Handle edge case of uniform chunk with non-cubic voxels!
 		// If the type of voxel still produces geometry in this situation (which is an absurd use case but not an
 		// error), decompress into a backing array to still allow the use of the same algorithm.
 		return;

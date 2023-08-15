@@ -467,7 +467,7 @@ void uninitialize_voxel_module(ModuleInitializationLevel p_level) {
 		gd::VoxelEngine::destroy_singleton();
 		VoxelEngine::destroy_singleton();
 
-		// Do this last as VoxelEngine might still be holding some refs to voxel blocks
+		// Do this last as VoxelEngine might still be holding some refs to voxel chunks
 		VoxelMemoryPool::destroy_singleton();
 	}
 

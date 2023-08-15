@@ -49,7 +49,7 @@ public:
 
 	void flush_cache();
 
-	// Might improve query performance if saved data is very sparse (like when only edited blocks are saved).
+	// Might improve query performance if saved data is very sparse (like when only edited chunks are saved).
 	void set_key_cache_enabled(bool enable);
 	bool is_key_cache_enabled() const;
 
@@ -115,13 +115,13 @@ private:
 	String _connection_path;
 	std::vector<VoxelStreamSQLiteInternal *> _connection_pool;
 	Mutex _connection_mutex;
-	// This cache stores blocks in memory, and gets flushed to the database when big enough.
+	// This cache stores chunks in memory, and gets flushed to the database when big enough.
 	// This is because save queries are more expensive.
-	// It also speeds up queries of blocks that were recently saved.
+	// It also speeds up queries of chunks that were recently saved.
 	VoxelStreamCache _cache;
-	// The current way we stream data is by querying every block location near each player, to know if there is data.
-	// Therefore testing if a block is present is the beginning of the most frequently executed code path.
-	// In configurations where only edited blocks get saved, very few blocks even get stored in the database,
+	// The current way we stream data is by querying every chunk location near each player, to know if there is data.
+	// Therefore testing if a chunk is present is the beginning of the most frequently executed code path.
+	// In configurations where only edited chunks get saved, very few chunks even get stored in the database,
 	// so it makes sense to cache keys to make this query fast and concurrent.
 	// Note: in the long term, on a game that systematically saves everything it generates instead of just edits,
 	// such a cache can become quite large. In this case we could either allow turning it off, or use an octree.

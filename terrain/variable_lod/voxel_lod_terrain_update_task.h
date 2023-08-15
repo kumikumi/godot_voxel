@@ -52,7 +52,7 @@ public:
 	static uint8_t get_transition_mask(const VoxelLodTerrainUpdateData::State &state, Vector3i block_pos,
 			unsigned int lod_index, unsigned int lod_count);
 
-	// To use on loaded blocks
+	// To use on loaded chunks
 	static inline void schedule_mesh_update(VoxelLodTerrainUpdateData::ChunkMeshState &block, Vector3i bpos,
 			std::vector<Vector3i> &blocks_pending_update) {
 		if (block.state != VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT) {

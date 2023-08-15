@@ -272,7 +272,7 @@ void test_task_priority_values() {
 	ZN_TEST_ASSERT(TaskPriority(10, 10, 0, 0) < TaskPriority(10, 10, 10, 0));
 }
 
-// Simulates doing work in every chunk of a grid, where each task will want to access neighbors of each block. If any
+// Simulates doing work in every chunk of a grid, where each task will want to access neighbors of each chunk. If any
 // neighbor fails to get locked, the task is postponed.
 void test_threaded_task_postponing() {
 	// There isn't really a test check in this function, for now we run it to detect if it crashes and that all tasks
@@ -422,7 +422,7 @@ void test_threaded_task_postponing() {
 	EventList events;
 	RandomPCG rng;
 
-	// Schedule tasks that will want to access overlapping blocks
+	// Schedule tasks that will want to access overlapping chunks
 	for (bpos.z = 0; bpos.z < map_size; ++bpos.z) {
 		for (bpos.x = 0; bpos.x < map_size; ++bpos.x) {
 			for (bpos.y = 0; bpos.y < map_size; ++bpos.y) {

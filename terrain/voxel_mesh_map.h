@@ -9,7 +9,7 @@
 
 namespace zylann::voxel {
 
-// Stores meshes and colliders in an infinite sparse grid of chunks (aka blocks).
+// Stores meshes and colliders in an infinite sparse grid of chunks (aka chunks).
 template <typename ChunkMesh_T>
 class VoxelMeshMap {
 public:
@@ -52,7 +52,7 @@ public:
 			const unsigned int i = it->second.index;
 			CRASH_COND(i >= _blocks.size());
 			ChunkMesh_T *block = _blocks[i];
-			CRASH_COND(block == nullptr); // The map should not contain null blocks
+			CRASH_COND(block == nullptr); // The map should not contain null chunks
 			CRASH_COND(it->second.block == nullptr);
 #endif
 			_last_accessed_block = it->second.block;
@@ -71,10 +71,10 @@ public:
 			const unsigned int i = it->second.index;
 			CRASH_COND(i >= _blocks.size());
 			ChunkMesh_T *block = _blocks[i];
-			CRASH_COND(block == nullptr); // The map should not contain null blocks
+			CRASH_COND(block == nullptr); // The map should not contain null chunks
 			CRASH_COND(it->second.block == nullptr);
 #endif
-			// This function can't cache _last_accessed_block, because it's const, so repeated accesses are hashing
+			// This function can't cache _last_accessed_chunk, because it's const, so repeated accesses are hashing
 			// again...
 			return it->second.block;
 		}
@@ -96,7 +96,7 @@ public:
 	}
 
 	bool has_block(Vector3i pos) const {
-		//(_last_accessed_block != nullptr && _last_accessed_block->pos == pos) ||
+		//(_last_accessed_chunk != nullptr && _last_accessed_chunk->pos == pos) ||
 		return _blocks_map.find(pos) != _blocks_map.end();
 	}
 
@@ -147,7 +147,7 @@ public:
 private:
 	struct MapItem {
 		ChunkMesh_T *block;
-		// Index of the block within the vector storage
+		// Index of the chunk within the vector storage
 		unsigned int index;
 	};
 
@@ -156,7 +156,7 @@ private:
 		// This might be caused by internal rehashing/resizing.
 		// We should look for a faster container, or reduce the number of entries.
 
-		// This function assumes the block is already freed
+		// This function assumes the chunk is already freed
 		_blocks_map.erase(rm_it);
 
 		ChunkMesh_T *moved_block = _blocks.back();
@@ -195,7 +195,7 @@ private:
 	// Use cases for this include updating the transform of the meshes
 	std::vector<ChunkMesh_T *> _blocks;
 
-	// Voxel access will most frequently be in contiguous areas, so the same blocks are accessed.
+	// Voxel access will most frequently be in contiguous areas, so the same chunks are accessed.
 	// To prevent too much hashing, this reference is checked before.
 	mutable ChunkMesh_T *_last_accessed_block;
 };

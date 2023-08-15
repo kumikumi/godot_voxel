@@ -40,7 +40,7 @@ public:
 	virtual void set_gpu_results(std::vector<GenerateChunkGPUTaskResult> &&results) = 0;
 };
 
-// Generates a block of voxels on the GPU. Must be scheduled from a threaded task, which will be resumed when this one
+// Generates a chunk of voxels on the GPU. Must be scheduled from a threaded task, which will be resumed when this one
 // finishes.
 class GenerateChunkGPUTask : public IGPUTask {
 public:
@@ -51,7 +51,7 @@ public:
 	void prepare(GPUTaskContext &ctx) override;
 	void collect(GPUTaskContext &ctx) override;
 
-	// TODO Not sure if it's worth dealing with sub-boxes. That's only in case of partially-edited meshing blocks...
+	// TODO Not sure if it's worth dealing with sub-boxes. That's only in case of partially-edited meshing chunks...
 	// this case doesn't sound common enough.
 
 	// Boxes relative to the VoxelBuffer (not world voxel coordinates). They must not interesect.

@@ -69,12 +69,12 @@ VoxelGenerator::Result VoxelGeneratorFlat::generate_chunk(VoxelGenerator::VoxelQ
 	const int lod = input.lod;
 
 	if (origin.y > params.height + margin) {
-		// The bottom of the block is above the highest ground can go (default is air)
+		// The bottom of the chunk is above the highest ground can go (default is air)
 		result.max_lod_hint = true;
 		return result;
 	}
 	if (origin.y + (bs.y << lod) < params.height - margin) {
-		// The top of the block is below the lowest ground can go
+		// The top of the chunk is below the lowest ground can go
 		if (use_sdf) {
 			out_buffer.clear_channel_f(params.channel, -1);
 		} else {

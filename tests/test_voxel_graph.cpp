@@ -518,7 +518,7 @@ void test_voxel_graph_generator_texturing() {
 					L::check_weights(buffer, Vector3i(12, 11, 8), false, true);
 				}
 				{
-					// Two blocks: one above 0, the other below.
+					// Two chunks: one above 0, the other below.
 					// The point is to check possible bugs due to optimizations.
 
 					// Below 0
@@ -1349,10 +1349,10 @@ void test_voxel_graph_issue471() {
 	generator->get_shader_source(ssd);
 }
 
-// There was a bug where generating a usual height-based terrain with also a texture output, random blocks fully or
-// partially filled with air would occur underground where such blocks should have been filled with matter. It only
+// There was a bug where generating a usual height-based terrain with also a texture output, random chunks fully or
+// partially filled with air would occur underground where such chunks should have been filled with matter. It only
 // happened if the texture output node was present. The cause was that the generator detected and filled the SDF early
-// with matter, for blocks far enough from the surface. But because there was also a texture output, the generator
+// with matter, for chunks far enough from the surface. But because there was also a texture output, the generator
 // proceeded to still run the graph to just get volumetric texture data (which is expected) but then overwrote SDF with
 // results it did not calculate, effectively filling SDF with garbage.
 void test_voxel_graph_unused_single_texture_output() {
@@ -1430,7 +1430,7 @@ void test_voxel_graph_unused_single_texture_output() {
 		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
 
 		if (bpos.y <= -2) {
-			// We expect only ground below this height (in block coordinates)
+			// We expect only ground below this height (in chunk coordinates)
 			for (int z = 0; z < voxels.get_size().z; ++z) {
 				for (int x = 0; x < voxels.get_size().x; ++x) {
 					for (int y = 0; y < voxels.get_size().y; ++y) {
@@ -1445,7 +1445,7 @@ void test_voxel_graph_unused_single_texture_output() {
 				}
 			}
 		} else if (bpos.y >= 1) {
-			// We expect only air above this height (in block coordinates)
+			// We expect only air above this height (in chunk coordinates)
 			for (int z = 0; z < voxels.get_size().z; ++z) {
 				for (int x = 0; x < voxels.get_size().x; ++x) {
 					for (int y = 0; y < voxels.get_size().y; ++y) {

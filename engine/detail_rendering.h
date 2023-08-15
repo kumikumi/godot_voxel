@@ -9,7 +9,7 @@
 
 //#define VOXEL_VIRTUAL_TEXTURE_USE_TEXTURE_ARRAY
 // Texture arrays are handy but the maximum amount of layers is often too low (2048 on an nVidia 1060), which happens
-// too frequently with block size 32. So instead we have to keep using 2D atlases with padding.
+// too frequently with chunk size 32. So instead we have to keep using 2D atlases with padding.
 #ifdef VOXEL_VIRTUAL_TEXTURE_USE_TEXTURE_ARRAY
 #include "../util/godot/classes/texture_array.h"
 #endif

@@ -16,20 +16,20 @@ class VoxelGenerator;
 // Convenience functions to access VoxelBuffers internally will lock them to protect against multithreaded access.
 // However, the map itself is not thread-safe.
 //
-// When doing data streaming, the volume is *partially* loaded. If a block is not found at some coordinates,
+// When doing data streaming, the volume is *partially* loaded. If a chunk is not found at some coordinates,
 // it means we don't know if it contains edits or not. Knowing this is important to avoid writing or caching voxel data
 // in blank areas, that may be completely different once loaded.
 // When using "full load" of edits, it doesn't matter. If all edits are loaded, we know up-front that everything else
-// isn't edited (which also means we may not find blocks without data in them).
+// isn't edited (which also means we may not find chunks without data in them).
 //
 class VoxelDataMap {
 public:
-	// This is block size in VOXELS. To convert to space units, use `chunk_size << lod_index`.
+	// This is chunk size in VOXELS. To convert to space units, use `chunk_size << lod_index`.
 	static const unsigned int CHUNK_SIZE_PO2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 	static const unsigned int CHUNK_SIZE = 1 << CHUNK_SIZE_PO2;
 	static const unsigned int CHUNK_SIZE_MASK = CHUNK_SIZE - 1;
 
-	// Converts voxel coordinates into block coordinates.
+	// Converts voxel coordinates into chunk coordinates.
 	// Don't use division because it introduces an offset in negative coordinates.
 	static inline Vector3i voxel_to_block_b(Vector3i pos, int chunk_size_pow2) {
 		return pos >> chunk_size_pow2;
@@ -43,7 +43,7 @@ public:
 		return Vector3i(pos.x & CHUNK_SIZE_MASK, pos.y & CHUNK_SIZE_MASK, pos.z & CHUNK_SIZE_MASK);
 	}
 
-	// Converts block coordinates into voxel coordinates.
+	// Converts chunk coordinates into voxel coordinates.
 	inline Vector3i block_to_voxel(Vector3i bpos) const {
 		return bpos * CHUNK_SIZE;
 	}
@@ -83,7 +83,7 @@ public:
 	void paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask, bool use_mask,
 			uint8_t mask_channel, uint64_t mask_value, bool create_new_blocks);
 
-	// Moves the given buffer into a block of the map. The buffer is referenced, no copy is made.
+	// Moves the given buffer into a chunk of the map. The buffer is referenced, no copy is made.
 	VoxelChunkData *set_block_buffer(Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite);
 	VoxelChunkData *set_empty_block(Vector3i bpos, bool overwrite);
 	void set_block(Vector3i bpos, const VoxelChunkData &block);
@@ -111,7 +111,7 @@ public:
 
 	int get_block_count() const;
 
-	// op(Vector3i bpos, VoxelChunkData &block)
+	// op(Vector3i bpos, VoxelChunkData &chunk)
 	template <typename Op_T>
 	inline void for_each_block(Op_T op) {
 		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
@@ -119,7 +119,7 @@ public:
 		}
 	}
 
-	// void op(Vector3i bpos, const VoxelChunkData &block)
+	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename Op_T>
 	inline void for_each_block(Op_T op) const {
 		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
@@ -179,7 +179,7 @@ public:
 	}
 
 private:
-	// void set_block(Vector3i bpos, VoxelChunkData *block);
+	// void set_chunk(Vector3i bpos, VoxelChunkData *chunk);
 	VoxelChunkData *get_or_create_block_at_voxel_pos(Vector3i pos);
 	VoxelChunkData *create_default_block(Vector3i bpos);
 
@@ -197,9 +197,9 @@ private:
 	// We want to be able to do shared read-accesses but this is a mutable variable.
 	// If we want this back, it may be thread-local in some way.
 	//
-	// Voxel access will most frequently be in contiguous areas, so the same blocks are accessed.
+	// Voxel access will most frequently be in contiguous areas, so the same chunks are accessed.
 	// To prevent too much hashing, this reference is checked before.
-	// mutable VoxelChunkData *_last_accessed_block = nullptr;
+	// mutable VoxelChunkData *_last_accessed_chunk = nullptr;
 
 	unsigned int _lod_index = 0;
 };

@@ -6,12 +6,12 @@
 
 namespace zylann::voxel {
 
-// Stores blocks of voxel data in a finite grid.
+// Stores chunks of voxel data in a finite grid.
 // This is used as temporary storage for some operations, to avoid holding exclusive locks on maps for too long.
 // TODO Have a readonly version to enforce no writes?
 class VoxelDataGrid {
 public:
-	// Rebuilds the grid and caches blocks intersecting the specified voxel box.
+	// Rebuilds the grid and caches chunks intersecting the specified voxel box.
 	// WARNING: the given box is in voxels RELATIVE to the passed map. It that map is not LOD0, you may downscale the
 	// box if you expect LOD0 coordinates.
 	inline void reference_area(const VoxelDataMap &map, Box3i voxel_box, VoxelSpatialLock *sl) {
@@ -28,8 +28,8 @@ public:
 		}
 		blocks_box.for_each_cell_zxy([&map, this](const Vector3i pos) {
 			const VoxelChunkData *block = map.get_block(pos);
-			// TODO Might need to invoke the generator at some level for present blocks without voxels,
-			// or make sure all blocks contain voxel data
+			// TODO Might need to invoke the generator at some level for present chunks without voxels,
+			// or make sure all chunks contain voxel data
 			if (block != nullptr && block->has_voxels()) {
 				set_block(pos, block->get_voxels_shared());
 			} else {
@@ -150,12 +150,12 @@ public:
 		}
 	}
 
-	// inline const VoxelBufferInternal *get_block(Vector3i position) const {
+	// inline const VoxelBufferInternal *get_chunk(Vector3i position) const {
 	// 	ERR_FAIL_COND_V(!is_valid_position(position), nullptr);
-	// 	position -= _offset_in_blocks;
-	// 	const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
-	// 	CRASH_COND(index >= _blocks.size());
-	// 	return _blocks[index].get();
+	// 	position -= _offset_in_chunks;
+	// 	const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_chunks);
+	// 	CRASH_COND(index >= _chunks.size());
+	// 	return _chunks[index].get();
 	// }
 
 	inline void clear() {
@@ -233,12 +233,12 @@ private:
 	// Flat grid indexed in ZXY order
 	// TODO Ability to use thread-local/stack pool allocator? Such grids are often temporary
 	std::vector<std::shared_ptr<VoxelBufferInternal>> _blocks;
-	// Size of the grid in blocks
+	// Size of the grid in chunks
 	Vector3i _size_in_blocks;
 	// Block coordinates offset. This is used for when we cache a sub-region of a map, we need to keep the origin
 	// of the area in memory so we can keep using the same coordinate space
 	Vector3i _offset_in_blocks;
-	// Size of a block in voxels
+	// Size of a chunk in voxels
 	unsigned int _chunk_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 	unsigned int _chunk_size = 1 << constants::DEFAULT_CHUNK_SIZE_PO2;
 	// For protecting voxel data against multithreaded accesses. Not owned. Lifetime must be guaranteed by the user, for

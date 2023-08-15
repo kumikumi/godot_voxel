@@ -55,7 +55,7 @@ struct VoxelLodTerrainUpdateData {
 		unsigned int view_distance_voxels = 512;
 		// bool full_load_mode = false;
 		bool run_stream_in_editor = true;
-		// If true, try to generate blocks and store them in the data map before posting mesh requests.
+		// If true, try to generate chunks and store them in the data map before posting mesh requests.
 		// If false, everything will generate non-edited voxels on the fly instead.
 		// Not really exposed for now, will wait for it to be really needed. It might never be.
 		bool cache_generated_blocks = false;
@@ -102,22 +102,22 @@ struct VoxelLodTerrainUpdateData {
 	struct MeshMapState {
 		// Values in this map are expected to have stable addresses.
 		std::unordered_map<Vector3i, ChunkMeshState> map;
-		// Locked for writing when blocks get inserted or removed from the map.
+		// Locked for writing when chunks get inserted or removed from the map.
 		// If you need to lock more than one Lod, always do so in increasing order, to avoid deadlocks.
 		// IMPORTANT:
-		// - The update task will add and remove blocks from this map.
-		// - Threads outside the update task must never add or remove blocks to the map (even with locking),
+		// - The update task will add and remove chunks from this map.
+		// - Threads outside the update task must never add or remove chunks to the map (even with locking),
 		//   unless the task is not running in parallel.
 		RWLock map_lock;
 	};
 
 	// Each LOD works in a set of coordinates spanning 2x more voxels the higher their index is
 	struct Lod {
-		// Keeping track of asynchronously loading blocks so we don't try to redundantly load them
+		// Keeping track of asynchronously loading chunks so we don't try to redundantly load them
 		std::unordered_set<Vector3i> loading_blocks;
 		BinaryMutex loading_blocks_mutex;
 
-		// These are relative to this LOD, in block coordinates
+		// These are relative to this LOD, in chunk coordinates
 		Vector3i last_viewer_chunk_pos;
 		int last_view_distance_chunks = 0;
 
@@ -160,7 +160,7 @@ struct VoxelLodTerrainUpdateData {
 	// Data modified by the update task
 	struct State {
 		// This terrain type is a sparse grid of octrees.
-		// Indexed by a grid coordinate whose step is the size of the highest-LOD block.
+		// Indexed by a grid coordinate whose step is the size of the highest-LOD chunk.
 		// Not using a pointer because Map storage is stable.
 		// TODO Optimization: could be replaced with a grid data structure
 		std::map<Vector3i, OctreeItem> lod_octrees;
@@ -172,7 +172,7 @@ struct VoxelLodTerrainUpdateData {
 		FixedArray<Lod, constants::MAX_LOD> lods;
 
 		// This is the entry point for notifying data changes, which will cause mesh updates.
-		// Contains blocks that were edited and need their LOD counterparts to be updated.
+		// Contains chunks that were edited and need their LOD counterparts to be updated.
 		// Scheduling is only done at LOD0 because it is the only editable LOD.
 		std::vector<Vector3i> blocks_pending_lodding_lod0;
 		BinaryMutex blocks_pending_lodding_lod0_mutex;

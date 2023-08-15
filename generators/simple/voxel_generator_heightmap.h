@@ -45,13 +45,13 @@ protected:
 		const bool use_sdf = channel == VoxelBufferInternal::CHANNEL_SDF;
 
 		if (origin.y > get_height_start() + get_height_range()) {
-			// The bottom of the block is above the highest ground can go (default is air)
+			// The bottom of the chunk is above the highest ground can go (default is air)
 			Result result;
 			result.max_lod_hint = true;
 			return result;
 		}
 		if (origin.y + (bs.y << lod) < get_height_start()) {
-			// The top of the block is below the lowest ground can go
+			// The top of the chunk is below the lowest ground can go
 			out_buffer.clear_channel(params.channel, use_sdf ? 0 : params.matter_type);
 			Result result;
 			result.max_lod_hint = true;

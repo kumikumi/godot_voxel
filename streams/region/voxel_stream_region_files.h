@@ -11,8 +11,8 @@ namespace zylann::voxel {
 
 // TODO Rename VoxelStreamRegionForest
 
-// Loads and saves blocks to the filesystem, in multiple region files indexed by world position, under a directory.
-// Loading and saving blocks in batches of similar regions makes a lot more sense here,
+// Loads and saves chunks to the filesystem, in multiple region files indexed by world position, under a directory.
+// Loading and saving chunks in batches of similar regions makes a lot more sense here,
 // because it allows to keep using the same file handles and avoid switching.
 // Inspired by https://www.seedofandromeda.com/blogs/1-creating-a-region-file-system-for-a-voxel-game
 //
@@ -81,8 +81,8 @@ private:
 	struct Meta {
 		uint8_t version = -1;
 		uint8_t lod_count = 0;
-		uint8_t chunk_size_po2 = 0; // How many voxels in a cubic block
-		uint8_t region_size_po2 = 0; // How many blocks in one cubic region
+		uint8_t chunk_size_po2 = 0; // How many voxels in a cubic chunk
+		uint8_t region_size_po2 = 0; // How many chunks in one cubic region
 		FixedArray<VoxelBufferInternal::Depth, VoxelBufferInternal::MAX_CHANNELS> channel_depths;
 		uint32_t sector_size = 0; // Blocks are stored at offsets multiple of that size
 	};
@@ -90,7 +90,7 @@ private:
 	static bool check_meta(const Meta &meta);
 	void _convert_files(Meta new_meta);
 
-	// Orders block requests so those querying the same regions get grouped together
+	// Orders chunk requests so those querying the same regions get grouped together
 	struct BlockQueryComparator {
 		VoxelStreamRegionFiles *self = nullptr;
 

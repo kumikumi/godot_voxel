@@ -82,7 +82,7 @@ void SaveChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	}
 
 	if (_save_instances && stream->supports_instance_blocks()) {
-		// If the provided data is null, it means this instance block was never modified.
+		// If the provided data is null, it means this instance chunk was never modified.
 		// Since we are in a save request, the saved data will revert to unmodified.
 		// On the other hand, if we want to represent the fact that "everything was deleted here",
 		// this should not be null.

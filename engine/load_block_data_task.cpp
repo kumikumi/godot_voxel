@@ -55,8 +55,8 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	_voxels->create(_chunk_size, _chunk_size, _chunk_size);
 
 	// TODO We should consider batching this again, but it needs to be done carefully.
-	// Each task is one block, and priority depends on distance to closest viewer.
-	// If we batch blocks, we have to do it by distance too.
+	// Each task is one chunk, and priority depends on distance to closest viewer.
+	// If we batch chunks, we have to do it by distance too.
 
 	// TODO Assign max_lod_hint when available
 
@@ -86,8 +86,8 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 				_requested_generator_task = true;
 
 			} else {
-				// If there is no generator... what do we do? What defines the format of that empty block?
-				// If the user leaves the defaults it's fine, but otherwise blocks of inconsistent format can
+				// If there is no generator... what do we do? What defines the format of that empty chunk?
+				// If the user leaves the defaults it's fine, but otherwise chunks of inconsistent format can
 				// end up in the volume and that can cause errors.
 				// TODO Define format on volume?
 			}

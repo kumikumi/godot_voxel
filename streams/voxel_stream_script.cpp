@@ -20,7 +20,7 @@ void VoxelStreamScript::load_voxel_chunk(VoxelStream::VoxelQueryData &query_data
 	if (GDVIRTUAL_CALL(_load_voxel_chunk, buffer_wrapper, query_data.origin_in_voxels, query_data.lod, res)) {
 		// Check if the return enum is valid
 		ERR_FAIL_INDEX(res, _RESULT_COUNT);
-		// If the block was found, grab its data from the script-facing object to our internal buffer
+		// If the chunk was found, grab its data from the script-facing object to our internal buffer
 		if (res == RESULT_BLOCK_FOUND) {
 			buffer_wrapper->get_buffer().move_to(query_data.voxel_buffer);
 		}

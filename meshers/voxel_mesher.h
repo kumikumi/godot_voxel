@@ -32,7 +32,7 @@ public:
 		// If not provided, the mesher will only use `voxels`.
 		VoxelGenerator *generator = nullptr;
 		const VoxelData *data = nullptr;
-		// Origin of the block is required when doing deep sampling.
+		// Origin of the chunk is required when doing deep sampling.
 		Vector3i origin_in_voxels;
 		// LOD index. 0 means highest detail. 1 means half detail etc.
 		uint8_t lod_index = 0;

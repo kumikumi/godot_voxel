@@ -18,12 +18,12 @@ ZN_GODOT_FORWARD_DECLARE(class ConcavePolygonShape3D);
 namespace zylann::voxel {
 
 // Stores mesh and collider for one chunk of the rendered volume.
-// It doesn't store voxel data, because it may be using different block size, or different data structure.
+// It doesn't store voxel data, because it may be using different chunk size, or different data structure.
 // IMPORTANT: This is not an abstract class. It exists to share common code between variants of it.
 // Only explicit instances are used, no virtuals.
 class VoxelChunkMesh : public NonCopyable {
 public:
-	Vector3i position; // In blocks
+	Vector3i position; // In chunks
 
 protected:
 	VoxelChunkMesh(Vector3i bpos);
@@ -41,12 +41,12 @@ public:
 	bool has_mesh() const;
 	void drop_mesh();
 
-	// Note, GIMode is not stored per block, it is a shared option so we provide it in several functions.
-	// Call this function only if the mesh block already exists and has not changed mesh
+	// Note, GIMode is not stored per chunk, it is a shared option so we provide it in several functions.
+	// Call this function only if the mesh chunk already exists and has not changed mesh
 	void set_gi_mode(DirectMeshInstance::GIMode mode);
 
-	// Note, ShadowCastingSetting is not stored per block, it is a shared option so we provide it in several functions.
-	// Call this function only if the mesh block already exists and has not changed mesh
+	// Note, ShadowCastingSetting is not stored per chunk, it is a shared option so we provide it in several functions.
+	// Call this function only if the mesh chunk already exists and has not changed mesh
 	void set_shadow_casting(RenderingServer::ShadowCastingSetting setting);
 
 	// Collisions

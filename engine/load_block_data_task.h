@@ -35,7 +35,7 @@ private:
 	PriorityDependency _priority_dependency;
 	std::shared_ptr<VoxelBufferInternal> _voxels;
 	UniquePtr<InstanceChunkData> _instances;
-	Vector3i _position; // In data blocks of the specified lod
+	Vector3i _position; // In data chunks of the specified lod
 	VolumeID _volume_id;
 	uint8_t _lod_index;
 	uint8_t _chunk_size;

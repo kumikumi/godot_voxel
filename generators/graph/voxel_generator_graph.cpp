@@ -124,9 +124,9 @@ bool VoxelGeneratorGraph::is_using_xz_caching() const {
 	return _use_xz_caching;
 }
 
-// TODO Optimization: generating indices and weights on every voxel of a block might be avoidable
+// TODO Optimization: generating indices and weights on every voxel of a chunk might be avoidable
 // Instead, we could only generate them near zero-crossings, because this is where materials will be seen.
-// The problem is that it's harder to manage at the moment, to support edited blocks and LOD...
+// The problem is that it's harder to manage at the moment, to support edited chunks and LOD...
 void VoxelGeneratorGraph::gather_indices_and_weights(Span<const WeightOutput> weight_outputs,
 		const pg::Runtime::State &state, Vector3i rmin, Vector3i rmax, int ry, VoxelBufferInternal &out_voxel_buffer,
 		FixedArray<uint8_t, 4> spare_indices) {
@@ -468,7 +468,7 @@ VoxelGenerator::Result VoxelGeneratorGraph::generate_chunk(VoxelGenerator::Voxel
 		}
 	}
 
-	// For each subdivision of the block
+	// For each subdivision of the chunk
 	for (int sz = 0; sz < bs.z; sz += section_size.z) {
 		for (int sy = 0; sy < bs.y; sy += section_size.y) {
 			for (int sx = 0; sx < bs.x; sx += section_size.x) {
@@ -650,7 +650,7 @@ VoxelGenerator::Result VoxelGeneratorGraph::generate_chunk(VoxelGenerator::Voxel
 
 	// This is different from finding out that the buffer is uniform.
 	// This really means we predicted SDF will never cross zero in this area, no matter how precise we get.
-	// Relying on the block's uniform channels would bring up false positives due to LOD aliasing.
+	// Relying on the chunk's uniform channels would bring up false positives due to LOD aliasing.
 	const bool all_sdf_is_uniform = all_sdf_is_air || all_sdf_is_matter;
 	if (all_sdf_is_uniform) {
 		// TODO If voxel texure weights are used, octree compression might be a bit more complicated.
@@ -661,7 +661,7 @@ VoxelGenerator::Result VoxelGeneratorGraph::generate_chunk(VoxelGenerator::Voxel
 		// - Also take indices and weights into account, but may lead to way less compression, or none, for stuff
 		// that
 		//   essentially isnt showing up until dug out
-		// - Invoke generator to produce LOD0 blocks somehow, but main thread could stall
+		// - Invoke generator to produce LOD0 chunks somehow, but main thread could stall
 		result.max_lod_hint = true;
 	}
 
@@ -670,7 +670,7 @@ VoxelGenerator::Result VoxelGeneratorGraph::generate_chunk(VoxelGenerator::Voxel
 
 bool VoxelGeneratorGraph::generate_broad_block(VoxelGenerator::VoxelQueryData &input) {
 	// This is a reduced version of whan `generate_chunk` does already, so it can be used before scheduling GPU work.
-	// If range analysis and SDF clipping finds that we don't need to generate the full block, we can get away with the
+	// If range analysis and SDF clipping finds that we don't need to generate the full chunk, we can get away with the
 	// broad result. If any channel cannot be determined this way, we have to perform full generation.
 
 	std::shared_ptr<Runtime> runtime_ptr;

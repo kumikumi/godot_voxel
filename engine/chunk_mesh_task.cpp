@@ -16,7 +16,7 @@
 namespace zylann::voxel {
 
 struct CubicAreaInfo {
-	int edge_size; // In data blocks
+	int edge_size; // In data chunks
 	int chunk_mesh_size_factor;
 	unsigned int anchor_buffer_index;
 
@@ -26,7 +26,7 @@ struct CubicAreaInfo {
 };
 
 CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
-	// Determine size of the cube of blocks
+	// Determine size of the cube of chunks
 	int edge_size;
 	int chunk_mesh_size_factor;
 	switch (size) {
@@ -43,14 +43,14 @@ CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 			return CubicAreaInfo{ 0, 0, 0 };
 	}
 
-	// Pick anchor block, usually within the central part of the cube (that block must be valid)
+	// Pick anchor chunk, usually within the central part of the cube (that chunk must be valid)
 	const unsigned int anchor_buffer_index = edge_size * edge_size + edge_size + 1;
 
 	return { edge_size, chunk_mesh_size_factor, anchor_buffer_index };
 }
 
-// Takes a list of blocks and interprets it as a cube of blocks centered around the area we want to create a mesh from.
-// Voxels from central blocks are copied, and part of side blocks are also copied so we get a temporary buffer
+// Takes a list of chunks and interprets it as a cube of chunks centered around the area we want to create a mesh from.
+// Voxels from central chunks are copied, and part of side chunks are also copied so we get a temporary buffer
 // which includes enough neighbors for the mesher to avoid doing bound checks.
 static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> blocks, VoxelBufferInternal &dst,
 		int min_padding, int max_padding, int channels_mask, Ref<VoxelGenerator> generator, const VoxelData &voxel_data,
@@ -64,7 +64,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	FixedArray<uint8_t, VoxelBufferInternal::MAX_CHANNELS> channels =
 			VoxelBufferInternal::mask_to_channels_list(channels_mask, channels_count);
 
-	// Determine size of the cube of blocks
+	// Determine size of the cube of chunks
 	const CubicAreaInfo area_info = get_cubic_area_info_from_size(blocks.size());
 	ERR_FAIL_COND(!area_info.is_valid());
 
@@ -88,7 +88,7 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	for (unsigned int i = 0; i < blocks.size(); ++i) {
 		const std::shared_ptr<VoxelBufferInternal> &buffer = blocks[i];
 		if (buffer != nullptr) {
-			// Initialize channel depths from the first non-null block found
+			// Initialize channel depths from the first non-null chunk found
 			dst.copy_format(*buffer);
 			break;
 		}
@@ -392,8 +392,8 @@ void ChunkMeshTask::gather_voxels_cpu() {
 				for (bpos.y = min_bpos.y; bpos.y < max_bpos.y; ++bpos.y) {
 					// {
 					// 	RWLockRead rlock(lod.map_lock);
-					// 	VoxelChunkData *block = lod.map.get_block(bpos);
-					// 	if (block != nullptr && (block->is_edited() || block->is_modified())) {
+					// 	VoxelChunkData *chunk = lod.map.get_chunk(bpos);
+					// 	if (chunk != nullptr && (chunk->is_edited() || chunk->is_modified())) {
 					// 		continue;
 					// 	}
 					// }

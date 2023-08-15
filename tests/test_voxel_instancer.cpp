@@ -51,7 +51,7 @@ void test_instance_data_serialization() {
 	InstanceChunkData dst_data;
 	ZN_TEST_ASSERT(deserialize_instance_block_data(dst_data, to_span_const(serialized_data)));
 
-	// Compare blocks
+	// Compare chunks
 	ZN_TEST_ASSERT(src_data.layers.size() == dst_data.layers.size());
 	ZN_TEST_ASSERT(dst_data.position_range >= 0.f);
 	ZN_TEST_ASSERT(dst_data.position_range == src_data.position_range);
