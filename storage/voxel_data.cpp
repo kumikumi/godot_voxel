@@ -769,10 +769,10 @@ void VoxelData::get_missing_blocks(
 	});
 }
 
-void VoxelData::get_blocks_with_voxel_data(
-		Box3i p_blocks_box, unsigned int lod_index, Span<std::shared_ptr<VoxelBufferInternal>> out_blocks) const {
+void VoxelData::get_chunks_with_voxel_data(
+		Box3i p_chunks_box, unsigned int lod_index, Span<std::shared_ptr<VoxelBufferInternal>> out_chunks) const {
 	ZN_PROFILE_SCOPE();
-	ZN_ASSERT(int64_t(out_blocks.size()) >= Vector3iUtil::get_volume(p_blocks_box.size));
+	ZN_ASSERT(int64_t(out_chunks.size()) >= Vector3iUtil::get_volume(p_chunks_box.size));
 
 	const Lod &data_lod = _lods[lod_index];
 	RWLockRead rlock(data_lod.map_lock);
@@ -780,12 +780,12 @@ void VoxelData::get_blocks_with_voxel_data(
 	unsigned int index = 0;
 
 	// Iteration order matters for thread access.
-	p_blocks_box.for_each_cell_zxy([&index, &data_lod, &out_blocks](Vector3i chunk_pos) {
+	p_chunks_box.for_each_cell_zxy([&index, &data_lod, &out_chunks](Vector3i chunk_pos) {
 		const VoxelChunkData *nblock = data_lod.map.get_block(chunk_pos);
 		// The chunk can actually be null on some occasions. Not sure yet if it's that bad
 		// CRASH_COND(nchunk == nullptr);
 		if (nblock != nullptr && nblock->has_voxels()) {
-			out_blocks[index] = nblock->get_voxels_shared();
+			out_chunks[index] = nblock->get_voxels_shared();
 		}
 		++index;
 	});

@@ -1029,7 +1029,7 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 			// Iteration order matters for thread access.
 			// The array also implicitly encodes chunk position due to the convention being used,
 			// so there is no need to also include positions in the request
-			data.get_blocks_with_voxel_data(data_box, lod_index, to_span(task->blocks));
+			data.get_chunks_with_voxel_data(data_box, lod_index, to_span(task->blocks));
 			task->blocks_count = Vector3iUtil::get_volume(data_box.size);
 
 			// TODO There is inconsistency with coordinates sent to this function.
