@@ -260,7 +260,7 @@ void VoxelInstancer::process_generator_results() {
 			continue;
 		}
 
-		update_block_from_transforms(block_it->second, to_span_const(output.transforms), output.render_block_position,
+		update_chunk_from_transforms(block_it->second, to_span_const(output.transforms), output.render_block_position,
 				layer, *item, output.layer_id, world, block_global_transform, block_local_transform.origin);
 	}
 
@@ -647,7 +647,7 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_chunk_size));
 		const Transform3D block_transform = parent_transform * block_local_transform;
 
-		update_block_from_transforms(chunk_index, to_span_const(transform_cache), block.grid_position, layer, **item,
+		update_chunk_from_transforms(chunk_index, to_span_const(transform_cache), block.grid_position, layer, **item,
 				layer_id, world, block_transform, block_local_transform.origin);
 	}
 }
@@ -983,7 +983,7 @@ unsigned int VoxelInstancer::create_chunk(
 	return chunk_index;
 }
 
-void VoxelInstancer::update_block_from_transforms(int chunk_index, Span<const Transform3f> transforms,
+void VoxelInstancer::update_chunk_from_transforms(int chunk_index, Span<const Transform3f> transforms,
 		Vector3i grid_position, Layer &layer, const VoxelInstanceLibraryItem &item_base, uint16_t layer_id,
 		World3D &world, const Transform3D &block_global_transform, Vector3 block_local_position) {
 	ZN_PROFILE_SCOPE();
@@ -1280,7 +1280,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 			create_chunk(layer, layer_id, render_grid_position, true);
 		} else {
 			// Create and populate chunk immediately
-			update_block_from_transforms(-1, to_span_const(transform_cache), render_grid_position, layer, *item,
+			update_chunk_from_transforms(-1, to_span_const(transform_cache), render_grid_position, layer, *item,
 					layer_id, world, block_global_transform, block_local_transform.origin);
 		}
 	}

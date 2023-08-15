@@ -162,7 +162,7 @@ private:
 	SceneInstance create_scene_instance(const VoxelInstanceLibrarySceneItem &scene_item, int instance_index,
 			unsigned int chunk_index, Transform3D transform, int chunk_size_po2);
 
-	void update_block_from_transforms(int chunk_index, Span<const Transform3f> transforms, Vector3i grid_position,
+	void update_chunk_from_transforms(int chunk_index, Span<const Transform3f> transforms, Vector3i grid_position,
 			Layer &layer, const VoxelInstanceLibraryItem &item_base, uint16_t layer_id, World3D &world,
 			const Transform3D &block_transform, Vector3 block_local_position);
 
