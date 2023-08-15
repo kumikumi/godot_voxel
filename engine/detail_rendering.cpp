@@ -278,7 +278,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 		}
 
 		// In case there are lots of potential queries to make, do a broad check using LOD mips.
-		if (block_volume <= 8 || voxel_data.has_blocks_with_voxels_in_area_broad_mip_test(voxel_box)) {
+		if (block_volume <= 8 || voxel_data.has_chunks_with_voxels_in_area_broad_mip_test(voxel_box)) {
 			voxel_data.get_blocks_grid(grid, voxel_box, 0);
 		}
 		// const VoxelDataLodMap::Lod &lod0 = voxel_data.lods[0];
@@ -356,7 +356,7 @@ void compute_detail_texture_data(ICellIterator &cell_iterator, Span<const Vector
 	}
 
 	if (voxel_data != nullptr &&
-			!voxel_data->has_blocks_with_voxels_in_area_broad_mip_test(Box3i(origin_in_voxels, size_in_voxels))) {
+			!voxel_data->has_chunks_with_voxels_in_area_broad_mip_test(Box3i(origin_in_voxels, size_in_voxels))) {
 		// Ignore edits completely
 		voxel_data = nullptr;
 		if (edited_tiles_only) {

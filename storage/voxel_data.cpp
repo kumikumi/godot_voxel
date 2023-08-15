@@ -805,7 +805,7 @@ VoxelSpatialLock &VoxelData::get_spatial_lock(unsigned int lod_index) const {
 	return data_lod.spatial_lock;
 }
 
-bool VoxelData::has_blocks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxels) const {
+bool VoxelData::has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxels) const {
 	ZN_PROFILE_SCOPE();
 
 	// Find the highest LOD level to query first
