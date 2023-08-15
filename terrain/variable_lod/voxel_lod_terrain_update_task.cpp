@@ -376,7 +376,7 @@ bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const Vox
 				tls_missing.clear();
 
 				// Check if neighbors are loaded
-				data.get_missing_blocks(to_span(neighbor_positions, neighbor_positions_count), lod_index, tls_missing);
+				data.get_missing_chunks(to_span(neighbor_positions, neighbor_positions_count), lod_index, tls_missing);
 
 				surrounded = tls_missing.size() == 0;
 
@@ -457,7 +457,7 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 		const int factor = chunk_mesh_size / chunk_size;
 		const Box3i chunks_box = Box3i(p_chunk_mesh_pos * factor, Vector3iUtil::create(factor)).padded(1);
 
-		data.get_missing_blocks(chunks_box, lod_index, tls_missing);
+		data.get_missing_chunks(chunks_box, lod_index, tls_missing);
 
 		if (tls_missing.size() > 0) {
 			VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
@@ -1087,7 +1087,7 @@ static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerra
 
 			static thread_local std::vector<Vector3i> tls_missing;
 			tls_missing.clear();
-			data.get_missing_blocks(block_box, lod_index, tls_missing);
+			data.get_missing_chunks(block_box, lod_index, tls_missing);
 
 			if (tls_missing.size() > 0) {
 				MutexLock mlock(lod.loading_blocks_mutex);

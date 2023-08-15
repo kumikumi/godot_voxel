@@ -742,23 +742,23 @@ void VoxelData::consume_all_modifications(std::vector<BlockToSave> &to_save, boo
 	}
 }
 
-void VoxelData::get_missing_blocks(
-		Span<const Vector3i> block_positions, unsigned int lod_index, std::vector<Vector3i> &out_missing) const {
+void VoxelData::get_missing_chunks(
+		Span<const Vector3i> chunk_positions, unsigned int lod_index, std::vector<Vector3i> &out_missing) const {
 	const Lod &lod = _lods[lod_index];
 	RWLockRead rlock(lod.map_lock);
-	for (const Vector3i &pos : block_positions) {
+	for (const Vector3i &pos : chunk_positions) {
 		if (!lod.map.has_block(pos)) {
 			out_missing.push_back(pos);
 		}
 	}
 }
 
-void VoxelData::get_missing_blocks(
-		Box3i p_blocks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const {
+void VoxelData::get_missing_chunks(
+		Box3i p_chunks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const {
 	const Lod &data_lod = _lods[lod_index];
 
 	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	const Box3i blocks_box = p_blocks_box.clipped(bounds_in_blocks);
+	const Box3i blocks_box = p_chunks_box.clipped(bounds_in_blocks);
 
 	RWLockRead rlock(data_lod.map_lock);
 

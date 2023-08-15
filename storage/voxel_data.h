@@ -226,12 +226,12 @@ public:
 	// TODO Don't consider positions outside bounds to be missing? This is only a byproduct of migrating old
 	// code. It doesn't check this because the code using this function already does it (a bit more efficiently,
 	// but still).
-	void get_missing_blocks(
-			Span<const Vector3i> block_positions, unsigned int lod_index, std::vector<Vector3i> &out_missing) const;
+	void get_missing_chunks(
+			Span<const Vector3i> chunk_positions, unsigned int lod_index, std::vector<Vector3i> &out_missing) const;
 
 	// Gets missing chunks out of the given area in chunk coordinates.
 	// If the area intersects the outside of the bounds, it will be clipped.
-	void get_missing_blocks(Box3i p_blocks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const;
+	void get_missing_chunks(Box3i p_chunks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const;
 
 	// Gets chunks with voxel data in the given area in chunk coordinates.
 	// Voxel data references are returned in an array big enough to contain a grid of the size of the area.
