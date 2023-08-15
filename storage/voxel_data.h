@@ -108,10 +108,10 @@ public:
 	// If `use_mask` is used, will only write voxels of the source buffer that are not equal to `mask_value`.
 	// If `create_new_chunks` is true, chunks will be created if not found in the area.
 	void paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask,
-			bool create_new_blocks);
+			bool create_new_chunks);
 
 	void paste_masked(Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask,
-			uint8_t mask_channel, uint64_t mask_value, bool create_new_blocks);
+			uint8_t mask_channel, uint64_t mask_value, bool create_new_chunks);
 
 	// Tests if the given area is loaded at LOD0.
 	// This is necessary for editing destructively.

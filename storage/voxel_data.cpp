@@ -294,7 +294,7 @@ void VoxelData::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsigned
 }
 
 void VoxelData::paste(
-		Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask, bool create_new_blocks) {
+		Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask, bool create_new_chunks) {
 	ZN_PROFILE_SCOPE();
 
 	Lod &data_lod0 = _lods[0];
@@ -302,17 +302,17 @@ void VoxelData::paste(
 	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
 	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
 
-	if (create_new_blocks) {
+	if (create_new_chunks) {
 		RWLockWrite wlock(data_lod0.map_lock);
-		data_lod0.map.paste(min_pos, src_buffer, channels_mask, false, 0, 0, create_new_blocks);
+		data_lod0.map.paste(min_pos, src_buffer, channels_mask, false, 0, 0, create_new_chunks);
 	} else {
 		RWLockRead rlock(data_lod0.map_lock);
-		data_lod0.map.paste(min_pos, src_buffer, channels_mask, false, 0, 0, create_new_blocks);
+		data_lod0.map.paste(min_pos, src_buffer, channels_mask, false, 0, 0, create_new_chunks);
 	}
 }
 
 void VoxelData::paste_masked(Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask,
-		uint8_t mask_channel, uint64_t mask_value, bool create_new_blocks) {
+		uint8_t mask_channel, uint64_t mask_value, bool create_new_chunks) {
 	ZN_PROFILE_SCOPE();
 
 	Lod &data_lod0 = _lods[0];
@@ -320,12 +320,12 @@ void VoxelData::paste_masked(Vector3i min_pos, const VoxelBufferInternal &src_bu
 	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
 	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
 
-	if (create_new_blocks) {
+	if (create_new_chunks) {
 		RWLockWrite wlock(data_lod0.map_lock);
-		data_lod0.map.paste(min_pos, src_buffer, channels_mask, true, mask_channel, mask_value, create_new_blocks);
+		data_lod0.map.paste(min_pos, src_buffer, channels_mask, true, mask_channel, mask_value, create_new_chunks);
 	} else {
 		RWLockRead rlock(data_lod0.map_lock);
-		data_lod0.map.paste(min_pos, src_buffer, channels_mask, true, mask_channel, mask_value, create_new_blocks);
+		data_lod0.map.paste(min_pos, src_buffer, channels_mask, true, mask_channel, mask_value, create_new_chunks);
 	}
 }
 

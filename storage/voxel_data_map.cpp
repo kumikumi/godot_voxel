@@ -244,7 +244,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 }
 
 void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer, unsigned int channels_mask,
-		bool use_mask, uint8_t mask_channel, uint64_t mask_value, bool create_new_blocks) {
+		bool use_mask, uint8_t mask_channel, uint64_t mask_value, bool create_new_chunks) {
 	//
 	const Vector3i max_pos = min_pos + src_buffer.get_size();
 
@@ -262,7 +262,7 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 					VoxelChunkData *block = get_block(bpos);
 
 					if (block == nullptr) {
-						if (create_new_blocks) {
+						if (create_new_chunks) {
 							block = create_default_chunk(bpos);
 						} else {
 							continue;
