@@ -286,7 +286,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 		// tls_grid.reference_area(lod0.map, voxel_box);
 	}
 
-	return grid.has_any_block();
+	return grid.has_any_chunk();
 }
 
 struct ClearVoxelDataGridOnExit {

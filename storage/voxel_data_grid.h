@@ -42,7 +42,7 @@ public:
 		_spatial_lock = sl;
 	}
 
-	inline bool has_any_block() const {
+	inline bool has_any_chunk() const {
 		for (unsigned int i = 0; i < _chunks.size(); ++i) {
 			if (_chunks[i] != nullptr) {
 				return true;
