@@ -311,7 +311,7 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	std::vector<Box3i> boxes_to_generate;
 	Vector3i origin_in_voxels;
 
-	copy_block_and_neighbors(to_span(blocks, blocks_count), _voxels, min_padding, max_padding,
+	copy_block_and_neighbors(to_span(chunks, chunks_count), _voxels, min_padding, max_padding,
 			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, chunk_mesh_position,
 			&boxes_to_generate, &origin_in_voxels);
 
@@ -371,7 +371,7 @@ void ChunkMeshTask::gather_voxels_cpu() {
 	const unsigned int min_padding = mesher->get_minimum_padding();
 	const unsigned int max_padding = mesher->get_maximum_padding();
 
-	copy_block_and_neighbors(to_span(blocks, blocks_count), _voxels, min_padding, max_padding,
+	copy_block_and_neighbors(to_span(chunks, chunks_count), _voxels, min_padding, max_padding,
 			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, chunk_mesh_position,
 			nullptr, nullptr);
 

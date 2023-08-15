@@ -1564,14 +1564,14 @@ void VoxelTerrain::process_meshing() {
 		task->data = _data;
 
 		// This iteration order is specifically chosen to match VoxelEngine and threaded access
-		_data->get_chunks_with_voxel_data(data_box, 0, to_span(task->blocks));
-		task->blocks_count = Vector3iUtil::get_volume(data_box.size);
+		_data->get_chunks_with_voxel_data(data_box, 0, to_span(task->chunks));
+		task->chunks_count = Vector3iUtil::get_volume(data_box.size);
 
 #ifdef DEBUG_ENABLED
 		{
 			unsigned int count = 0;
-			for (unsigned int i = 0; i < task->blocks_count; ++i) {
-				if (task->blocks[i] != nullptr) {
+			for (unsigned int i = 0; i < task->chunks_count; ++i) {
+				if (task->chunks[i] != nullptr) {
 					++count;
 				}
 			}

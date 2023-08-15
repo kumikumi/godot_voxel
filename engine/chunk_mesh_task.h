@@ -36,13 +36,13 @@ public:
 	static int debug_get_running_count();
 
 	// 3x3x3 or 4x4x4 grid of voxel chunks.
-	FixedArray<std::shared_ptr<VoxelBufferInternal>, constants::MAX_BLOCK_COUNT_PER_REQUEST> blocks;
+	FixedArray<std::shared_ptr<VoxelBufferInternal>, constants::MAX_BLOCK_COUNT_PER_REQUEST> chunks;
 	// TODO Need to provide format
 	// FixedArray<uint8_t, VoxelBufferInternal::MAX_CHANNELS> channel_depths;
 	Vector3i chunk_mesh_position; // In mesh chunks of the specified lod
 	VolumeID volume_id;
 	uint8_t lod_index = 0;
-	uint8_t blocks_count = 0;
+	uint8_t chunks_count = 0;
 	bool collision_hint = false;
 	bool lod_hint = false;
 	// Detail textures might be enabled, but we don't always want to update them in every mesh update.
