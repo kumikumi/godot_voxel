@@ -243,7 +243,7 @@ public:
 	// Gets chunks with voxels at the given LOD and indexes them in a grid. This will query every location
 	// intersecting the box at the specified LOD, so if the area is large, you may want to do a broad check first.
 	// WARNING: data isn't locked, you have to keep a shared reference to VoxelData in order to use VoxelSpatialLock.
-	void get_blocks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsigned int lod_index) const;
+	void get_chunks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsigned int lod_index) const;
 
 	// TODO Areas that use this accessor might as well move their logic in this class
 	VoxelSpatialLock &get_spatial_lock(unsigned int lod_index) const;

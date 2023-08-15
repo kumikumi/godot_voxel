@@ -279,7 +279,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 
 		// In case there are lots of potential queries to make, do a broad check using LOD mips.
 		if (block_volume <= 8 || voxel_data.has_chunks_with_voxels_in_area_broad_mip_test(voxel_box)) {
-			voxel_data.get_blocks_grid(grid, voxel_box, 0);
+			voxel_data.get_chunks_grid(grid, voxel_box, 0);
 		}
 		// const VoxelDataLodMap::Lod &lod0 = voxel_data.lods[0];
 		// RWLockRead rlock(lod0.map_lock);

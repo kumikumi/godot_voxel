@@ -181,7 +181,7 @@ void VoxelToolLodTerrain::do_sphere(Vector3 center, float radius) {
 	VoxelData &data = _terrain->get_storage();
 
 	data.pre_generate_box(op.box);
-	data.get_blocks_grid(op.blocks, op.box, 0);
+	data.get_chunks_grid(op.blocks, op.box, 0);
 	op();
 
 	_post_edit(op.box);
@@ -213,7 +213,7 @@ void VoxelToolLodTerrain::do_hemisphere(Vector3 center, float radius, Vector3 fl
 	VoxelData &data = _terrain->get_storage();
 
 	data.pre_generate_box(op.box);
-	data.get_blocks_grid(op.blocks, op.box, 0);
+	data.get_chunks_grid(op.blocks, op.box, 0);
 	op();
 
 	_post_edit(op.box);
@@ -235,7 +235,7 @@ public:
 		ZN_ASSERT(_data != nullptr);
 		// TODO May want to fail if not all chunks were found
 		// TODO Need to apply modifiers
-		_data->get_blocks_grid(_op.blocks, _op.box, 0);
+		_data->get_chunks_grid(_op.blocks, _op.box, 0);
 		_op();
 		_tracker->post_complete();
 	}
@@ -812,7 +812,7 @@ void VoxelToolLodTerrain::stamp_sdf(
 	ZN_ASSERT_RETURN(buffer.get_channel_data(channel, op.shape.buffer));
 
 	VoxelDataGrid grid;
-	data.get_blocks_grid(grid, voxel_box, 0);
+	data.get_chunks_grid(grid, voxel_box, 0);
 	grid.write_box(voxel_box, VoxelBufferInternal::CHANNEL_SDF, op);
 
 	_post_edit(voxel_box);

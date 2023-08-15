@@ -201,7 +201,7 @@ void VoxelToolTerrain::do_sphere(Vector3 center, float radius) {
 
 	VoxelData &data = _terrain->get_storage();
 
-	data.get_blocks_grid(op.blocks, op.box, 0);
+	data.get_chunks_grid(op.blocks, op.box, 0);
 	op();
 
 	_post_edit(op.box);
@@ -232,7 +232,7 @@ void VoxelToolTerrain::do_hemisphere(Vector3 center, float radius, Vector3 flat_
 
 	VoxelData &data = _terrain->get_storage();
 
-	data.get_blocks_grid(op.blocks, op.box, 0);
+	data.get_chunks_grid(op.blocks, op.box, 0);
 	op();
 
 	_post_edit(op.box);

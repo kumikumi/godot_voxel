@@ -791,7 +791,7 @@ void VoxelData::get_chunks_with_voxel_data(
 	});
 }
 
-void VoxelData::get_blocks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsigned int lod_index) const {
+void VoxelData::get_chunks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsigned int lod_index) const {
 	ZN_PROFILE_SCOPE();
 	const Lod &data_lod = _lods[lod_index];
 	RWLockRead rlock(data_lod.map_lock);
