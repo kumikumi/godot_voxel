@@ -117,13 +117,13 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 						chunk_pos0 + Vector3iUtil::create(area_info.edge_size)));
 
 		// Using ZXY as convention to reconstruct positions with thread locking consistency
-		unsigned int block_index = 0;
+		unsigned int chunk_index = 0;
 		for (int z = -1; z < area_info.edge_size - 1; ++z) {
 			for (int x = -1; x < area_info.edge_size - 1; ++x) {
 				for (int y = -1; y < area_info.edge_size - 1; ++y) {
 					const Vector3i offset = chunk_size * Vector3i(x, y, z);
-					const std::shared_ptr<VoxelBufferInternal> &src = blocks[block_index];
-					++block_index;
+					const std::shared_ptr<VoxelBufferInternal> &src = blocks[chunk_index];
+					++chunk_index;
 
 					if (src == nullptr) {
 						continue;

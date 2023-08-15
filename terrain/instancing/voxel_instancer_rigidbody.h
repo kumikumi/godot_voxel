@@ -20,8 +20,8 @@ public:
 		_chunk_position = chunk_position;
 	}
 
-	void set_render_block_index(unsigned int render_block_index) {
-		_render_block_index = render_block_index;
+	void set_render_chunk_index(unsigned int render_chunk_index) {
+		_render_chunk_index = render_chunk_index;
 	}
 
 	void set_instance_index(int instance_index) {
@@ -54,7 +54,7 @@ protected:
 				// The user could queue_free() that node in game,
 				// so we have to notify the instancer to remove the multimesh instance and pointer
 				if (_parent != nullptr) {
-					_parent->on_body_removed(_chunk_position, _render_block_index, _instance_index);
+					_parent->on_body_removed(_chunk_position, _render_chunk_index, _instance_index);
 					_parent = nullptr;
 				}
 				break;
@@ -64,7 +64,7 @@ protected:
 private:
 	VoxelInstancer *_parent = nullptr;
 	Vector3i _chunk_position;
-	unsigned int _render_block_index;
+	unsigned int _render_chunk_index;
 	int _instance_index = -1;
 };
 

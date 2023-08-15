@@ -587,8 +587,8 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 	};
 
 	// Update existing chunks
-	for (size_t block_index = 0; block_index < _blocks.size(); ++block_index) {
-		Block &block = *_blocks[block_index];
+	for (size_t chunk_index = 0; chunk_index < _blocks.size(); ++chunk_index) {
+		Block &block = *_blocks[chunk_index];
 		if (block.layer_id != layer_id) {
 			continue;
 		}
@@ -647,7 +647,7 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_chunk_size));
 		const Transform3D block_transform = parent_transform * block_local_transform;
 
-		update_block_from_transforms(block_index, to_span_const(transform_cache), block.grid_position, layer, **item,
+		update_block_from_transforms(chunk_index, to_span_const(transform_cache), block.grid_position, layer, **item,
 				layer_id, world, block_transform, block_local_transform.origin);
 	}
 }
@@ -688,14 +688,14 @@ void VoxelInstancer::update_layer_scenes(int layer_id) {
 	ERR_FAIL_COND(item == nullptr);
 	const int chunk_size_po2 = _parent_chunk_size_po2;
 
-	for (unsigned int block_index = 0; block_index < _blocks.size(); ++block_index) {
-		Block &block = *_blocks[block_index];
+	for (unsigned int chunk_index = 0; chunk_index < _blocks.size(); ++chunk_index) {
+		Block &block = *_blocks[chunk_index];
 
 		for (unsigned int instance_index = 0; instance_index < block.scene_instances.size(); ++instance_index) {
 			SceneInstance prev_instance = block.scene_instances[instance_index];
 			ERR_CONTINUE(prev_instance.root == nullptr);
 			SceneInstance instance = create_scene_instance(
-					*item, instance_index, block_index, prev_instance.root->get_transform(), chunk_size_po2);
+					*item, instance_index, chunk_index, prev_instance.root->get_transform(), chunk_size_po2);
 			ERR_CONTINUE(instance.root == nullptr);
 			block.scene_instances[instance_index] = instance;
 			// We just drop the instance without saving, because this function is supposed to occur only in editor,
@@ -799,9 +799,9 @@ void VoxelInstancer::remove_layer(int layer_id) {
 	_layers.erase(layer_id);
 }
 
-void VoxelInstancer::remove_chunk(unsigned int block_index) {
+void VoxelInstancer::remove_chunk(unsigned int chunk_index) {
 #ifdef DEBUG_ENABLED
-	CRASH_COND(block_index >= _blocks.size());
+	CRASH_COND(chunk_index >= _blocks.size());
 #endif
 	// We will move the last chunk to the index previously occupied by the removed chunk.
 	// It is cheaper than offsetting every chunk in the array.
@@ -809,12 +809,12 @@ void VoxelInstancer::remove_chunk(unsigned int block_index) {
 	// semantics
 	const Block &moved_block = *_blocks.back();
 
-	UniquePtr<Block> block = std::move(_blocks[block_index]);
+	UniquePtr<Block> block = std::move(_blocks[chunk_index]);
 	{
 		Layer &layer = get_layer(block->layer_id);
 		layer.blocks.erase(block->grid_position);
 	}
-	_blocks[block_index] = std::move(_blocks.back());
+	_blocks[chunk_index] = std::move(_blocks.back());
 	_blocks.pop_back();
 
 	// Destroy objects linked to the chunk
@@ -838,7 +838,7 @@ void VoxelInstancer::remove_chunk(unsigned int block_index) {
 		Layer &layer = get_layer(moved_block.layer_id);
 		auto it = layer.blocks.find(moved_block.grid_position);
 		CRASH_COND(it == layer.blocks.end());
-		it->second = block_index;
+		it->second = chunk_index;
 	}
 }
 
@@ -934,7 +934,7 @@ void VoxelInstancer::save_all_modified_blocks(
 }
 
 VoxelInstancer::SceneInstance VoxelInstancer::create_scene_instance(const VoxelInstanceLibrarySceneItem &scene_item,
-		int instance_index, unsigned int block_index, Transform3D transform, int chunk_size_po2) {
+		int instance_index, unsigned int chunk_index, Transform3D transform, int chunk_size_po2) {
 	SceneInstance instance;
 	ERR_FAIL_COND_V_MSG(scene_item.get_scene().is_null(), instance,
 			String("{0} ({1}) is missing an attached scene in {2} ({3})")
@@ -954,7 +954,7 @@ VoxelInstancer::SceneInstance VoxelInstancer::create_scene_instance(const VoxelI
 
 	instance.component->attach(this);
 	instance.component->set_instance_index(instance_index);
-	instance.component->set_render_block_index(block_index);
+	instance.component->set_render_chunk_index(chunk_index);
 	instance.component->set_chunk_position(math::floor_to_int(transform.origin) >> chunk_size_po2);
 
 	instance.root->set_transform(transform);
@@ -973,30 +973,30 @@ unsigned int VoxelInstancer::create_chunk(
 	block->lod_index = layer.lod_index;
 	block->grid_position = grid_position;
 	block->pending_instances = pending_instances;
-	const unsigned int block_index = _blocks.size();
+	const unsigned int chunk_index = _blocks.size();
 	_blocks.push_back(std::move(block));
 #ifdef DEBUG_ENABLED
 	// The chunk must not already exist
 	CRASH_COND(layer.blocks.find(grid_position) != layer.blocks.end());
 #endif
-	layer.blocks.insert({ grid_position, block_index });
-	return block_index;
+	layer.blocks.insert({ grid_position, chunk_index });
+	return chunk_index;
 }
 
-void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Transform3f> transforms,
+void VoxelInstancer::update_block_from_transforms(int chunk_index, Span<const Transform3f> transforms,
 		Vector3i grid_position, Layer &layer, const VoxelInstanceLibraryItem &item_base, uint16_t layer_id,
 		World3D &world, const Transform3D &block_global_transform, Vector3 block_local_position) {
 	ZN_PROFILE_SCOPE();
 
 	// Get or create chunk
-	if (block_index == -1) {
-		block_index = create_chunk(layer, layer_id, grid_position, false);
+	if (chunk_index == -1) {
+		chunk_index = create_chunk(layer, layer_id, grid_position, false);
 	}
 #ifdef DEBUG_ENABLED
-	ERR_FAIL_COND(block_index < 0 || block_index >= int(_blocks.size()));
-	ERR_FAIL_COND(_blocks[block_index] == nullptr);
+	ERR_FAIL_COND(chunk_index < 0 || chunk_index >= int(_blocks.size()));
+	ERR_FAIL_COND(_blocks[chunk_index] == nullptr);
 #endif
-	Block &block = *_blocks[block_index];
+	Block &block = *_blocks[chunk_index];
 
 	// Update multimesh
 	const VoxelInstanceLibraryMultiMeshItem *item = Object::cast_to<VoxelInstanceLibraryMultiMeshItem>(&item_base);
@@ -1075,7 +1075,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 					body = memnew(VoxelInstancerRigidBody);
 					body->attach(this);
 					body->set_instance_index(instance_index);
-					body->set_render_block_index(block_index);
+					body->set_render_chunk_index(chunk_index);
 					body->set_chunk_position(math::floor_to_int(body_transform.origin) >> chunk_size_po2);
 
 					for (unsigned int i = 0; i < collision_shapes.size(); ++i) {
@@ -1129,7 +1129,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 
 			} else {
 				instance = create_scene_instance(
-						*scene_item, instance_index, block_index, body_transform, chunk_size_po2);
+						*scene_item, instance_index, chunk_index, body_transform, chunk_size_po2);
 				ERR_CONTINUE(instance.root == nullptr);
 				block.scene_instances.push_back(instance);
 			}
@@ -1331,11 +1331,11 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 			continue;
 		}
 
-		const unsigned int render_block_index = render_block_it->second;
+		const unsigned int render_chunk_index = render_block_it->second;
 #ifdef DEBUG_ENABLED
-		CRASH_COND(render_block_index >= _blocks.size());
+		CRASH_COND(render_chunk_index >= _blocks.size());
 #endif
-		Block &render_block = *_blocks[render_block_index];
+		Block &render_block = *_blocks[render_chunk_index];
 
 		block_data->layers.push_back(InstanceChunkData::LayerData());
 		InstanceChunkData::LayerData &layer_data = block_data->layers.back();
@@ -1655,8 +1655,8 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 
 // This is called if a user destroys or unparents the body node while it's still attached to the ground
 void VoxelInstancer::on_body_removed(
-		Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index) {
-	Block &block = *_blocks[render_block_index];
+		Vector3i chunk_position, unsigned int render_chunk_index, unsigned int instance_index) {
+	Block &block = *_blocks[render_chunk_index];
 	ERR_FAIL_INDEX(instance_index, block.bodies.size());
 
 	if (block.multimesh_instance.is_valid()) {
@@ -1692,8 +1692,8 @@ void VoxelInstancer::on_body_removed(
 }
 
 void VoxelInstancer::on_scene_instance_removed(
-		Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index) {
-	Block &block = *_blocks[render_block_index];
+		Vector3i chunk_position, unsigned int render_chunk_index, unsigned int instance_index) {
+	Block &block = *_blocks[render_chunk_index];
 	ERR_FAIL_INDEX(instance_index, block.scene_instances.size());
 
 	// Unregister the scene instance
@@ -1713,8 +1713,8 @@ void VoxelInstancer::on_scene_instance_removed(
 	lod.modified_blocks.insert(chunk_position);
 }
 
-void VoxelInstancer::on_scene_instance_modified(Vector3i chunk_position, unsigned int render_block_index) {
-	Block &block = *_blocks[render_block_index];
+void VoxelInstancer::on_scene_instance_modified(Vector3i chunk_position, unsigned int render_chunk_index) {
+	Block &block = *_blocks[render_chunk_index];
 
 	// Mark data chunk as modified
 	const Layer &layer = get_layer(block.layer_id);
@@ -1805,9 +1805,9 @@ Node *VoxelInstancer::debug_dump_as_nodes() const {
 
 		// For each chunk in layer
 		for (auto block_it = layer.blocks.begin(); block_it != layer.blocks.end(); ++block_it) {
-			const unsigned int block_index = block_it->second;
-			CRASH_COND(block_index >= _blocks.size());
-			const Block &block = *_blocks[block_index];
+			const unsigned int chunk_index = block_it->second;
+			CRASH_COND(chunk_index >= _blocks.size());
+			const Block &block = *_blocks[chunk_index];
 
 			if (block.multimesh_instance.is_valid()) {
 				const Transform3D block_local_transform(Basis(), Vector3(block.grid_position * lod_chunk_size));

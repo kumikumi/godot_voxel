@@ -100,7 +100,7 @@ private:
 	bool save_header(FileAccess &f);
 	Error load_header(FileAccess &f);
 
-	unsigned int get_block_index_in_header(const Vector3i &rpos) const;
+	unsigned int get_chunk_index_in_header(const Vector3i &rpos) const;
 	uint32_t get_sector_count_from_bytes(uint32_t size_in_bytes) const;
 
 	void pad_to_sector_size(FileAccess &f);

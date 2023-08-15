@@ -167,9 +167,9 @@ private:
 		_blocks.pop_back();
 
 		if (index < _blocks.size()) {
-			auto moved_block_index_it = _blocks_map.find(moved_block->position);
-			CRASH_COND(moved_block_index_it == _blocks_map.end());
-			moved_block_index_it->second.index = index;
+			auto moved_chunk_index_it = _blocks_map.find(moved_block->position);
+			CRASH_COND(moved_chunk_index_it == _blocks_map.end());
+			moved_chunk_index_it->second.index = index;
 		}
 	}
 

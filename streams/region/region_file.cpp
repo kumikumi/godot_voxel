@@ -315,7 +315,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	FileAccess &f = **_file_access;
 
 	ERR_FAIL_COND_V(!is_valid_block_position(position), ERR_INVALID_PARAMETER);
-	const unsigned int lut_index = get_block_index_in_header(position);
+	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
 	const RegionBlockInfo &block_info = _header.blocks[lut_index];
 
@@ -355,7 +355,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		ERR_FAIL_COND_V(migrate_to_latest(f) == false, ERR_UNAVAILABLE);
 	}
 
-	const unsigned int lut_index = get_block_index_in_header(position);
+	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
 	RegionBlockInfo &block_info = _header.blocks[lut_index];
 
@@ -486,9 +486,9 @@ void RegionFile::remove_sectors_from_block(Vector3i block_pos, unsigned int p_se
 	const unsigned int sector_size = _header.format.sector_size;
 	const unsigned int old_end_offset = _blocks_begin_offset + _sectors.size() * sector_size;
 
-	const unsigned int block_index = get_block_index_in_header(block_pos);
-	CRASH_COND(block_index >= _header.blocks.size());
-	RegionBlockInfo &block_info = _header.blocks[block_index];
+	const unsigned int chunk_index = get_chunk_index_in_header(block_pos);
+	CRASH_COND(chunk_index >= _header.blocks.size());
+	RegionBlockInfo &block_info = _header.blocks[chunk_index];
 
 	unsigned int src_offset =
 			_blocks_begin_offset + (block_info.get_sector_index() + block_info.get_sector_count()) * sector_size;
@@ -615,7 +615,7 @@ Error RegionFile::load_header(FileAccess &f) {
 	return OK;
 }
 
-unsigned int RegionFile::get_block_index_in_header(const Vector3i &rpos) const {
+unsigned int RegionFile::get_chunk_index_in_header(const Vector3i &rpos) const {
 	return Vector3iUtil::get_zxy_index(rpos, _header.format.region_size);
 }
 
@@ -635,7 +635,7 @@ unsigned int RegionFile::get_header_block_count() const {
 bool RegionFile::has_block(Vector3i position) const {
 	ERR_FAIL_COND_V(!is_open(), false);
 	ERR_FAIL_COND_V(!is_valid_block_position(position), false);
-	const unsigned int bi = get_block_index_in_header(position);
+	const unsigned int bi = get_chunk_index_in_header(position);
 	return _header.blocks[bi].data != 0;
 }
 

@@ -77,10 +77,10 @@ public:
 	void on_chunk_mesh_enter(Vector3i render_grid_position, unsigned int lod_index, Array surface_arrays);
 	void on_chunk_mesh_exit(Vector3i render_grid_position, unsigned int lod_index);
 	void on_area_edited(Box3i p_voxel_box);
-	void on_body_removed(Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index);
+	void on_body_removed(Vector3i chunk_position, unsigned int render_chunk_index, unsigned int instance_index);
 	void on_scene_instance_removed(
-			Vector3i chunk_position, unsigned int render_block_index, unsigned int instance_index);
-	void on_scene_instance_modified(Vector3i chunk_position, unsigned int render_block_index);
+			Vector3i chunk_position, unsigned int render_chunk_index, unsigned int instance_index);
+	void on_scene_instance_modified(Vector3i chunk_position, unsigned int render_chunk_index);
 
 	// Internal properties
 
@@ -131,7 +131,7 @@ private:
 	void add_layer(int layer_id, int lod_index);
 	void remove_layer(int layer_id);
 	unsigned int create_chunk(Layer &layer, uint16_t layer_id, Vector3i grid_position, bool pending_instances);
-	void remove_chunk(unsigned int block_index);
+	void remove_chunk(unsigned int chunk_index);
 	void set_world(World3D *world);
 	void clear_blocks();
 	void clear_blocks_in_layer(int layer_id);
@@ -160,9 +160,9 @@ private:
 	};
 
 	SceneInstance create_scene_instance(const VoxelInstanceLibrarySceneItem &scene_item, int instance_index,
-			unsigned int block_index, Transform3D transform, int chunk_size_po2);
+			unsigned int chunk_index, Transform3D transform, int chunk_size_po2);
 
-	void update_block_from_transforms(int block_index, Span<const Transform3f> transforms, Vector3i grid_position,
+	void update_block_from_transforms(int chunk_index, Span<const Transform3f> transforms, Vector3i grid_position,
 			Layer &layer, const VoxelInstanceLibraryItem &item_base, uint16_t layer_id, World3D &world,
 			const Transform3D &block_transform, Vector3 block_local_position);
 
