@@ -70,7 +70,7 @@ void GenerateChunkTask::run_gpu_task(zylann::ThreadedTaskContext &ctx) {
 
 	ZN_ASSERT(voxels != nullptr);
 	VoxelGenerator::VoxelQueryData generator_query{ *voxels, origin_in_voxels, lod_index };
-	if (generator->generate_broad_block(generator_query)) {
+	if (generator->generate_broad_chunk(generator_query)) {
 		_stage = 2;
 		return;
 	}

@@ -118,7 +118,7 @@ public:
 	// If it returns false, no chunk is returned and full generation should be used.
 	// Usually, `generate_chunk` can do this anyways internally, but in some cases like GPU generation it may be used
 	// to avoid sending work to the graphics card.
-	virtual bool generate_broad_block(VoxelQueryData &input);
+	virtual bool generate_broad_chunk(VoxelQueryData &input);
 
 	// Editor
 

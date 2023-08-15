@@ -324,7 +324,7 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	ERR_FAIL_COND(generator.is_null());
 
 	VoxelGenerator::VoxelQueryData generator_query{ _voxels, origin_in_voxels, lod_index };
-	if (generator->generate_broad_block(generator_query)) {
+	if (generator->generate_broad_chunk(generator_query)) {
 		_stage = 2;
 		return;
 	}

@@ -254,7 +254,7 @@ void VoxelGenerator::invalidate_shaders() {
 	}
 }
 
-bool VoxelGenerator::generate_broad_block(VoxelQueryData &input) {
+bool VoxelGenerator::generate_broad_chunk(VoxelQueryData &input) {
 	// By default, generators don't support this separately and just do it inside `generate_chunk`.
 	// However if a generator supports GPU, it is recommended to implement it.
 	return false;

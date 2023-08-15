@@ -668,7 +668,7 @@ VoxelGenerator::Result VoxelGeneratorGraph::generate_chunk(VoxelGenerator::Voxel
 	return result;
 }
 
-bool VoxelGeneratorGraph::generate_broad_block(VoxelGenerator::VoxelQueryData &input) {
+bool VoxelGeneratorGraph::generate_broad_chunk(VoxelGenerator::VoxelQueryData &input) {
 	// This is a reduced version of whan `generate_chunk` does already, so it can be used before scheduling GPU work.
 	// If range analysis and SDF clipping finds that we don't need to generate the full chunk, we can get away with the
 	// broad result. If any channel cannot be determined this way, we have to perform full generation.
