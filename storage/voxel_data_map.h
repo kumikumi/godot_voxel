@@ -180,7 +180,7 @@ public:
 
 private:
 	// void set_chunk(Vector3i bpos, VoxelChunkData *chunk);
-	VoxelChunkData *get_or_create_block_at_voxel_pos(Vector3i pos);
+	VoxelChunkData *get_or_create_chunk_at_voxel_pos(Vector3i pos);
 	VoxelChunkData *create_default_block(Vector3i bpos);
 
 	// void set_chunk_size_pow2(unsigned int p);

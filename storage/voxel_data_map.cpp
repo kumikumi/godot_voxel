@@ -66,7 +66,7 @@ VoxelChunkData *VoxelDataMap::create_default_block(Vector3i bpos) {
 	return &map_block;
 }
 
-VoxelChunkData *VoxelDataMap::get_or_create_block_at_voxel_pos(Vector3i pos) {
+VoxelChunkData *VoxelDataMap::get_or_create_chunk_at_voxel_pos(Vector3i pos) {
 	Vector3i bpos = voxel_to_block(pos);
 	VoxelChunkData *block = get_block(bpos);
 	if (block == nullptr) {
@@ -76,7 +76,7 @@ VoxelChunkData *VoxelDataMap::get_or_create_block_at_voxel_pos(Vector3i pos) {
 }
 
 void VoxelDataMap::set_voxel(int value, Vector3i pos, unsigned int c) {
-	VoxelChunkData *block = get_or_create_block_at_voxel_pos(pos);
+	VoxelChunkData *block = get_or_create_chunk_at_voxel_pos(pos);
 	// TODO If it turns out to be a problem, use CoW
 	VoxelBufferInternal &voxels = block->get_voxels();
 	voxels.set_voxel(value, to_local(pos), c);
@@ -95,7 +95,7 @@ float VoxelDataMap::get_voxel_f(Vector3i pos, unsigned int c) const {
 }
 
 void VoxelDataMap::set_voxel_f(real_t value, Vector3i pos, unsigned int c) {
-	VoxelChunkData *block = get_or_create_block_at_voxel_pos(pos);
+	VoxelChunkData *block = get_or_create_chunk_at_voxel_pos(pos);
 	Vector3i lpos = to_local(pos);
 	// TODO In this situation, the generator must be invoked to fill the chunk
 	ZN_ASSERT_RETURN_MSG(block->has_voxels(), "Block not cached");
