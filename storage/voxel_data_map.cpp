@@ -54,7 +54,7 @@ int VoxelDataMap::get_voxel(Vector3i pos, unsigned int c) const {
 	return block->get_voxels_const().get_voxel(to_local(pos), c);
 }
 
-VoxelChunkData *VoxelDataMap::create_default_block(Vector3i bpos) {
+VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 	std::shared_ptr<VoxelBufferInternal> buffer = make_shared_instance<VoxelBufferInternal>();
 	buffer->create(get_chunk_size(), get_chunk_size(), get_chunk_size());
 	// buffer->set_default_values(_default_voxel);
@@ -70,7 +70,7 @@ VoxelChunkData *VoxelDataMap::get_or_create_chunk_at_voxel_pos(Vector3i pos) {
 	Vector3i bpos = voxel_to_block(pos);
 	VoxelChunkData *block = get_block(bpos);
 	if (block == nullptr) {
-		block = create_default_block(bpos);
+		block = create_default_chunk(bpos);
 	}
 	return block;
 }
@@ -263,7 +263,7 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 
 					if (block == nullptr) {
 						if (create_new_blocks) {
-							block = create_default_block(bpos);
+							block = create_default_chunk(bpos);
 						} else {
 							continue;
 						}

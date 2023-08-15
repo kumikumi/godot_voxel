@@ -143,7 +143,7 @@ public:
 			VoxelChunkData *block = get_block(block_pos);
 			if (block == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
-				block = create_default_block(block_pos);
+				block = create_default_chunk(block_pos);
 				gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 			}
 			const Vector3i block_origin = block_to_voxel(block_pos);
@@ -167,7 +167,7 @@ public:
 				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i block_pos) {
 					VoxelChunkData *block = get_block(block_pos);
 					if (block == nullptr) {
-						block = create_default_block(block_pos);
+						block = create_default_chunk(block_pos);
 						gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 					}
 					const Vector3i block_origin = block_to_voxel(block_pos);
@@ -181,7 +181,7 @@ public:
 private:
 	// void set_chunk(Vector3i bpos, VoxelChunkData *chunk);
 	VoxelChunkData *get_or_create_chunk_at_voxel_pos(Vector3i pos);
-	VoxelChunkData *create_default_block(Vector3i bpos);
+	VoxelChunkData *create_default_chunk(Vector3i bpos);
 
 	// void set_chunk_size_pow2(unsigned int p);
 
