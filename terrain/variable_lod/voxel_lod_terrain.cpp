@@ -230,7 +230,7 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 			VoxelMeshMap<VoxelChunkMeshVLT> &map = _mesh_maps_per_lod[lod_index];
 
-			map.for_each_block([this](VoxelChunkMeshVLT &block) { //
+			map.for_each_chunk([this](VoxelChunkMeshVLT &block) { //
 				Ref<ShaderMaterial> sm = _shader_material_pool.allocate();
 				Ref<ShaderMaterial> prev_material = block.get_shader_material();
 				if (prev_material.is_valid()) {
@@ -247,7 +247,7 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 			VoxelMeshMap<VoxelChunkMeshVLT> &map = _mesh_maps_per_lod[lod_index];
 
-			map.for_each_block([&p_material](VoxelChunkMeshVLT &block) { //
+			map.for_each_chunk([&p_material](VoxelChunkMeshVLT &block) { //
 				block.set_shader_material(Ref<ShaderMaterial>());
 
 				Ref<Mesh> mesh = block.get_mesh();
@@ -342,7 +342,7 @@ Ref<VoxelGenerator> VoxelLodTerrain::get_generator() const {
 void VoxelLodTerrain::_on_gi_mode_changed() {
 	const GIMode gi_mode = get_gi_mode();
 	for (unsigned int lod_index = 0; lod_index < _update_data->state.lods.size(); ++lod_index) {
-		_mesh_maps_per_lod[lod_index].for_each_block([gi_mode](VoxelChunkMeshVLT &block) { //
+		_mesh_maps_per_lod[lod_index].for_each_chunk([gi_mode](VoxelChunkMeshVLT &block) { //
 			block.set_gi_mode(DirectMeshInstance::GIMode(gi_mode));
 		});
 	}
@@ -351,7 +351,7 @@ void VoxelLodTerrain::_on_gi_mode_changed() {
 void VoxelLodTerrain::_on_shadow_casting_changed() {
 	const RenderingServer::ShadowCastingSetting mode = RenderingServer::ShadowCastingSetting(get_shadow_casting());
 	for (unsigned int lod_index = 0; lod_index < _update_data->state.lods.size(); ++lod_index) {
-		_mesh_maps_per_lod[lod_index].for_each_block([mode](VoxelChunkMeshVLT &block) { //
+		_mesh_maps_per_lod[lod_index].for_each_chunk([mode](VoxelChunkMeshVLT &block) { //
 			block.set_shadow_casting(mode);
 		});
 	}
@@ -803,7 +803,7 @@ void VoxelLodTerrain::reset_mesh_maps() {
 		if (_instancer != nullptr) {
 			// Unload instances
 			VoxelInstancer *instancer = _instancer;
-			mesh_map.for_each_block([lod_index, instancer](VoxelChunkMeshVLT &block) {
+			mesh_map.for_each_chunk([lod_index, instancer](VoxelChunkMeshVLT &block) {
 				instancer->on_chunk_mesh_exit(block.position, lod_index);
 			});
 		}
@@ -871,7 +871,7 @@ void VoxelLodTerrain::set_collision_layer(int layer) {
 	_collision_layer = layer;
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		mesh_map.for_each_block([layer](VoxelChunkMeshVLT &block) { //
+		mesh_map.for_each_chunk([layer](VoxelChunkMeshVLT &block) { //
 			block.set_collision_layer(layer);
 		});
 	}
@@ -887,7 +887,7 @@ void VoxelLodTerrain::set_collision_mask(int mask) {
 	_collision_mask = mask;
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		mesh_map.for_each_block([mask](VoxelChunkMeshVLT &block) { //
+		mesh_map.for_each_chunk([mask](VoxelChunkMeshVLT &block) { //
 			block.set_collision_mask(mask);
 		});
 	}
@@ -903,7 +903,7 @@ void VoxelLodTerrain::set_collision_margin(float margin) {
 	_collision_margin = margin;
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		mesh_map.for_each_block([margin](VoxelChunkMeshVLT &block) { //
+		mesh_map.for_each_chunk([margin](VoxelChunkMeshVLT &block) { //
 			block.set_collision_margin(margin);
 		});
 	}
@@ -988,7 +988,7 @@ void VoxelLodTerrain::_notification(int p_what) {
 			VoxelLodTerrainUpdateData::State &state = _update_data->state;
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
 				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([world](VoxelChunkMeshVLT &block) { //
+				mesh_map.for_each_chunk([world](VoxelChunkMeshVLT &block) { //
 					block.set_world(world);
 				});
 			}
@@ -1005,7 +1005,7 @@ void VoxelLodTerrain::_notification(int p_what) {
 			VoxelLodTerrainUpdateData::State &state = _update_data->state;
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
 				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([](VoxelChunkMeshVLT &block) { //
+				mesh_map.for_each_chunk([](VoxelChunkMeshVLT &block) { //
 					block.set_world(nullptr);
 				});
 			}
@@ -1020,7 +1020,7 @@ void VoxelLodTerrain::_notification(int p_what) {
 
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
 				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([visible](VoxelChunkMeshVLT &block) { //
+				mesh_map.for_each_chunk([visible](VoxelChunkMeshVLT &block) { //
 					block.set_parent_visible(visible);
 				});
 			}
@@ -1048,7 +1048,7 @@ void VoxelLodTerrain::_notification(int p_what) {
 
 			for (unsigned int lod_index = 0; lod_index < state.lods.size(); ++lod_index) {
 				VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-				mesh_map.for_each_block([&transform](VoxelChunkMeshVLT &block) { //
+				mesh_map.for_each_chunk([&transform](VoxelChunkMeshVLT &block) { //
 					block.set_parent_transform(transform);
 				});
 			}
@@ -2004,7 +2004,7 @@ void VoxelLodTerrain::get_meshed_block_positions_at_lod(int lod_index, std::vect
 
 	const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 
-	mesh_map.for_each_block([&out_positions](const VoxelChunkMeshVLT &block) {
+	mesh_map.for_each_chunk([&out_positions](const VoxelChunkMeshVLT &block) {
 		if (block.has_mesh()) {
 			out_positions.push_back(block.position);
 		}
@@ -2698,7 +2698,7 @@ void VoxelLodTerrain::update_gizmos() {
 		const int chunk_size = get_chunk_size() << _edited_blocks_gizmos_lod_index;
 		const Basis basis(Basis().scaled(Vector3(chunk_size, chunk_size, chunk_size)));
 
-		_data->for_each_block_at_lod(
+		_data->for_each_chunk_at_lod(
 				[&dr, parent_transform, chunk_size, basis](const Vector3i &bpos, const VoxelChunkData &block) {
 					if (block.is_edited()) {
 						const Transform3D local_transform(basis, bpos * chunk_size);
@@ -2823,7 +2823,7 @@ Node3D *VoxelLodTerrain::debug_dump_as_nodes(bool include_instancer) const {
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 
-		mesh_map.for_each_block([root](const VoxelChunkMeshVLT &block) {
+		mesh_map.for_each_chunk([root](const VoxelChunkMeshVLT &block) {
 			block.for_each_mesh_instance_with_transform([root, &block](const DirectMeshInstance &dmi, Transform3D t) {
 				Ref<Mesh> mesh = dmi.get_mesh();
 

@@ -163,21 +163,21 @@ public:
 
 	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename F>
-	void for_each_block(F op) const {
+	void for_each_chunk(F op) const {
 		const unsigned int lod_count = get_lod_count();
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 			const Lod &lod = _lods[lod_index];
 			RWLockRead rlock(lod.map_lock);
-			lod.map.for_each_block(op);
+			lod.map.for_each_chunk(op);
 		}
 	}
 
 	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename F>
-	void for_each_block_at_lod(F op, unsigned int lod_index) const {
+	void for_each_chunk_at_lod(F op, unsigned int lod_index) const {
 		const Lod &lod = _lods[lod_index];
 		RWLockRead rlock(lod.map_lock);
-		lod.map.for_each_block(op);
+		lod.map.for_each_chunk(op);
 	}
 
 	// Tests if a chunk exists at the specified chunk position and LOD index.

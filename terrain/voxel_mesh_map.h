@@ -123,7 +123,7 @@ public:
 	}
 
 	template <typename Op_T>
-	inline void for_each_block(Op_T op) {
+	inline void for_each_chunk(Op_T op) {
 		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
 			ChunkMesh_T *block = *it;
 #ifdef DEBUG_ENABLED
@@ -134,7 +134,7 @@ public:
 	}
 
 	template <typename Op_T>
-	inline void for_each_block(Op_T op) const {
+	inline void for_each_chunk(Op_T op) const {
 		for (auto it = _blocks.begin(); it != _blocks.end(); ++it) {
 			const ChunkMesh_T *block = *it;
 #ifdef DEBUG_ENABLED

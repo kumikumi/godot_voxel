@@ -113,7 +113,7 @@ public:
 
 	// op(Vector3i bpos, VoxelChunkData &chunk)
 	template <typename Op_T>
-	inline void for_each_block(Op_T op) {
+	inline void for_each_chunk(Op_T op) {
 		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
 			op(it->first, it->second);
 		}
@@ -121,7 +121,7 @@ public:
 
 	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename Op_T>
-	inline void for_each_block(Op_T op) const {
+	inline void for_each_chunk(Op_T op) const {
 		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
 			op(it->first, it->second);
 		}

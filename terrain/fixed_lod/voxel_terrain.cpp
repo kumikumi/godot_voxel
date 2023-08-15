@@ -108,7 +108,7 @@ void VoxelTerrain::set_material_override(Ref<Material> material) {
 		return;
 	}
 	_material_override = material;
-	_mesh_map.for_each_block([material](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([material](VoxelChunkMeshVT &block) { //
 		block.set_material_override(material);
 	});
 }
@@ -222,12 +222,12 @@ void VoxelTerrain::set_chunk_mesh_size(unsigned int chunk_mesh_size) {
 
 	if (_instancer != nullptr) {
 		VoxelInstancer &instancer = *_instancer;
-		_mesh_map.for_each_block([&instancer, this](VoxelChunkMeshVT &block) { //
+		_mesh_map.for_each_chunk([&instancer, this](VoxelChunkMeshVT &block) { //
 			instancer.on_chunk_mesh_exit(block.position, 0);
 			emit_chunk_mesh_exited(block.position);
 		});
 	} else {
-		_mesh_map.for_each_block([this](VoxelChunkMeshVT &block) { //
+		_mesh_map.for_each_chunk([this](VoxelChunkMeshVT &block) { //
 			emit_chunk_mesh_exited(block.position);
 		});
 	}
@@ -277,14 +277,14 @@ void VoxelTerrain::_on_stream_params_changed() {
 
 void VoxelTerrain::_on_gi_mode_changed() {
 	const GIMode gi_mode = get_gi_mode();
-	_mesh_map.for_each_block([gi_mode](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([gi_mode](VoxelChunkMeshVT &block) { //
 		block.set_gi_mode(DirectMeshInstance::GIMode(gi_mode));
 	});
 }
 
 void VoxelTerrain::_on_shadow_casting_changed() {
 	const RenderingServer::ShadowCastingSetting mode = RenderingServer::ShadowCastingSetting(get_shadow_casting());
-	_mesh_map.for_each_block([mode](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([mode](VoxelChunkMeshVT &block) { //
 		block.set_shadow_casting(mode);
 	});
 }
@@ -331,7 +331,7 @@ void VoxelTerrain::set_generate_collisions(bool enabled) {
 
 void VoxelTerrain::set_collision_layer(int layer) {
 	_collision_layer = layer;
-	_mesh_map.for_each_block([layer](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([layer](VoxelChunkMeshVT &block) { //
 		block.set_collision_layer(layer);
 	});
 }
@@ -342,7 +342,7 @@ int VoxelTerrain::get_collision_layer() const {
 
 void VoxelTerrain::set_collision_mask(int mask) {
 	_collision_mask = mask;
-	_mesh_map.for_each_block([mask](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([mask](VoxelChunkMeshVT &block) { //
 		block.set_collision_mask(mask);
 	});
 }
@@ -353,7 +353,7 @@ int VoxelTerrain::get_collision_mask() const {
 
 void VoxelTerrain::set_collision_margin(float margin) {
 	_collision_margin = margin;
-	_mesh_map.for_each_block([margin](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([margin](VoxelChunkMeshVT &block) { //
 		block.set_collision_margin(margin);
 	});
 }
@@ -542,7 +542,7 @@ void VoxelTerrain::set_instancer(VoxelInstancer *instancer) {
 }
 
 void VoxelTerrain::get_meshed_block_positions(std::vector<Vector3i> &out_positions) const {
-	_mesh_map.for_each_block([&out_positions](const VoxelChunkMesh &chunk_mesh) {
+	_mesh_map.for_each_chunk([&out_positions](const VoxelChunkMesh &chunk_mesh) {
 		if (chunk_mesh.has_mesh()) {
 			out_positions.push_back(chunk_mesh.position);
 		}
@@ -620,7 +620,7 @@ void VoxelTerrain::stop_updater() {
 }
 
 void VoxelTerrain::remesh_all_blocks() {
-	_mesh_map.for_each_block([this](VoxelChunkMeshVT &block) { //
+	_mesh_map.for_each_chunk([this](VoxelChunkMeshVT &block) { //
 		try_schedule_mesh_update(block);
 	});
 }
@@ -676,7 +676,7 @@ void VoxelTerrain::stop_streamer() {
 void VoxelTerrain::reset_map() {
 	// Discard everything, to reload it all
 
-	_data->for_each_block([this](const Vector3i &bpos, const VoxelChunkData &block) { //
+	_data->for_each_chunk([this](const Vector3i &bpos, const VoxelChunkData &block) { //
 		emit_chunk_data_unloaded(bpos);
 	});
 	_data->reset_maps();
@@ -786,15 +786,15 @@ void VoxelTerrain::_notification(int p_what) {
 			break;
 
 		case NOTIFICATION_ENTER_WORLD:
-			_mesh_map.for_each_block(SetWorldAction(*get_world_3d()));
+			_mesh_map.for_each_chunk(SetWorldAction(*get_world_3d()));
 			break;
 
 		case NOTIFICATION_EXIT_WORLD:
-			_mesh_map.for_each_block(SetWorldAction(nullptr));
+			_mesh_map.for_each_chunk(SetWorldAction(nullptr));
 			break;
 
 		case NOTIFICATION_VISIBILITY_CHANGED:
-			_mesh_map.for_each_block(SetParentVisibilityAction(is_visible()));
+			_mesh_map.for_each_chunk(SetParentVisibilityAction(is_visible()));
 			break;
 
 		case NOTIFICATION_TRANSFORM_CHANGED: {
@@ -807,7 +807,7 @@ void VoxelTerrain::_notification(int p_what) {
 				return;
 			}
 
-			_mesh_map.for_each_block([&transform](VoxelChunkMeshVT &block) { //
+			_mesh_map.for_each_chunk([&transform](VoxelChunkMeshVT &block) { //
 				block.set_parent_transform(transform);
 			});
 

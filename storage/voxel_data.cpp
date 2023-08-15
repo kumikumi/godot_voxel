@@ -738,7 +738,7 @@ void VoxelData::consume_all_modifications(std::vector<BlockToSave> &to_save, boo
 		Lod &lod = _lods[lod_index];
 		VoxelSpatialLockRead srlock(lod.spatial_lock, BoxBounds3i::from_everywhere());
 		RWLockRead rlock(lod.map_lock);
-		lod.map.for_each_block(ScheduleSaveAction{ to_save, uint8_t(lod_index), with_copy });
+		lod.map.for_each_chunk(ScheduleSaveAction{ to_save, uint8_t(lod_index), with_copy });
 	}
 }
 
