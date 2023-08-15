@@ -130,7 +130,7 @@ private:
 
 	void add_layer(int layer_id, int lod_index);
 	void remove_layer(int layer_id);
-	unsigned int create_block(Layer &layer, uint16_t layer_id, Vector3i grid_position, bool pending_instances);
+	unsigned int create_chunk(Layer &layer, uint16_t layer_id, Vector3i grid_position, bool pending_instances);
 	void remove_chunk(unsigned int block_index);
 	void set_world(World3D *world);
 	void clear_blocks();

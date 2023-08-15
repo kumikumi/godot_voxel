@@ -551,7 +551,7 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 				continue;
 			}
 
-			create_block(layer, layer_id, pos, false);
+			create_chunk(layer, layer_id, pos, false);
 		}
 	}
 
@@ -965,7 +965,7 @@ VoxelInstancer::SceneInstance VoxelInstancer::create_scene_instance(const VoxelI
 	return instance;
 }
 
-unsigned int VoxelInstancer::create_block(
+unsigned int VoxelInstancer::create_chunk(
 		Layer &layer, uint16_t layer_id, Vector3i grid_position, bool pending_instances) {
 	UniquePtr<Block> block = make_unique_instance<Block>();
 	block->layer_id = layer_id;
@@ -990,7 +990,7 @@ void VoxelInstancer::update_block_from_transforms(int block_index, Span<const Tr
 
 	// Get or create chunk
 	if (block_index == -1) {
-		block_index = create_block(layer, layer_id, grid_position, false);
+		block_index = create_chunk(layer, layer_id, grid_position, false);
 	}
 #ifdef DEBUG_ENABLED
 	ERR_FAIL_COND(block_index < 0 || block_index >= int(_blocks.size()));
@@ -1277,7 +1277,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 
 		if (pending_generation) {
 			// Create empty chunk in pending state
-			create_block(layer, layer_id, render_grid_position, true);
+			create_chunk(layer, layer_id, render_grid_position, true);
 		} else {
 			// Create and populate chunk immediately
 			update_block_from_transforms(-1, to_span_const(transform_cache), render_grid_position, layer, *item,
