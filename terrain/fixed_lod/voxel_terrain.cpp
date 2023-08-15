@@ -1279,19 +1279,19 @@ void VoxelTerrain::process_viewer_data_box_change(
 
 		// Remove refcount from loading chunks, and cancel loading if it reaches zero
 		for (const Vector3i bpos : tls_missing_blocks) {
-			auto loading_block_it = _loading_blocks.find(bpos);
-			if (loading_block_it == _loading_blocks.end()) {
+			auto loading_chunk_it = _loading_blocks.find(bpos);
+			if (loading_chunk_it == _loading_blocks.end()) {
 				ZN_PRINT_VERBOSE("Request to unview a loading block that was never requested");
 				// Not expected, but fine I guess
 				return;
 			}
 
-			LoadingBlock &loading_block = loading_block_it->second;
+			LoadingBlock &loading_block = loading_chunk_it->second;
 			loading_block.viewers.remove();
 
 			if (loading_block.viewers.get() == 0) {
 				// No longer want to load it
-				_loading_blocks.erase(loading_block_it);
+				_loading_blocks.erase(loading_chunk_it);
 
 				// TODO Do we really need that vector after all?
 				for (size_t i = 0; i < _blocks_pending_load.size(); ++i) {
@@ -1326,9 +1326,9 @@ void VoxelTerrain::process_viewer_data_box_change(
 
 		// Schedule loading of missing chunks
 		for (const Vector3i missing_bpos : tls_missing_blocks) {
-			auto loading_block_it = _loading_blocks.find(missing_bpos);
+			auto loading_chunk_it = _loading_blocks.find(missing_bpos);
 
-			if (loading_block_it == _loading_blocks.end()) {
+			if (loading_chunk_it == _loading_blocks.end()) {
 				// First viewer to request it
 				LoadingBlock new_loading_block;
 				new_loading_block.viewers.add();
@@ -1343,7 +1343,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 
 			} else {
 				// More viewers
-				LoadingBlock &loading_block = loading_block_it->second;
+				LoadingBlock &loading_block = loading_chunk_it->second;
 				loading_block.viewers.add();
 
 				if (require_notifications) {
@@ -1402,19 +1402,19 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	LoadingBlock loading_block;
 	{
-		auto loading_block_it = _loading_blocks.find(block_pos);
+		auto loading_chunk_it = _loading_blocks.find(block_pos);
 
-		if (loading_block_it == _loading_blocks.end()) {
+		if (loading_chunk_it == _loading_blocks.end()) {
 			// That chunk was not requested or is no longer needed, drop it.
 			++_stats.dropped_block_loads;
 			return;
 		}
 
 		// Using move semantics because it can contain an allocated vector
-		loading_block = std::move(loading_block_it->second);
+		loading_block = std::move(loading_chunk_it->second);
 
 		// Now we got the chunk. If we still have to drop it, the cause will be an error.
-		_loading_blocks.erase(loading_block_it);
+		_loading_blocks.erase(loading_chunk_it);
 	}
 
 	CRASH_COND(ob.voxels == nullptr);

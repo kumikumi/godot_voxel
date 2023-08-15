@@ -244,10 +244,10 @@ void process_octrees_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector
 
 				Vector3i bpos = node_pos + (block_offset_lod0 >> lod_index);
 
-				auto block_it = lod.mesh_map_state.map.find(bpos);
-				if (block_it != lod.mesh_map_state.map.end()) {
+				auto chunk_it = lod.mesh_map_state.map.find(bpos);
+				if (chunk_it != lod.mesh_map_state.map.end()) {
 					lod.chunk_meshes_to_deactivate.push_back(bpos);
-					block_it->second.active = false;
+					chunk_it->second.active = false;
 				}
 			}
 		};
@@ -509,9 +509,9 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 	for (unsigned int dir = 0; dir < Cube::SIDE_COUNT; ++dir) {
 		const Vector3i npos = block_pos + Cube::g_side_normals[dir];
 
-		auto nblock_it = lod.mesh_map_state.map.find(npos);
+		auto nchunk_it = lod.mesh_map_state.map.find(npos);
 
-		if (nblock_it != lod.mesh_map_state.map.end() && nblock_it->second.active) {
+		if (nchunk_it != lod.mesh_map_state.map.end() && nchunk_it->second.active) {
 			visible_neighbors_of_same_lod |= (1 << dir);
 		}
 	}
@@ -540,10 +540,10 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 			const Vector3i lower_neighbor_pos = (block_pos + side_normal) >> 1;
 
 			if (lower_neighbor_pos != lower_pos) {
-				auto lower_neighbor_block_it = lower_lod.mesh_map_state.map.find(lower_neighbor_pos);
+				auto lower_neighbor_chunk_it = lower_lod.mesh_map_state.map.find(lower_neighbor_pos);
 
-				if (lower_neighbor_block_it != lower_lod.mesh_map_state.map.end() &&
-						lower_neighbor_block_it->second.active) {
+				if (lower_neighbor_chunk_it != lower_lod.mesh_map_state.map.end() &&
+						lower_neighbor_chunk_it->second.active) {
 					// The chunk has a visible neighbor of lower LOD
 					transition_mask |= dir_mask;
 					continue;
@@ -564,10 +564,10 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 				}
 
 				const VoxelLodTerrainUpdateData::Lod &upper_lod = state.lods[lod_index - 1];
-				auto upper_neighbor_block_it = upper_lod.mesh_map_state.map.find(upper_neighbor_pos);
+				auto upper_neighbor_chunk_it = upper_lod.mesh_map_state.map.find(upper_neighbor_pos);
 
-				if (upper_neighbor_block_it == upper_lod.mesh_map_state.map.end() ||
-						upper_neighbor_block_it->second.active == false) {
+				if (upper_neighbor_chunk_it == upper_lod.mesh_map_state.map.end() ||
+						upper_neighbor_chunk_it->second.active == false) {
 					// The chunk has no visible neighbor yet. World border? Assume lower LOD.
 					transition_mask |= dir_mask;
 				}
@@ -1196,9 +1196,9 @@ static void process_changed_generated_areas(VoxelLodTerrainUpdateData::State &st
 			RWLockRead rlock(lod.mesh_map_state.map_lock);
 
 			bbox.for_each_cell_zxy([&lod](const Vector3i bpos) {
-				auto block_it = lod.mesh_map_state.map.find(bpos);
-				if (block_it != lod.mesh_map_state.map.end()) {
-					VoxelLodTerrainUpdateTask::schedule_mesh_update(block_it->second, bpos, lod.blocks_pending_update);
+				auto chunk_it = lod.mesh_map_state.map.find(bpos);
+				if (chunk_it != lod.mesh_map_state.map.end()) {
+					VoxelLodTerrainUpdateTask::schedule_mesh_update(chunk_it->second, bpos, lod.blocks_pending_update);
 				}
 			});
 		}

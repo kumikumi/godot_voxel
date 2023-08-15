@@ -253,14 +253,14 @@ void VoxelInstancer::process_generator_results() {
 		const Transform3D block_local_transform = Transform3D(Basis(), output.render_block_position * chunk_mesh_size);
 		const Transform3D block_global_transform = parent_transform * block_local_transform;
 
-		auto block_it = layer.blocks.find(output.render_block_position);
-		if (block_it == layer.blocks.end()) {
+		auto chunk_it = layer.blocks.find(output.render_block_position);
+		if (chunk_it == layer.blocks.end()) {
 			// The chunk was removed while the generation process was running?
 			ZN_PRINT_VERBOSE("Processing async instance generator results, but the block was removed.");
 			continue;
 		}
 
-		update_chunk_from_transforms(block_it->second, to_span_const(output.transforms), output.render_block_position,
+		update_chunk_from_transforms(chunk_it->second, to_span_const(output.transforms), output.render_block_position,
 				layer, *item, output.layer_id, world, block_global_transform, block_local_transform.origin);
 	}
 
@@ -882,15 +882,15 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 				// Note, this data is what we loaded initially, it doesnt contain modifications.
 				lod.loaded_instances_data.erase(data_grid_pos);
 
-				auto modified_block_it = lod.modified_blocks.find(data_grid_pos);
-				if (modified_block_it != lod.modified_blocks.end()) {
+				auto modified_chunk_it = lod.modified_blocks.find(data_grid_pos);
+				if (modified_chunk_it != lod.modified_blocks.end()) {
 					if (can_save) {
 						SaveChunkDataTask *task = save_chunk(data_grid_pos, lod_index, nullptr);
 						if (task != nullptr) {
 							tasks.push_io_task(task);
 						}
 					}
-					lod.modified_blocks.erase(modified_block_it);
+					lod.modified_blocks.erase(modified_chunk_it);
 				}
 			}
 		}
@@ -904,9 +904,9 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 
 		Layer &layer = get_layer(layer_id);
 
-		auto block_it = layer.blocks.find(render_grid_position);
-		if (block_it != layer.blocks.end()) {
-			remove_chunk(block_it->second);
+		auto chunk_it = layer.blocks.find(render_grid_position);
+		if (chunk_it != layer.blocks.end()) {
+			remove_chunk(chunk_it->second);
 		}
 	}
 }
@@ -1326,12 +1326,12 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 
 		ERR_FAIL_COND_V(layer_id < 0, nullptr);
 
-		const auto render_block_it = layer.blocks.find(render_block_pos);
-		if (render_block_it == layer.blocks.end()) {
+		const auto render_chunk_it = layer.blocks.find(render_block_pos);
+		if (render_chunk_it == layer.blocks.end()) {
 			continue;
 		}
 
-		const unsigned int render_chunk_index = render_block_it->second;
+		const unsigned int render_chunk_index = render_chunk_it->second;
 #ifdef DEBUG_ENABLED
 		CRASH_COND(render_chunk_index >= _chunks.size());
 #endif
@@ -1627,13 +1627,13 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 
 			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
 													&lod, chunks_box](Vector3i block_pos) {
-				const auto block_it = layer.blocks.find(block_pos);
-				if (block_it == layer.blocks.end()) {
+				const auto chunk_it = layer.blocks.find(block_pos);
+				if (chunk_it == layer.blocks.end()) {
 					// No instancing chunk here
 					return;
 				}
 
-				Block &block = *blocks[block_it->second];
+				Block &block = *blocks[chunk_it->second];
 
 				if (block.scene_instances.size() > 0) {
 					remove_floating_scene_instances(block, parent_transform, p_voxel_box, voxel_tool, chunk_size_po2);
@@ -1804,8 +1804,8 @@ Node *VoxelInstancer::debug_dump_as_nodes() const {
 		root->add_child(layer_node);
 
 		// For each chunk in layer
-		for (auto block_it = layer.blocks.begin(); block_it != layer.blocks.end(); ++block_it) {
-			const unsigned int chunk_index = block_it->second;
+		for (auto chunk_it = layer.blocks.begin(); chunk_it != layer.blocks.end(); ++chunk_it) {
+			const unsigned int chunk_index = chunk_it->second;
 			CRASH_COND(chunk_index >= _chunks.size());
 			const Block &block = *_chunks[chunk_index];
 
