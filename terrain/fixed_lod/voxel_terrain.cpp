@@ -497,7 +497,7 @@ void VoxelTerrain::unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collisi
 void VoxelTerrain::unload_chunk_mesh(Vector3i bpos) {
 	std::vector<Vector3i> &blocks_pending_update = _blocks_pending_update;
 
-	_mesh_map.remove_block(bpos, [&blocks_pending_update](const VoxelChunkMeshVT &block) {
+	_mesh_map.remove_chunk(bpos, [&blocks_pending_update](const VoxelChunkMeshVT &block) {
 		if (block.is_in_update_list) {
 			// That chunk was in the list of chunks to update later in the process loop, we'll need to unregister
 			// it. We expect that chunk to be in that list. If it isn't, something wrong happened with its state.

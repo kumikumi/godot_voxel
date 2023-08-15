@@ -82,7 +82,7 @@ void VoxelInstancer::clear_blocks_in_layer(int layer_id) {
 	for (size_t i = 0; i < _blocks.size(); ++i) {
 		Block &block = *_blocks[i];
 		if (block.layer_id == layer_id) {
-			remove_block(i);
+			remove_chunk(i);
 			// remove_chunk does a remove-at-swap so we have to re-iterate on the same slot
 			--i;
 		}
@@ -799,7 +799,7 @@ void VoxelInstancer::remove_layer(int layer_id) {
 	_layers.erase(layer_id);
 }
 
-void VoxelInstancer::remove_block(unsigned int block_index) {
+void VoxelInstancer::remove_chunk(unsigned int block_index) {
 #ifdef DEBUG_ENABLED
 	CRASH_COND(block_index >= _blocks.size());
 #endif
@@ -906,7 +906,7 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 
 		auto block_it = layer.blocks.find(render_grid_position);
 		if (block_it != layer.blocks.end()) {
-			remove_block(block_it->second);
+			remove_chunk(block_it->second);
 		}
 	}
 }

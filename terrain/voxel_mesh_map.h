@@ -24,7 +24,7 @@ public:
 	};
 
 	template <typename Action_T>
-	void remove_block(Vector3i bpos, Action_T pre_delete) {
+	void remove_chunk(Vector3i bpos, Action_T pre_delete) {
 		if (_last_accessed_block && _last_accessed_block->position == bpos) {
 			_last_accessed_block = nullptr;
 		}
@@ -38,7 +38,7 @@ public:
 			ERR_FAIL_COND(block == nullptr);
 			pre_delete(*block);
 			queue_free_chunk_mesh(block);
-			remove_block_internal(it, i);
+			remove_chunk_internal(it, i);
 		}
 	}
 
@@ -151,7 +151,7 @@ private:
 		unsigned int index;
 	};
 
-	void remove_block_internal(typename std::unordered_map<Vector3i, MapItem>::iterator rm_it, unsigned int index) {
+	void remove_chunk_internal(typename std::unordered_map<Vector3i, MapItem>::iterator rm_it, unsigned int index) {
 		// TODO `erase` can occasionally be very slow (milliseconds) if the map contains lots of items.
 		// This might be caused by internal rehashing/resizing.
 		// We should look for a faster container, or reduce the number of entries.

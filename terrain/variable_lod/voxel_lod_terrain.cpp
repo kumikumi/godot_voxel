@@ -1233,7 +1233,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 		for (unsigned int i = 0; i < lod.chunk_meshes_to_unload.size(); ++i) {
 			const Vector3i bpos = lod.chunk_meshes_to_unload[i];
-			mesh_map.remove_block(bpos, BeforeUnloadMeshAction{ _shader_material_pool });
+			mesh_map.remove_chunk(bpos, BeforeUnloadMeshAction{ _shader_material_pool });
 
 			_fading_blocks_per_lod[lod_index].erase(bpos);
 
@@ -1511,7 +1511,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 		if (block != nullptr) {
 			// No surface anymore in this chunk, destroy it
 			// TODO Factor removal in a function, it's done in a few places
-			mesh_map.remove_block(ob.position, BeforeUnloadMeshAction{ _shader_material_pool });
+			mesh_map.remove_chunk(ob.position, BeforeUnloadMeshAction{ _shader_material_pool });
 			if (_instancer != nullptr) {
 				_instancer->on_chunk_mesh_exit(ob.position, ob.lod);
 			}

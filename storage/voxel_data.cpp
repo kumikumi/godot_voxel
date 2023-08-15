@@ -688,11 +688,11 @@ void VoxelData::unload_blocks(Box3i bbox, unsigned int lod_index, std::vector<Bl
 	RWLockWrite wlock(lod.map_lock);
 	if (to_save == nullptr) {
 		bbox.for_each_cell_zxy([&lod](Vector3i bpos) { //
-			lod.map.remove_block(bpos, VoxelDataMap::NoAction());
+			lod.map.remove_chunk(bpos, VoxelDataMap::NoAction());
 		});
 	} else {
 		bbox.for_each_cell_zxy([&lod, lod_index, to_save](Vector3i bpos) {
-			lod.map.remove_block(bpos, BeforeUnloadSaveAction{ to_save, bpos, lod_index });
+			lod.map.remove_chunk(bpos, BeforeUnloadSaveAction{ to_save, bpos, lod_index });
 		});
 	}
 }
@@ -702,11 +702,11 @@ void VoxelData::unload_blocks(Span<const Vector3i> positions, std::vector<BlockT
 	RWLockWrite wlock(lod.map_lock);
 	if (to_save == nullptr) {
 		for (Vector3i bpos : positions) {
-			lod.map.remove_block(bpos, VoxelDataMap::NoAction());
+			lod.map.remove_chunk(bpos, VoxelDataMap::NoAction());
 		}
 	} else {
 		for (Vector3i bpos : positions) {
-			lod.map.remove_block(bpos, BeforeUnloadSaveAction{ to_save, bpos, 0 });
+			lod.map.remove_chunk(bpos, BeforeUnloadSaveAction{ to_save, bpos, 0 });
 		}
 	}
 }
@@ -875,9 +875,9 @@ void VoxelData::unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blo
 			block->viewers.remove();
 			if (block->viewers.get() == 0) {
 				if (to_save == nullptr) {
-					lod.map.remove_block(bpos, VoxelDataMap::NoAction());
+					lod.map.remove_chunk(bpos, VoxelDataMap::NoAction());
 				} else {
-					lod.map.remove_block(bpos, BeforeUnloadSaveAction{ to_save, bpos, 0 });
+					lod.map.remove_chunk(bpos, BeforeUnloadSaveAction{ to_save, bpos, 0 });
 				}
 			}
 			found_blocks.push_back(bpos);

@@ -93,7 +93,7 @@ public:
 	};
 
 	template <typename Action_T>
-	void remove_block(Vector3i bpos, Action_T pre_delete) {
+	void remove_chunk(Vector3i bpos, Action_T pre_delete) {
 		auto it = _blocks_map.find(bpos);
 		if (it != _blocks_map.end()) {
 			pre_delete(it->second);
