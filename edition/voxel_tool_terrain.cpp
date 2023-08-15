@@ -329,7 +329,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 			VoxelSpatialLock &spatial_lock = data.get_spatial_lock(0);
 			VoxelSpatialLockRead srlock(spatial_lock, BoxBounds3i::from_position(block_pos));
 
-			std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_block_voxels(block_pos);
+			std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_chunk_voxels(block_pos);
 
 			if (voxels_ptr != nullptr) {
 				// Doing ONLY reads here.
@@ -454,7 +454,7 @@ void VoxelToolTerrain::for_each_voxel_metadata_in_area(AABB voxel_area, const Ca
 	VoxelData &data = _terrain->get_storage();
 
 	chunk_box.for_each_cell([&data, &callback, voxel_box](Vector3i block_pos) {
-		std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_block_voxels(block_pos);
+		std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_chunk_voxels(block_pos);
 
 		if (voxels_ptr == nullptr) {
 			return;

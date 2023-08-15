@@ -887,7 +887,7 @@ void VoxelData::unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blo
 	});
 }
 
-std::shared_ptr<VoxelBufferInternal> VoxelData::try_get_block_voxels(Vector3i bpos) {
+std::shared_ptr<VoxelBufferInternal> VoxelData::try_get_chunk_voxels(Vector3i bpos) {
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 	VoxelChunkData *block = lod.map.get_block(bpos);

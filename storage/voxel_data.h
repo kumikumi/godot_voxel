@@ -253,7 +253,7 @@ public:
 	// using LOD mips (edited chunks have half-resolution counterparts all the way up to maximum LOD).
 	bool has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxels) const;
 
-	std::shared_ptr<VoxelBufferInternal> try_get_block_voxels(Vector3i bpos);
+	std::shared_ptr<VoxelBufferInternal> try_get_chunk_voxels(Vector3i bpos);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Reference-counted API (LOD0 only)
