@@ -69,7 +69,7 @@ void VoxelInstancer::clear_blocks() {
 	_chunks.clear();
 	for (auto it = _layers.begin(); it != _layers.end(); ++it) {
 		Layer &layer = it->second;
-		layer.blocks.clear();
+		layer.chunks.clear();
 	}
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
@@ -253,8 +253,8 @@ void VoxelInstancer::process_generator_results() {
 		const Transform3D block_local_transform = Transform3D(Basis(), output.render_block_position * chunk_mesh_size);
 		const Transform3D block_global_transform = parent_transform * block_local_transform;
 
-		auto chunk_it = layer.blocks.find(output.render_block_position);
-		if (chunk_it == layer.blocks.end()) {
+		auto chunk_it = layer.chunks.find(output.render_block_position);
+		if (chunk_it == layer.chunks.end()) {
 			// The chunk was removed while the generation process was running?
 			ZN_PRINT_VERBOSE("Processing async instance generator results, but the block was removed.");
 			continue;
@@ -546,8 +546,8 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		for (unsigned int i = 0; i < positions.size(); ++i) {
 			const Vector3i pos = positions[i];
 
-			auto it = layer.blocks.find(pos);
-			if (it != layer.blocks.end()) {
+			auto it = layer.chunks.find(pos);
+			if (it != layer.chunks.end()) {
 				continue;
 			}
 
@@ -812,7 +812,7 @@ void VoxelInstancer::remove_chunk(unsigned int chunk_index) {
 	UniquePtr<Block> block = std::move(_chunks[chunk_index]);
 	{
 		Layer &layer = get_layer(block->layer_id);
-		layer.blocks.erase(block->grid_position);
+		layer.chunks.erase(block->grid_position);
 	}
 	_chunks[chunk_index] = std::move(_chunks.back());
 	_chunks.pop_back();
@@ -836,8 +836,8 @@ void VoxelInstancer::remove_chunk(unsigned int chunk_index) {
 	if (block.get() != &moved_block) {
 		// Update the index of the moved chunk referenced in its layer
 		Layer &layer = get_layer(moved_block.layer_id);
-		auto it = layer.blocks.find(moved_block.grid_position);
-		CRASH_COND(it == layer.blocks.end());
+		auto it = layer.chunks.find(moved_block.grid_position);
+		CRASH_COND(it == layer.chunks.end());
 		it->second = chunk_index;
 	}
 }
@@ -904,8 +904,8 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 
 		Layer &layer = get_layer(layer_id);
 
-		auto chunk_it = layer.blocks.find(render_grid_position);
-		if (chunk_it != layer.blocks.end()) {
+		auto chunk_it = layer.chunks.find(render_grid_position);
+		if (chunk_it != layer.chunks.end()) {
 			remove_chunk(chunk_it->second);
 		}
 	}
@@ -977,9 +977,9 @@ unsigned int VoxelInstancer::create_chunk(
 	_chunks.push_back(std::move(block));
 #ifdef DEBUG_ENABLED
 	// The chunk must not already exist
-	CRASH_COND(layer.blocks.find(grid_position) != layer.blocks.end());
+	CRASH_COND(layer.chunks.find(grid_position) != layer.chunks.end());
 #endif
-	layer.blocks.insert({ grid_position, chunk_index });
+	layer.chunks.insert({ grid_position, chunk_index });
 	return chunk_index;
 }
 
@@ -1194,7 +1194,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 
 		Layer &layer = get_layer(layer_id);
 
-		if (layer.blocks.find(render_grid_position) != layer.blocks.end()) {
+		if (layer.chunks.find(render_grid_position) != layer.chunks.end()) {
 			// The chunk was already made?
 			continue;
 		}
@@ -1326,8 +1326,8 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 
 		ERR_FAIL_COND_V(layer_id < 0, nullptr);
 
-		const auto render_chunk_it = layer.blocks.find(render_block_pos);
-		if (render_chunk_it == layer.blocks.end()) {
+		const auto render_chunk_it = layer.chunks.find(render_block_pos);
+		if (render_chunk_it == layer.chunks.end()) {
 			continue;
 		}
 
@@ -1627,8 +1627,8 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 
 			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
 													&lod, chunks_box](Vector3i block_pos) {
-				const auto chunk_it = layer.blocks.find(block_pos);
-				if (chunk_it == layer.blocks.end()) {
+				const auto chunk_it = layer.chunks.find(block_pos);
+				if (chunk_it == layer.chunks.end()) {
 					// No instancing chunk here
 					return;
 				}
@@ -1804,7 +1804,7 @@ Node *VoxelInstancer::debug_dump_as_nodes() const {
 		root->add_child(layer_node);
 
 		// For each chunk in layer
-		for (auto chunk_it = layer.blocks.begin(); chunk_it != layer.blocks.end(); ++chunk_it) {
+		for (auto chunk_it = layer.chunks.begin(); chunk_it != layer.chunks.end(); ++chunk_it) {
 			const unsigned int chunk_index = chunk_it->second;
 			CRASH_COND(chunk_index >= _chunks.size());
 			const Block &block = *_chunks[chunk_index];

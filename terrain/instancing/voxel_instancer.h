@@ -203,7 +203,7 @@ private:
 		unsigned int lod_index;
 		// Blocks indexed by grid position.
 		// Keys follow the mesh chunk coordinate system.
-		std::unordered_map<Vector3i, unsigned int> blocks;
+		std::unordered_map<Vector3i, unsigned int> chunks;
 	};
 
 	struct MeshLodDistances {
