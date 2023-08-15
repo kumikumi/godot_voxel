@@ -704,7 +704,7 @@ void build_regular_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData texture_i
 //  z
 
 // Convert from face-space to chunk-space coordinates, considering which face we are working on.
-inline Vector3i face_to_block(int x, int y, int z, int dir, const Vector3i &bs) {
+inline Vector3i face_to_chunk(int x, int y, int z, int dir, const Vector3i &bs) {
 	// There are several possible solutions to this, because we can rotate the axes.
 	// We'll take configurations where XY map different axes at the same relative orientations,
 	// so only Z is flipped in half cases.
@@ -848,9 +848,9 @@ void build_transition_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData textur
 	// const unsigned int n111 = n100 + n010 + n001;
 
 	// Using temporay locals otherwise clang-format makes it hard to read
-	const Vector3i ftb_000 = face_to_block(0, 0, 0, direction, chunk_size_with_padding);
-	const Vector3i ftb_x00 = face_to_block(1, 0, 0, direction, chunk_size_with_padding);
-	const Vector3i ftb_0y0 = face_to_block(0, 1, 0, direction, chunk_size_with_padding);
+	const Vector3i ftb_000 = face_to_chunk(0, 0, 0, direction, chunk_size_with_padding);
+	const Vector3i ftb_x00 = face_to_chunk(1, 0, 0, direction, chunk_size_with_padding);
+	const Vector3i ftb_0y0 = face_to_chunk(0, 1, 0, direction, chunk_size_with_padding);
 	// How much to advance in the data array to get neighbor voxels, using face coordinates
 	const int fn00 = Vector3iUtil::get_zxy_index(ftb_000, chunk_size_with_padding);
 	const int fn10 = Vector3iUtil::get_zxy_index(ftb_x00, chunk_size_with_padding) - fn00;
@@ -874,7 +874,7 @@ void build_transition_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData textur
 		for (int fx = min_fpos_x; fx < max_fpos_x; fx += 2) {
 			// Cell positions in chunk space
 			// Warning: temporarily includes padding. It is undone later.
-			cell_positions[0] = face_to_block(fx, fy, fz, direction, chunk_size_with_padding);
+			cell_positions[0] = face_to_chunk(fx, fy, fz, direction, chunk_size_with_padding);
 
 			const int data_index = Vector3iUtil::get_zxy_index(cell_positions[0], chunk_size_with_padding);
 
@@ -989,15 +989,15 @@ void build_transition_mesh(Span<const Sdf_T> sdf_data, TextureIndicesData textur
 			cell_gradients[0xB] = cell_gradients[6];
 			cell_gradients[0xC] = cell_gradients[8];
 
-			// TODO Optimization: get rid of conditionals involved in face_to_block
-			cell_positions[1] = face_to_block(fx + 1, fy + 0, fz, direction, chunk_size_with_padding);
-			cell_positions[2] = face_to_block(fx + 2, fy + 0, fz, direction, chunk_size_with_padding);
-			cell_positions[3] = face_to_block(fx + 0, fy + 1, fz, direction, chunk_size_with_padding);
-			cell_positions[4] = face_to_block(fx + 1, fy + 1, fz, direction, chunk_size_with_padding);
-			cell_positions[5] = face_to_block(fx + 2, fy + 1, fz, direction, chunk_size_with_padding);
-			cell_positions[6] = face_to_block(fx + 0, fy + 2, fz, direction, chunk_size_with_padding);
-			cell_positions[7] = face_to_block(fx + 1, fy + 2, fz, direction, chunk_size_with_padding);
-			cell_positions[8] = face_to_block(fx + 2, fy + 2, fz, direction, chunk_size_with_padding);
+			// TODO Optimization: get rid of conditionals involved in face_to_chunk
+			cell_positions[1] = face_to_chunk(fx + 1, fy + 0, fz, direction, chunk_size_with_padding);
+			cell_positions[2] = face_to_chunk(fx + 2, fy + 0, fz, direction, chunk_size_with_padding);
+			cell_positions[3] = face_to_chunk(fx + 0, fy + 1, fz, direction, chunk_size_with_padding);
+			cell_positions[4] = face_to_chunk(fx + 1, fy + 1, fz, direction, chunk_size_with_padding);
+			cell_positions[5] = face_to_chunk(fx + 2, fy + 1, fz, direction, chunk_size_with_padding);
+			cell_positions[6] = face_to_chunk(fx + 0, fy + 2, fz, direction, chunk_size_with_padding);
+			cell_positions[7] = face_to_chunk(fx + 1, fy + 2, fz, direction, chunk_size_with_padding);
+			cell_positions[8] = face_to_chunk(fx + 2, fy + 2, fz, direction, chunk_size_with_padding);
 			for (unsigned int i = 0; i < 9; ++i) {
 				cell_positions[i] = (cell_positions[i] - min_pos) << lod_index;
 			}
