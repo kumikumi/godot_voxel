@@ -47,7 +47,7 @@ unsigned int VoxelDataMap::get_lod_index() const {
 
 int VoxelDataMap::get_voxel(Vector3i pos, unsigned int c) const {
 	Vector3i bpos = voxel_to_chunk(pos);
-	const VoxelChunkData *block = get_block(bpos);
+	const VoxelChunkData *block = get_chunk(bpos);
 	if (block == nullptr || !block->has_voxels()) {
 		return VoxelBufferInternal::get_default_value_static(c);
 	}
@@ -68,7 +68,7 @@ VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 
 VoxelChunkData *VoxelDataMap::get_or_create_chunk_at_voxel_pos(Vector3i pos) {
 	Vector3i bpos = voxel_to_chunk(pos);
-	VoxelChunkData *block = get_block(bpos);
+	VoxelChunkData *block = get_chunk(bpos);
 	if (block == nullptr) {
 		block = create_default_chunk(bpos);
 	}
@@ -84,7 +84,7 @@ void VoxelDataMap::set_voxel(int value, Vector3i pos, unsigned int c) {
 
 float VoxelDataMap::get_voxel_f(Vector3i pos, unsigned int c) const {
 	Vector3i bpos = voxel_to_chunk(pos);
-	const VoxelChunkData *block = get_block(bpos);
+	const VoxelChunkData *block = get_chunk(bpos);
 	// TODO The generator needs to be invoked if the chunk has no voxels
 	if (block == nullptr || !block->has_voxels()) {
 		// TODO Not valid for a float return value
@@ -103,7 +103,7 @@ void VoxelDataMap::set_voxel_f(real_t value, Vector3i pos, unsigned int c) {
 	voxels.set_voxel_f(value, lpos.x, lpos.y, lpos.z, c);
 }
 
-VoxelChunkData *VoxelDataMap::get_block(Vector3i bpos) {
+VoxelChunkData *VoxelDataMap::get_chunk(Vector3i bpos) {
 	auto it = _chunks_map.find(bpos);
 	if (it != _chunks_map.end()) {
 		return &it->second;
@@ -111,7 +111,7 @@ VoxelChunkData *VoxelDataMap::get_block(Vector3i bpos) {
 	return nullptr;
 }
 
-const VoxelChunkData *VoxelDataMap::get_block(Vector3i bpos) const {
+const VoxelChunkData *VoxelDataMap::get_chunk(Vector3i bpos) const {
 	auto it = _chunks_map.find(bpos);
 	if (it != _chunks_map.end()) {
 		return &it->second;
@@ -123,7 +123,7 @@ VoxelChunkData *VoxelDataMap::set_chunk_buffer(
 		Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite) {
 	ZN_ASSERT_RETURN_V(buffer != nullptr, nullptr);
 
-	VoxelChunkData *block = get_block(bpos);
+	VoxelChunkData *block = get_chunk(bpos);
 
 	if (block == nullptr) {
 		VoxelChunkData &map_chunk = _chunks_map[bpos];
@@ -150,7 +150,7 @@ void VoxelDataMap::set_chunk(Vector3i bpos, const VoxelChunkData &block) {
 }
 
 VoxelChunkData *VoxelDataMap::set_empty_block(Vector3i bpos, bool overwrite) {
-	VoxelChunkData *block = get_block(bpos);
+	VoxelChunkData *block = get_chunk(bpos);
 
 	if (block == nullptr) {
 		VoxelChunkData &map_chunk = _chunks_map[bpos];
@@ -202,7 +202,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 	for (bpos.z = min_chunk_pos.z; bpos.z < max_chunk_pos.z; ++bpos.z) {
 		for (bpos.x = min_chunk_pos.x; bpos.x < max_chunk_pos.x; ++bpos.x) {
 			for (bpos.y = min_chunk_pos.y; bpos.y < max_chunk_pos.y; ++bpos.y) {
-				const VoxelChunkData *block = get_block(bpos);
+				const VoxelChunkData *block = get_chunk(bpos);
 				const Vector3i src_chunk_origin = chunk_to_voxel(bpos);
 
 				if (block != nullptr && block->has_voxels()) {
@@ -259,7 +259,7 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 					if (((1 << channel) & channels_mask) == 0) {
 						continue;
 					}
-					VoxelChunkData *block = get_block(bpos);
+					VoxelChunkData *block = get_chunk(bpos);
 
 					if (block == nullptr) {
 						if (create_new_chunks) {

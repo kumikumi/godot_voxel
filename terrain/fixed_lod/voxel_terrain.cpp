@@ -441,7 +441,7 @@ void VoxelTerrain::view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision
 		return;
 	}
 
-	VoxelChunkMeshVT *block = _mesh_map.get_block(bpos);
+	VoxelChunkMeshVT *block = _mesh_map.get_chunk(bpos);
 
 	if (block == nullptr) {
 		// Create if not found
@@ -468,7 +468,7 @@ void VoxelTerrain::view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision
 }
 
 void VoxelTerrain::unview_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision_flag) {
-	VoxelChunkMeshVT *block = _mesh_map.get_block(bpos);
+	VoxelChunkMeshVT *block = _mesh_map.get_chunk(bpos);
 	// Chunk meshes are created on first view call,
 	// so that would mean we unview one without viewing it in the first place
 	ERR_FAIL_COND(block == nullptr);
@@ -557,7 +557,7 @@ Array VoxelTerrain::get_chunk_mesh_surface(Vector3i chunk_pos) const {
 
 	Ref<Mesh> mesh;
 	{
-		const VoxelChunkMeshVT *block = _mesh_map.get_block(chunk_pos);
+		const VoxelChunkMeshVT *block = _mesh_map.get_chunk(chunk_pos);
 		if (block != nullptr) {
 			mesh = block->get_mesh();
 		}
@@ -610,7 +610,7 @@ void VoxelTerrain::stop_updater() {
 	//_reception_buffers.mesh_output.clear();
 
 	for (const Vector3i bpos : _blocks_pending_update) {
-		VoxelChunkMeshVT *block = _mesh_map.get_block(bpos);
+		VoxelChunkMeshVT *block = _mesh_map.get_chunk(bpos);
 		if (block != nullptr) {
 			block->is_in_update_list = false;
 		}
@@ -701,7 +701,7 @@ void VoxelTerrain::try_schedule_mesh_update_from_data(const Box3i &box_in_voxels
 	// We pad by 1 because neighbor chunks might be affected visually (for example, baked ambient occlusion)
 	const Box3i mesh_box = box_in_voxels.padded(1).downscaled(get_chunk_mesh_size());
 	mesh_box.for_each_cell([this](Vector3i pos) {
-		VoxelChunkMeshVT *block = _mesh_map.get_block(pos);
+		VoxelChunkMeshVT *block = _mesh_map.get_chunk(pos);
 		// There isn't necessarily a chunk mesh, if the edit happens in a boundary,
 		// or if it is done next to a viewer that doesn't need meshes
 		if (block != nullptr) {
@@ -1535,7 +1535,7 @@ void VoxelTerrain::process_meshing() {
 		ZN_PROFILE_SCOPE_NAMED("Block");
 		const Vector3i chunk_mesh_pos = _blocks_pending_update[bi];
 
-		VoxelChunkMeshVT *chunk_mesh = _mesh_map.get_block(chunk_mesh_pos);
+		VoxelChunkMeshVT *chunk_mesh = _mesh_map.get_chunk(chunk_mesh_pos);
 
 		// If we got here, it must have been because of scheduling an update
 		ZN_ASSERT_CONTINUE(chunk_mesh != nullptr);
@@ -1606,7 +1606,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 	ZN_PROFILE_SCOPE();
 	// print_line(String("DDD receive {0}").format(varray(ob.position.to_vec3())));
 
-	VoxelChunkMeshVT *block = _mesh_map.get_block(ob.position);
+	VoxelChunkMeshVT *block = _mesh_map.get_chunk(ob.position);
 	if (block == nullptr) {
 		// print_line("- no longer loaded");
 		// That chunk is no longer loaded, drop the result
@@ -1766,7 +1766,7 @@ bool VoxelTerrain::is_area_meshed(const Box3i &box_in_voxels) const {
 	// This assumes we store chunk meshes even when there is no mesh
 	const Box3i mesh_box = box_in_voxels.downscaled(get_chunk_mesh_size());
 	return mesh_box.all_cells_match([this](Vector3i bpos) {
-		const VoxelChunkMeshVT *block = _mesh_map.get_block(bpos);
+		const VoxelChunkMeshVT *block = _mesh_map.get_chunk(bpos);
 		return block != nullptr && block->is_loaded;
 	});
 }

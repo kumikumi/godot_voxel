@@ -101,8 +101,8 @@ public:
 		}
 	}
 
-	VoxelChunkData *get_block(Vector3i bpos);
-	const VoxelChunkData *get_block(Vector3i bpos) const;
+	VoxelChunkData *get_chunk(Vector3i bpos);
+	const VoxelChunkData *get_chunk(Vector3i bpos) const;
 
 	bool has_block(Vector3i pos) const;
 	bool is_block_surrounded(Vector3i pos) const;
@@ -140,7 +140,7 @@ public:
 		const Box3i chunk_box = voxel_box.downscaled(get_chunk_size());
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
 		chunk_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i chunk_pos) {
-			VoxelChunkData *block = get_block(chunk_pos);
+			VoxelChunkData *block = get_chunk(chunk_pos);
 			if (block == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
 				block = create_default_chunk(chunk_pos);
@@ -165,7 +165,7 @@ public:
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
 		chunk_box.for_each_cell_zxy(
 				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i chunk_pos) {
-					VoxelChunkData *block = get_block(chunk_pos);
+					VoxelChunkData *block = get_chunk(chunk_pos);
 					if (block == nullptr) {
 						block = create_default_chunk(chunk_pos);
 						gen_func(block->get_voxels(), chunk_pos << get_chunk_size_pow2());

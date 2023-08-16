@@ -153,7 +153,7 @@ public:
 		}
 #endif
 		RWLockWrite wlock(lod.map_lock);
-		VoxelChunkData *existing_block = lod.map.get_block(chunk_position);
+		VoxelChunkData *existing_block = lod.map.get_chunk(chunk_position);
 		if (existing_block != nullptr) {
 			action_when_exists(*existing_block, block);
 		} else {
@@ -307,7 +307,7 @@ private:
 	static inline std::shared_ptr<VoxelBufferInternal> try_get_voxel_buffer_with_lock(
 			const Lod &data_lod, Vector3i chunk_pos, bool &out_generate) {
 		RWLockRead rlock(data_lod.map_lock);
-		const VoxelChunkData *block = data_lod.map.get_block(chunk_pos);
+		const VoxelChunkData *block = data_lod.map.get_chunk(chunk_pos);
 		if (block == nullptr) {
 			return nullptr;
 		}

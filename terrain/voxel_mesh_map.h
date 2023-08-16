@@ -42,7 +42,7 @@ public:
 		}
 	}
 
-	ChunkMesh_T *get_block(Vector3i bpos) {
+	ChunkMesh_T *get_chunk(Vector3i bpos) {
 		if (_last_accessed_block && _last_accessed_block->position == bpos) {
 			return _last_accessed_block;
 		}
@@ -61,7 +61,7 @@ public:
 		return nullptr;
 	}
 
-	const ChunkMesh_T *get_block(Vector3i bpos) const {
+	const ChunkMesh_T *get_chunk(Vector3i bpos) const {
 		if (_last_accessed_block != nullptr && _last_accessed_block->position == bpos) {
 			return _last_accessed_block;
 		}

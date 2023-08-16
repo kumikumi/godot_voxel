@@ -1187,7 +1187,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 		for (unsigned int i = 0; i < lod.chunk_meshes_to_activate.size(); ++i) {
 			const Vector3i bpos = lod.chunk_meshes_to_activate[i];
-			VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
+			VoxelChunkMeshVLT *block = mesh_map.get_chunk(bpos);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				continue;
@@ -1206,7 +1206,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 		for (unsigned int i = 0; i < lod.chunk_meshes_to_deactivate.size(); ++i) {
 			const Vector3i bpos = lod.chunk_meshes_to_deactivate[i];
-			VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
+			VoxelChunkMeshVLT *block = mesh_map.get_chunk(bpos);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				continue;
@@ -1251,7 +1251,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 		for (unsigned int i = 0; i < lod.chunk_meshes_to_update_transitions.size(); ++i) {
 			const VoxelLodTerrainUpdateData::TransitionUpdate tu = lod.chunk_meshes_to_update_transitions[i];
-			VoxelChunkMeshVLT *block = mesh_map.get_block(tu.chunk_position);
+			VoxelChunkMeshVLT *block = mesh_map.get_chunk(tu.chunk_position);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				/*
@@ -1486,7 +1486,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 	// This part is not fully threadable.
 
 	VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[ob.lod];
-	VoxelChunkMeshVLT *block = mesh_map.get_block(ob.position);
+	VoxelChunkMeshVLT *block = mesh_map.get_chunk(ob.position);
 
 	VoxelMesher::Output &mesh_data = ob.surfaces;
 
@@ -1638,7 +1638,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 
 void VoxelLodTerrain::apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob) {
 	VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[ob.lod_index];
-	VoxelChunkMeshVLT *block = mesh_map.get_block(ob.position);
+	VoxelChunkMeshVLT *block = mesh_map.get_chunk(ob.position);
 
 	// This can happen if:
 	// - Virtual texture rendering results are handled before the first meshing results which that have created the
@@ -1713,7 +1713,7 @@ void VoxelLodTerrain::try_apply_parent_detail_texture_to_block(VoxelChunkMeshVLT
 	const unsigned int parent_lod_index = block.lod_index + 1;
 	const VoxelMeshMap<VoxelChunkMeshVLT> &parent_map = _mesh_maps_per_lod[parent_lod_index];
 	const Vector3i parent_bpos = bpos >> 1;
-	const VoxelChunkMeshVLT *parent_block = parent_map.get_block(parent_bpos);
+	const VoxelChunkMeshVLT *parent_block = parent_map.get_chunk(parent_bpos);
 	if (parent_block == nullptr) {
 		return;
 	}
@@ -1798,7 +1798,7 @@ void VoxelLodTerrain::process_deferred_collision_updates(uint32_t timeout_msec) 
 
 		for (unsigned int i = 0; i < deferred_collision_updates.size(); ++i) {
 			const Vector3i chunk_pos = deferred_collision_updates[i];
-			VoxelChunkMeshVLT *block = mesh_map.get_block(chunk_pos);
+			VoxelChunkMeshVLT *block = mesh_map.get_chunk(chunk_pos);
 
 			if (block == nullptr || block->deferred_collider_data == nullptr) {
 				// Block was unloaded or no longer needs a collision update
@@ -1914,7 +1914,7 @@ void VoxelLodTerrain::process_fading_blocks(float delta) {
 			bool remove = true;
 
 			if (item.lod_index < lod_count) {
-				VoxelChunkMeshVLT *block = _mesh_maps_per_lod[item.lod_index].get_block(item.chunk_position);
+				VoxelChunkMeshVLT *block = _mesh_maps_per_lod[item.lod_index].get_chunk(item.chunk_position);
 
 				if (block != nullptr) {
 					Ref<ShaderMaterial> sm = block->get_shader_material();
@@ -1985,7 +1985,7 @@ Array VoxelLodTerrain::get_chunk_mesh_surface(Vector3i chunk_pos, int lod_index)
 
 	Ref<Mesh> mesh;
 	{
-		const VoxelChunkMeshVLT *block = mesh_map.get_block(chunk_pos);
+		const VoxelChunkMeshVLT *block = mesh_map.get_chunk(chunk_pos);
 		if (block != nullptr) {
 			mesh = block->get_mesh();
 		}
@@ -2407,7 +2407,7 @@ Array VoxelLodTerrain::debug_raycast_chunk_mesh(Vector3 world_origin, Vector3 wo
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 			const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
 			const Vector3i bpos = (posi << chunk_mesh_size_po2) >> lod_index;
-			const VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
+			const VoxelChunkMeshVLT *block = mesh_map.get_chunk(bpos);
 			if (block != nullptr && block->is_visible() && block->has_mesh()) {
 				Dictionary d;
 				d["position"] = block->position;
@@ -2462,7 +2462,7 @@ Dictionary VoxelLodTerrain::debug_get_chunk_mesh_info(Vector3 fbpos, int lod_ind
 	int mesh_state = VoxelLodTerrainUpdateData::MESH_NEVER_UPDATED;
 
 	const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-	const VoxelChunkMeshVLT *block = mesh_map.get_block(bpos);
+	const VoxelChunkMeshVLT *block = mesh_map.get_chunk(bpos);
 
 	if (block != nullptr) {
 		int recomputed_transition_mask;
