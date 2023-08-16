@@ -7,7 +7,7 @@
 
 namespace zylann::voxel {
 
-void LoadAllBlocksDataTask::run(zylann::ThreadedTaskContext &ctx) {
+void LoadAllChunksDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_PROFILE_SCOPE();
 
 	CRASH_COND(stream_dependency == nullptr);
@@ -19,15 +19,15 @@ void LoadAllBlocksDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_PRINT_VERBOSE(format("Loaded {} blocks for volume {}", _result.blocks.size(), volume_id));
 }
 
-TaskPriority LoadAllBlocksDataTask::get_priority() {
+TaskPriority LoadAllChunksDataTask::get_priority() {
 	return TaskPriority();
 }
 
-bool LoadAllBlocksDataTask::is_cancelled() {
+bool LoadAllChunksDataTask::is_cancelled() {
 	return !stream_dependency->valid;
 }
 
-void LoadAllBlocksDataTask::apply_result() {
+void LoadAllChunksDataTask::apply_result() {
 	if (VoxelEngine::get_singleton().is_volume_valid(volume_id)) {
 		// TODO Comparing pointer may not be guaranteed
 		// The request response must match the dependency it would have been requested with.

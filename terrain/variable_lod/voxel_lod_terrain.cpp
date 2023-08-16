@@ -693,7 +693,7 @@ void VoxelLodTerrain::start_streamer() {
 
 			_data->set_full_load_completed(false);
 
-			LoadAllBlocksDataTask *task = memnew(LoadAllBlocksDataTask);
+			LoadAllChunksDataTask *task = memnew(LoadAllChunksDataTask);
 			task->volume_id = _volume_id;
 			task->stream_dependency = _streaming_dependency;
 			task->data = _data;

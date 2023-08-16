@@ -10,10 +10,10 @@ namespace zylann::voxel {
 
 class VoxelData;
 
-class LoadAllBlocksDataTask : public IThreadedTask {
+class LoadAllChunksDataTask : public IThreadedTask {
 public:
 	const char *get_debug_name() const override {
-		return "LoadAllBlocksData";
+		return "LoadAllChunksData";
 	}
 
 	void run(ThreadedTaskContext &ctx) override;
