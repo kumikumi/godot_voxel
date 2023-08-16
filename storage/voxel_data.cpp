@@ -363,16 +363,16 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 
 	// Find empty slots
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
-		const Box3i block_box = voxel_box.downscaled(chunk_size << lod_index);
+		const Box3i chunk_box = voxel_box.downscaled(chunk_size << lod_index);
 
-		// ZN_PRINT_VERBOSE(format("Preloading box {} at lod {} synchronously", block_box, lod_index));
+		// ZN_PRINT_VERBOSE(format("Preloading box {} at lod {} synchronously", chunk_box, lod_index));
 
 		Lod &data_lod = lods[lod_index];
 		const unsigned int prev_size = todo.size();
 
 		{
 			RWLockRead rlock(data_lod.map_lock);
-			block_box.for_each_cell([&data_lod, lod_index, &todo, streaming](Vector3i chunk_pos) {
+			chunk_box.for_each_cell([&data_lod, lod_index, &todo, streaming](Vector3i chunk_pos) {
 				// We don't check "loading chunks", because this function wants to complete the task right now.
 				const VoxelChunkData *block = data_lod.map.get_block(chunk_pos);
 				if (streaming) {

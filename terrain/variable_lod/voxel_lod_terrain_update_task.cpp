@@ -1080,14 +1080,14 @@ static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerra
 
 			VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
 			const Box3i voxel_box = voxel_boxes[box_index];
-			const Box3i block_box = voxel_box.downscaled(chunk_size << lod_index);
+			const Box3i chunk_box = voxel_box.downscaled(chunk_size << lod_index);
 
 			// ZN_PRINT_VERBOSE(String("Preloading box {0} at lod {1}")
 			// 						.format(varray(chunk_box.to_string(), lod_index)));
 
 			static thread_local std::vector<Vector3i> tls_missing;
 			tls_missing.clear();
-			data.get_missing_chunks(block_box, lod_index, tls_missing);
+			data.get_missing_chunks(chunk_box, lod_index, tls_missing);
 
 			if (tls_missing.size() > 0) {
 				MutexLock mlock(lod.loading_blocks_mutex);

@@ -314,12 +314,12 @@ void VoxelTerrain::set_mesher(Ref<VoxelMesher> mesher) {
 }
 
 void VoxelTerrain::get_viewers_in_area(std::vector<ViewerID> &out_viewer_ids, Box3i voxel_box) const {
-	const Box3i block_box = voxel_box.downscaled(get_chunk_size());
+	const Box3i chunk_box = voxel_box.downscaled(get_chunk_size());
 
 	for (auto it = _paired_viewers.begin(); it != _paired_viewers.end(); ++it) {
 		const PairedViewer &viewer = *it;
 
-		if (viewer.state.data_box.intersects(block_box)) {
+		if (viewer.state.data_box.intersects(chunk_box)) {
 			out_viewer_ids.push_back(viewer.id);
 		}
 	}
@@ -641,10 +641,10 @@ void VoxelTerrain::generate_chunk_async(Vector3i chunk_position) {
 	// }
 
 	LoadingBlock new_loading_block;
-	const Box3i block_box(_data->chunk_to_voxel(chunk_position), Vector3iUtil::create(_data->get_chunk_size()));
+	const Box3i chunk_box(_data->chunk_to_voxel(chunk_position), Vector3iUtil::create(_data->get_chunk_size()));
 	for (size_t i = 0; i < _paired_viewers.size(); ++i) {
 		const PairedViewer &viewer = _paired_viewers[i];
-		if (viewer.state.data_box.intersects(block_box)) {
+		if (viewer.state.data_box.intersects(chunk_box)) {
 			new_loading_block.viewers.add();
 		}
 	}

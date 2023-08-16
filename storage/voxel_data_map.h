@@ -137,9 +137,9 @@ public:
 	// D F(Vector3i pos, D value)
 	template <typename F, typename G>
 	void write_box(const Box3i &voxel_box, unsigned int channel, F action, G gen_func) {
-		const Box3i block_box = voxel_box.downscaled(get_chunk_size());
+		const Box3i chunk_box = voxel_box.downscaled(get_chunk_size());
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
-		block_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i chunk_pos) {
+		chunk_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i chunk_pos) {
 			VoxelChunkData *block = get_block(chunk_pos);
 			if (block == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
@@ -161,9 +161,9 @@ public:
 	// void F(Vector3i pos, D0 &value, D1 &value)
 	template <typename F, typename G>
 	void write_box_2(const Box3i &voxel_box, unsigned int channel0, unsigned int channel1, F action, G gen_func) {
-		const Box3i block_box = voxel_box.downscaled(get_chunk_size());
+		const Box3i chunk_box = voxel_box.downscaled(get_chunk_size());
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
-		block_box.for_each_cell_zxy(
+		chunk_box.for_each_cell_zxy(
 				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i chunk_pos) {
 					VoxelChunkData *block = get_block(chunk_pos);
 					if (block == nullptr) {

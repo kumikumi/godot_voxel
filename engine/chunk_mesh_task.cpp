@@ -142,13 +142,13 @@ static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 						// but is it just better to do it anyways for every clipped box?
 						ZN_PROFILE_SCOPE_NAMED("Box subtract");
 						const unsigned int input_count = boxes_to_generate.size();
-						const Box3i block_box =
+						const Box3i chunk_box =
 								Box3i(offset, Vector3iUtil::create(chunk_size)).clipped(mesh_data_box);
 
 						for (unsigned int box_index = 0; box_index < input_count; ++box_index) {
 							Box3i box = boxes_to_generate[box_index];
 							// Remainder boxes are added to the end of the list
-							box.difference_to_vec(block_box, boxes_to_generate);
+							box.difference_to_vec(chunk_box, boxes_to_generate);
 #ifdef DEBUG_ENABLED
 							// Difference should add boxes to the vector, not remove any
 							CRASH_COND(box_index >= boxes_to_generate.size());

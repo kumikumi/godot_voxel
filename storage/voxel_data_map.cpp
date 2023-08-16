@@ -322,8 +322,8 @@ int VoxelDataMap::get_block_count() const {
 }
 
 bool VoxelDataMap::is_area_fully_loaded(const Box3i voxels_box) const {
-	Box3i block_box = voxels_box.downscaled(get_chunk_size());
-	return block_box.all_cells_match([this](Vector3i pos) { //
+	Box3i chunk_box = voxels_box.downscaled(get_chunk_size());
+	return chunk_box.all_cells_match([this](Vector3i pos) { //
 		return has_block(pos);
 	});
 }

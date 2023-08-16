@@ -266,8 +266,8 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 
 	{
 		const Box3i voxel_box = Box3i::from_min_max(query_min_pos_i, query_max_pos_i);
-		const Vector3i block_box_size = voxel_box.size >> constants::DEFAULT_CHUNK_SIZE_PO2;
-		const int64_t block_volume = Vector3iUtil::get_volume(block_box_size);
+		const Vector3i chunk_box_size = voxel_box.size >> constants::DEFAULT_CHUNK_SIZE_PO2;
+		const int64_t block_volume = Vector3iUtil::get_volume(chunk_box_size);
 		// TODO Don't hardcode chunk size (even though for now I have no plan to make it configurable)
 		if (block_volume > math::cubed(MAX_EDITED_BLOCKS_ACROSS)) {
 			// Box too big for quick sparse readings, won't handle edits. Fallback on generator.
