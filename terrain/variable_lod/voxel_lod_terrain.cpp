@@ -1251,16 +1251,16 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 
 		for (unsigned int i = 0; i < lod.chunk_meshes_to_update_transitions.size(); ++i) {
 			const VoxelLodTerrainUpdateData::TransitionUpdate tu = lod.chunk_meshes_to_update_transitions[i];
-			VoxelChunkMeshVLT *block = mesh_map.get_block(tu.block_position);
+			VoxelChunkMeshVLT *block = mesh_map.get_block(tu.chunk_position);
 			// Can be null if there is actually no surface at this location
 			if (block == nullptr) {
 				/*
 #ifdef DEBUG_ENABLED
 				// If the chunk was removed for a different reason then it is unexpected
-				ERR_CONTINUE(debug_removed_blocks.find(tu.block_position) == debug_removed_blocks.end());
+				ERR_CONTINUE(debug_removed_blocks.find(tu.chunk_position) == debug_removed_blocks.end());
 #endif
 				ZN_PRINT_VERBOSE(String("Skipping TransitionUpdate at {0} lod {1}, block not found")
-									  .format(varray(tu.block_position, lod_index)));
+									  .format(varray(tu.chunk_position, lod_index)));
 				*/
 				continue;
 			}
@@ -1797,8 +1797,8 @@ void VoxelLodTerrain::process_deferred_collision_updates(uint32_t timeout_msec) 
 		std::vector<Vector3i> &deferred_collision_updates = _deferred_collision_updates_per_lod[lod_index];
 
 		for (unsigned int i = 0; i < deferred_collision_updates.size(); ++i) {
-			const Vector3i block_pos = deferred_collision_updates[i];
-			VoxelChunkMeshVLT *block = mesh_map.get_block(block_pos);
+			const Vector3i chunk_pos = deferred_collision_updates[i];
+			VoxelChunkMeshVLT *block = mesh_map.get_block(chunk_pos);
 
 			if (block == nullptr || block->deferred_collider_data == nullptr) {
 				// Block was unloaded or no longer needs a collision update
@@ -1914,7 +1914,7 @@ void VoxelLodTerrain::process_fading_blocks(float delta) {
 			bool remove = true;
 
 			if (item.lod_index < lod_count) {
-				VoxelChunkMeshVLT *block = _mesh_maps_per_lod[item.lod_index].get_block(item.block_position);
+				VoxelChunkMeshVLT *block = _mesh_maps_per_lod[item.lod_index].get_block(item.chunk_position);
 
 				if (block != nullptr) {
 					Ref<ShaderMaterial> sm = block->get_shader_material();
@@ -1975,7 +1975,7 @@ void VoxelLodTerrain::set_instancer(VoxelInstancer *instancer) {
 // This function is primarily intended for editor use cases at the moment.
 // It will be slower than using the instancing generation events,
 // because it has to query VisualServer, which then allocates and decodes vertex buffers (assuming they are cached).
-Array VoxelLodTerrain::get_chunk_mesh_surface(Vector3i block_pos, int lod_index) const {
+Array VoxelLodTerrain::get_chunk_mesh_surface(Vector3i chunk_pos, int lod_index) const {
 	ZN_PROFILE_SCOPE();
 
 	const int lod_count = get_lod_count();
@@ -1985,7 +1985,7 @@ Array VoxelLodTerrain::get_chunk_mesh_surface(Vector3i block_pos, int lod_index)
 
 	Ref<Mesh> mesh;
 	{
-		const VoxelChunkMeshVLT *block = mesh_map.get_block(block_pos);
+		const VoxelChunkMeshVLT *block = mesh_map.get_block(chunk_pos);
 		if (block != nullptr) {
 			mesh = block->get_mesh();
 		}
@@ -1998,7 +1998,7 @@ Array VoxelLodTerrain::get_chunk_mesh_surface(Vector3i block_pos, int lod_index)
 	return Array();
 }
 
-void VoxelLodTerrain::get_meshed_block_positions_at_lod(int lod_index, std::vector<Vector3i> &out_positions) const {
+void VoxelLodTerrain::get_meshed_chunk_positions_at_lod(int lod_index, std::vector<Vector3i> &out_positions) const {
 	const int lod_count = get_lod_count();
 	ERR_FAIL_COND(lod_index < 0 || lod_index >= lod_count);
 
@@ -2675,8 +2675,8 @@ void VoxelLodTerrain::update_gizmos() {
 		for (auto it = state.lod_octrees.begin(); it != state.lod_octrees.end(); ++it) {
 			const LodOctree &octree = it->second.octree;
 
-			const Vector3i block_pos_maxlod = it->first;
-			const Vector3i block_offset_lod0 = block_pos_maxlod << (lod_count - 1);
+			const Vector3i chunk_pos_maxlod = it->first;
+			const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
 
 			octree.for_each_leaf([&dr, block_offset_lod0, chunk_mesh_size, parent_transform, lod_count_f](
 										 Vector3i node_pos, int lod_index, const LodOctree::NodeData &node_data) {
@@ -3003,9 +3003,9 @@ void VoxelLodTerrain::_bind_methods() {
 	ClassDB::bind_method(
 			D_METHOD("debug_raycast_chunk_mesh", "origin", "dir"), &VoxelLodTerrain::debug_raycast_chunk_mesh);
 	ClassDB::bind_method(
-			D_METHOD("debug_get_chunk_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_info);
+			D_METHOD("debug_get_chunk_info", "chunk_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_info);
 	ClassDB::bind_method(
-			D_METHOD("debug_get_chunk_mesh_info", "block_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_mesh_info);
+			D_METHOD("debug_get_chunk_mesh_info", "chunk_pos", "lod"), &VoxelLodTerrain::debug_get_chunk_mesh_info);
 	ClassDB::bind_method(D_METHOD("debug_get_octrees_detailed"), &VoxelLodTerrain::debug_get_octrees_detailed);
 	ClassDB::bind_method(
 			D_METHOD("debug_print_sdf_top_down", "center", "extents"), &VoxelLodTerrain::_b_debug_print_sdf_top_down);

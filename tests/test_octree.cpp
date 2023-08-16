@@ -74,8 +74,8 @@ void test_octree_update() {
 	for (std::map<Vector3i, LodOctree>::iterator it = octrees.begin(); it != octrees.end(); ++it) {
 		LodOctree &octree = it->second;
 
-		const Vector3i block_pos_maxlod = it->first;
-		const Vector3i block_offset_lod0 = block_pos_maxlod << (lod_count - 1);
+		const Vector3i chunk_pos_maxlod = it->first;
+		const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
 		const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(block_offset_lod0);
 
 		OctreeActions actions;
@@ -109,8 +109,8 @@ void test_octree_update() {
 		for (std::map<Vector3i, LodOctree>::iterator it = octrees.begin(); it != octrees.end(); ++it) {
 			LodOctree &octree = it->second;
 
-			const Vector3i block_pos_maxlod = it->first;
-			const Vector3i block_offset_lod0 = block_pos_maxlod << (lod_count - 1);
+			const Vector3i chunk_pos_maxlod = it->first;
+			const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
 			const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(block_offset_lod0);
 
 			OctreeActions actions;

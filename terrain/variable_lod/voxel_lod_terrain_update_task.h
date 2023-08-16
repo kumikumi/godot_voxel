@@ -49,7 +49,7 @@ public:
 	static void flush_pending_lod_edits(
 			VoxelLodTerrainUpdateData::State &state, VoxelData &data, const int chunk_mesh_size);
 
-	static uint8_t get_transition_mask(const VoxelLodTerrainUpdateData::State &state, Vector3i block_pos,
+	static uint8_t get_transition_mask(const VoxelLodTerrainUpdateData::State &state, Vector3i chunk_pos,
 			unsigned int lod_index, unsigned int lod_count);
 
 	// To use on loaded chunks

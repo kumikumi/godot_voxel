@@ -13,12 +13,12 @@ namespace {
 std::atomic_int g_debug_load_block_tasks_count = { 0 };
 }
 
-LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
+LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos, uint8_t p_lod, uint8_t p_chunk_size,
 		bool p_request_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		PriorityDependency p_priority_dependency, bool generate_cache_data, bool generator_use_gpu,
 		const std::shared_ptr<VoxelData> &vdata) :
 		_priority_dependency(p_priority_dependency),
-		_position(p_block_pos),
+		_position(p_chunk_pos),
 		_volume_id(p_volume_id),
 		_lod_index(p_lod),
 		_chunk_size(p_chunk_size),

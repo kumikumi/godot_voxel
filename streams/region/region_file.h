@@ -90,11 +90,11 @@ public:
 	unsigned int get_header_block_count() const;
 	bool has_block(Vector3i position) const;
 	bool has_block(unsigned int index) const;
-	Vector3i get_block_position_from_index(uint32_t i) const;
+	Vector3i get_chunk_position_from_index(uint32_t i) const;
 
 	void debug_check();
 
-	bool is_valid_block_position(const Vector3 position) const;
+	bool is_valid_chunk_position(const Vector3 position) const;
 
 private:
 	bool save_header(FileAccess &f);
@@ -104,7 +104,7 @@ private:
 	uint32_t get_sector_count_from_bytes(uint32_t size_in_bytes) const;
 
 	void pad_to_sector_size(FileAccess &f);
-	void remove_sectors_from_block(Vector3i block_pos, unsigned int p_sector_count);
+	void remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_sector_count);
 
 	bool migrate_to_latest(FileAccess &f);
 	bool migrate_from_v2_to_v3(FileAccess &f, RegionFormat &format);

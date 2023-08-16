@@ -139,14 +139,14 @@ public:
 	void write_box(const Box3i &voxel_box, unsigned int channel, F action, G gen_func) {
 		const Box3i block_box = voxel_box.downscaled(get_chunk_size());
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
-		block_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i block_pos) {
-			VoxelChunkData *block = get_block(block_pos);
+		block_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i chunk_pos) {
+			VoxelChunkData *block = get_block(chunk_pos);
 			if (block == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
-				block = create_default_chunk(block_pos);
-				gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
+				block = create_default_chunk(chunk_pos);
+				gen_func(block->get_voxels(), chunk_pos << get_chunk_size_pow2());
 			}
-			const Vector3i chunk_origin = chunk_to_voxel(block_pos);
+			const Vector3i chunk_origin = chunk_to_voxel(chunk_pos);
 			Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 			local_box.clip(Box3i(Vector3i(), chunk_size));
 			block->get_voxels().write_box(local_box, channel, action, chunk_origin);
@@ -164,13 +164,13 @@ public:
 		const Box3i block_box = voxel_box.downscaled(get_chunk_size());
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
 		block_box.for_each_cell_zxy(
-				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i block_pos) {
-					VoxelChunkData *block = get_block(block_pos);
+				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i chunk_pos) {
+					VoxelChunkData *block = get_block(chunk_pos);
 					if (block == nullptr) {
-						block = create_default_chunk(block_pos);
-						gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
+						block = create_default_chunk(chunk_pos);
+						gen_func(block->get_voxels(), chunk_pos << get_chunk_size_pow2());
 					}
-					const Vector3i chunk_origin = chunk_to_voxel(block_pos);
+					const Vector3i chunk_origin = chunk_to_voxel(chunk_pos);
 					Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 					local_box.clip(Box3i(Vector3i(), chunk_size));
 					block->get_voxels().write_box_2_template<F, uint16_t, uint16_t>(

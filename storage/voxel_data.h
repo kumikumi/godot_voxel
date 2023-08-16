@@ -139,13 +139,13 @@ public:
 
 	// Sets all the data of a chunk.
 	// If the chunk already exists, returns false. Otherwise, returns true.
-	bool try_set_block(Vector3i block_position, const VoxelChunkData &block);
+	bool try_set_block(Vector3i chunk_position, const VoxelChunkData &block);
 
 	// Sets all the data of a chunk.
 	// If the chunk already exists, `action_when_exists` is called.
 	// `void action_when_exists(VoxelChunkData &existing_chunk, const VoxelChunkData &incoming_chunk)`
 	template <typename F>
-	void try_set_block(Vector3i block_position, const VoxelChunkData &block, F action_when_exists) {
+	void try_set_block(Vector3i chunk_position, const VoxelChunkData &block, F action_when_exists) {
 		Lod &lod = _lods[block.get_lod_index()];
 #ifdef DEBUG_ENABLED
 		if (block.has_voxels()) {
@@ -153,11 +153,11 @@ public:
 		}
 #endif
 		RWLockWrite wlock(lod.map_lock);
-		VoxelChunkData *existing_block = lod.map.get_block(block_position);
+		VoxelChunkData *existing_block = lod.map.get_block(chunk_position);
 		if (existing_block != nullptr) {
 			action_when_exists(*existing_block, block);
 		} else {
-			lod.map.set_block(block_position, block);
+			lod.map.set_block(chunk_position, block);
 		}
 	}
 
@@ -305,9 +305,9 @@ private:
 			unsigned int lod_count, Ref<VoxelGenerator> generator, VoxelModifierStack &modifiers);
 
 	static inline std::shared_ptr<VoxelBufferInternal> try_get_voxel_buffer_with_lock(
-			const Lod &data_lod, Vector3i block_pos, bool &out_generate) {
+			const Lod &data_lod, Vector3i chunk_pos, bool &out_generate) {
 		RWLockRead rlock(data_lod.map_lock);
-		const VoxelChunkData *block = data_lod.map.get_block(block_pos);
+		const VoxelChunkData *block = data_lod.map.get_block(chunk_pos);
 		if (block == nullptr) {
 			return nullptr;
 		}

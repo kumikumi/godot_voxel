@@ -106,7 +106,7 @@ public:
 		ZN_ASSERT(_locked);
 #endif
 		const Vector3i bpos = (pos >> _chunk_size_po2) - _offset_in_blocks;
-		if (!is_valid_relative_block_position(bpos)) {
+		if (!is_valid_relative_chunk_position(bpos)) {
 			return false;
 		}
 		const unsigned int loc = Vector3iUtil::get_zxy_index(bpos, _size_in_blocks);
@@ -201,7 +201,7 @@ private:
 		_chunk_size = chunk_size;
 	}
 
-	inline bool is_valid_relative_block_position(Vector3i pos) const {
+	inline bool is_valid_relative_chunk_position(Vector3i pos) const {
 		return pos.x >= 0 && //
 				pos.y >= 0 && //
 				pos.z >= 0 && //
@@ -210,12 +210,12 @@ private:
 				pos.z < _size_in_blocks.z;
 	}
 
-	inline bool is_valid_block_position(Vector3i pos) const {
-		return is_valid_relative_block_position(pos - _offset_in_blocks);
+	inline bool is_valid_chunk_position(Vector3i pos) const {
+		return is_valid_relative_chunk_position(pos - _offset_in_blocks);
 	}
 
 	inline void set_block(Vector3i position, std::shared_ptr<VoxelBufferInternal> block) {
-		ZN_ASSERT_RETURN(is_valid_block_position(position));
+		ZN_ASSERT_RETURN(is_valid_chunk_position(position));
 		position -= _offset_in_blocks;
 		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
 		ZN_ASSERT(index < _chunks.size());
@@ -223,7 +223,7 @@ private:
 	}
 
 	inline VoxelBufferInternal *get_block(Vector3i position) {
-		ZN_ASSERT_RETURN_V(is_valid_block_position(position), nullptr);
+		ZN_ASSERT_RETURN_V(is_valid_chunk_position(position), nullptr);
 		position -= _offset_in_blocks;
 		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
 		ZN_ASSERT(index < _chunks.size());

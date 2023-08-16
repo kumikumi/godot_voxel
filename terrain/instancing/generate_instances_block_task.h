@@ -10,7 +10,7 @@
 namespace zylann::voxel {
 
 struct VoxelInstanceGeneratorTaskOutput {
-	Vector3i render_block_position;
+	Vector3i render_chunk_position;
 	uint16_t layer_id;
 	std::vector<Transform3f> transforms;
 };

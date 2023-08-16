@@ -1399,13 +1399,13 @@ void test_voxel_graph_unused_single_texture_output() {
 	CompilationResult result = generator->compile(false);
 	ZN_TEST_ASSERT(result.success);
 
-	std::vector<Vector3i> block_positions;
+	std::vector<Vector3i> chunk_positions;
 	{
 		Vector3i bpos;
 		for (bpos.z = -4; bpos.z < 4; ++bpos.z) {
 			for (bpos.x = -4; bpos.x < 4; ++bpos.x) {
 				for (bpos.y = -4; bpos.y < 4; ++bpos.y) {
-					block_positions.push_back(bpos);
+					chunk_positions.push_back(bpos);
 				}
 			}
 		}
@@ -1416,7 +1416,7 @@ void test_voxel_graph_unused_single_texture_output() {
 			}
 		};
 		SortArray<Vector3i, Comparer> sorter;
-		sorter.sort(block_positions.data(), block_positions.size());
+		sorter.sort(chunk_positions.data(), chunk_positions.size());
 	}
 
 	VoxelBufferInternal voxels;
@@ -1425,7 +1425,7 @@ void test_voxel_graph_unused_single_texture_output() {
 	const int MAX_MARGIN = 2;
 	voxels.create(Vector3iUtil::create(CHUNK_SIZE + MIN_MARGIN + MAX_MARGIN));
 
-	for (const Vector3i bpos : block_positions) {
+	for (const Vector3i bpos : chunk_positions) {
 		const Vector3i origin_in_voxels = bpos * CHUNK_SIZE - Vector3iUtil::create(MIN_MARGIN);
 		generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin_in_voxels, 0 });
 

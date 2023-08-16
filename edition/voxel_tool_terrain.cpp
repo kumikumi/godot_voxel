@@ -319,17 +319,17 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 
 	// Choose chunks at random
 	for (int bi = 0; bi < block_count; ++bi) {
-		const Vector3i block_pos = block_box.pos + L::urand_vec3i(random, block_box.size);
+		const Vector3i chunk_pos = block_box.pos + L::urand_vec3i(random, block_box.size);
 
-		const Vector3i chunk_origin = data.chunk_to_voxel(block_pos);
+		const Vector3i chunk_origin = data.chunk_to_voxel(chunk_pos);
 
 		picks.clear();
 
 		{
 			VoxelSpatialLock &spatial_lock = data.get_spatial_lock(0);
-			VoxelSpatialLockRead srlock(spatial_lock, BoxBounds3i::from_position(block_pos));
+			VoxelSpatialLockRead srlock(spatial_lock, BoxBounds3i::from_position(chunk_pos));
 
-			std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_chunk_voxels(block_pos);
+			std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_chunk_voxels(chunk_pos);
 
 			if (voxels_ptr != nullptr) {
 				// Doing ONLY reads here.
@@ -453,14 +453,14 @@ void VoxelToolTerrain::for_each_voxel_metadata_in_area(AABB voxel_area, const Ca
 
 	VoxelData &data = _terrain->get_storage();
 
-	chunk_box.for_each_cell([&data, &callback, voxel_box](Vector3i block_pos) {
-		std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_chunk_voxels(block_pos);
+	chunk_box.for_each_cell([&data, &callback, voxel_box](Vector3i chunk_pos) {
+		std::shared_ptr<VoxelBufferInternal> voxels_ptr = data.try_get_chunk_voxels(chunk_pos);
 
 		if (voxels_ptr == nullptr) {
 			return;
 		}
 
-		const Vector3i chunk_origin = block_pos * data.get_chunk_size();
+		const Vector3i chunk_origin = chunk_pos * data.get_chunk_size();
 		const Box3i rel_voxel_box(voxel_box.pos - chunk_origin, voxel_box.size);
 		// TODO Worth it locking chunks for metadata?
 

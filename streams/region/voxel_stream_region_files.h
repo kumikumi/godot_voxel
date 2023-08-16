@@ -69,8 +69,8 @@ private:
 
 	FileResult save_meta();
 	FileResult load_meta();
-	Vector3i get_block_position_from_voxels(const Vector3i &origin_in_voxels) const;
-	Vector3i get_region_position_from_blocks(const Vector3i &block_position) const;
+	Vector3i get_chunk_position_from_voxels(const Vector3i &origin_in_voxels) const;
+	Vector3i get_region_position_from_blocks(const Vector3i &chunk_position) const;
 	void close_all_regions();
 	String get_region_file_path(const Vector3i &region_pos, unsigned int lod) const;
 	CachedRegion *open_region(const Vector3i region_pos, unsigned int lod, bool create_if_not_found);
@@ -102,8 +102,8 @@ private:
 			} else if (a.lod > b.lod) {
 				return false;
 			}
-			Vector3i bpos_a = self->get_block_position_from_voxels(a.origin_in_voxels);
-			Vector3i bpos_b = self->get_block_position_from_voxels(b.origin_in_voxels);
+			Vector3i bpos_a = self->get_chunk_position_from_voxels(a.origin_in_voxels);
+			Vector3i bpos_b = self->get_chunk_position_from_voxels(b.origin_in_voxels);
 			Vector3i rpos_a = self->get_region_position_from_blocks(bpos_a);
 			Vector3i rpos_b = self->get_region_position_from_blocks(bpos_b);
 			return rpos_a < rpos_b;

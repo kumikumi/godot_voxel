@@ -23,7 +23,7 @@
 		</method>
 		<method name="debug_get_chunk_info" qualifiers="const">
 			<return type="Dictionary" />
-			<param index="0" name="block_pos" type="Vector3" />
+			<param index="0" name="chunk_pos" type="Vector3" />
 			<param index="1" name="lod" type="int" />
 			<description>
 			</description>
@@ -41,7 +41,7 @@
 		</method>
 		<method name="debug_get_chunk_mesh_info" qualifiers="const">
 			<return type="Dictionary" />
-			<param index="0" name="block_pos" type="Vector3" />
+			<param index="0" name="chunk_pos" type="Vector3" />
 			<param index="1" name="lod" type="int" />
 			<description>
 			</description>

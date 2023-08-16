@@ -17,7 +17,7 @@ class VoxelChunkEnterInfo : public Object {
 	GDCLASS(VoxelChunkEnterInfo, Object)
 public:
 	int network_peer_id = -1;
-	Vector3i block_position;
+	Vector3i chunk_position;
 	// Shallow copy of the chunk. We don't use a pointer due to thread-safety, so this information represents only the
 	// moment where the chunk was inserted into the map.
 	VoxelChunkData voxel_block;

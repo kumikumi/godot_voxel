@@ -15,7 +15,7 @@ Ref<gd::VoxelBuffer> VoxelChunkEnterInfo::_b_get_voxels() const {
 }
 
 Vector3i VoxelChunkEnterInfo::_b_get_position() const {
-	return block_position;
+	return chunk_position;
 }
 
 int VoxelChunkEnterInfo::_b_get_lod_index() const {

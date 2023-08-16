@@ -30,7 +30,7 @@ void GenerateInstancesBlockTask::run(ThreadedTaskContext &ctx) {
 		output_queue->results.push_back(VoxelInstanceGeneratorTaskOutput());
 		VoxelInstanceGeneratorTaskOutput &o = output_queue->results.back();
 		o.layer_id = layer_id;
-		o.render_block_position = chunk_mesh_grid_position;
+		o.render_chunk_position = chunk_mesh_grid_position;
 		o.transforms = std::move(transforms);
 	}
 }

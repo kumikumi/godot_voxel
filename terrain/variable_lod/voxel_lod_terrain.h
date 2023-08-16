@@ -237,8 +237,8 @@ public:
 		return _streaming_dependency;
 	}
 
-	Array get_chunk_mesh_surface(Vector3i block_pos, int lod_index) const;
-	void get_meshed_block_positions_at_lod(int lod_index, std::vector<Vector3i> &out_positions) const;
+	Array get_chunk_mesh_surface(Vector3i chunk_pos, int lod_index) const;
+	void get_meshed_chunk_positions_at_lod(int lod_index, std::vector<Vector3i> &out_positions) const;
 
 	inline VoxelData &get_storage() const {
 		ZN_ASSERT(_data != nullptr);
@@ -363,7 +363,7 @@ private:
 	FixedArray<std::map<Vector3i, VoxelChunkMeshVLT *>, constants::MAX_LOD> _fading_blocks_per_lod;
 
 	struct FadingDetailTexture {
-		Vector3i block_position;
+		Vector3i chunk_position;
 		uint32_t lod_index;
 		float progress;
 	};

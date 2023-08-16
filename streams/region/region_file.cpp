@@ -251,7 +251,7 @@ Error RegionFile::open(const String &fpath, bool create_if_not_found) {
 	CRASH_COND(_sectors.size() != 0);
 	for (unsigned int i = 0; i < blocks_sorted_by_offset.size(); ++i) {
 		const BlockInfoAndIndex b = blocks_sorted_by_offset[i];
-		Vector3i bpos = get_block_position_from_index(b.i);
+		Vector3i bpos = get_chunk_position_from_index(b.i);
 		for (unsigned int j = 0; j < b.b.get_sector_count(); ++j) {
 			_sectors.push_back(bpos);
 		}
@@ -301,7 +301,7 @@ const RegionFormat &RegionFile::get_format() const {
 	return _header.format;
 }
 
-bool RegionFile::is_valid_block_position(const Vector3 position) const {
+bool RegionFile::is_valid_chunk_position(const Vector3 position) const {
 	return position.x >= 0 && //
 			position.y >= 0 && //
 			position.z >= 0 && //
@@ -314,7 +314,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	ERR_FAIL_COND_V(_file_access.is_null(), ERR_FILE_CANT_READ);
 	FileAccess &f = **_file_access;
 
-	ERR_FAIL_COND_V(!is_valid_block_position(position), ERR_INVALID_PARAMETER);
+	ERR_FAIL_COND_V(!is_valid_chunk_position(position), ERR_INVALID_PARAMETER);
 	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
 	const RegionBlockInfo &block_info = _header.blocks[lut_index];
@@ -345,7 +345,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 
 Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 	ERR_FAIL_COND_V(_header.format.verify_block(block) == false, ERR_INVALID_PARAMETER);
-	ERR_FAIL_COND_V(!is_valid_block_position(position), ERR_INVALID_PARAMETER);
+	ERR_FAIL_COND_V(!is_valid_chunk_position(position), ERR_INVALID_PARAMETER);
 
 	ERR_FAIL_COND_V(_file_access == nullptr, ERR_FILE_CANT_WRITE);
 	FileAccess &f = **_file_access;
@@ -472,7 +472,7 @@ void RegionFile::pad_to_sector_size(FileAccess &f) {
 	}
 }
 
-void RegionFile::remove_sectors_from_block(Vector3i block_pos, unsigned int p_sector_count) {
+void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_sector_count) {
 	ZN_PROFILE_SCOPE();
 
 	// Removes sectors from a chunk, starting from the last ones.
@@ -486,7 +486,7 @@ void RegionFile::remove_sectors_from_block(Vector3i block_pos, unsigned int p_se
 	const unsigned int sector_size = _header.format.sector_size;
 	const unsigned int old_end_offset = _blocks_begin_offset + _sectors.size() * sector_size;
 
-	const unsigned int chunk_index = get_chunk_index_in_header(block_pos);
+	const unsigned int chunk_index = get_chunk_index_in_header(chunk_pos);
 	CRASH_COND(chunk_index >= _header.blocks.size());
 	RegionBlockInfo &block_info = _header.blocks[chunk_index];
 
@@ -619,7 +619,7 @@ unsigned int RegionFile::get_chunk_index_in_header(const Vector3i &rpos) const {
 	return Vector3iUtil::get_zxy_index(rpos, _header.format.region_size);
 }
 
-Vector3i RegionFile::get_block_position_from_index(uint32_t i) const {
+Vector3i RegionFile::get_chunk_position_from_index(uint32_t i) const {
 	return Vector3iUtil::from_zxy_index(i, _header.format.region_size);
 }
 
@@ -634,7 +634,7 @@ unsigned int RegionFile::get_header_block_count() const {
 
 bool RegionFile::has_block(Vector3i position) const {
 	ERR_FAIL_COND_V(!is_open(), false);
-	ERR_FAIL_COND_V(!is_valid_block_position(position), false);
+	ERR_FAIL_COND_V(!is_valid_chunk_position(position), false);
 	const unsigned int bi = get_chunk_index_in_header(position);
 	return _header.blocks[bi].data != 0;
 }
@@ -654,7 +654,7 @@ void RegionFile::debug_check() {
 
 	for (unsigned int lut_index = 0; lut_index < _header.blocks.size(); ++lut_index) {
 		const RegionBlockInfo &block_info = _header.blocks[lut_index];
-		const Vector3i position = get_block_position_from_index(lut_index);
+		const Vector3i position = get_chunk_position_from_index(lut_index);
 		if (block_info.data == 0) {
 			continue;
 		}

@@ -60,12 +60,12 @@ void VoxelInstanceGenerator::generate_transforms(std::vector<Transform3f> &out_t
 	ERR_FAIL_COND(indices.size() == 0);
 	ERR_FAIL_COND(indices.size() % 3 != 0);
 
-	const uint32_t block_pos_hash = Vector3iHasher::hash(grid_position);
+	const uint32_t chunk_pos_hash = Vector3iHasher::hash(grid_position);
 
 	Vector3f global_up(0.f, 1.f, 0.f);
 
 	// Using different number generators so changing parameters affecting one doesn't affect the other
-	const uint64_t seed = block_pos_hash + layer_id;
+	const uint64_t seed = chunk_pos_hash + layer_id;
 	RandomPCG pcg0;
 	pcg0.seed(seed);
 	RandomPCG pcg1;

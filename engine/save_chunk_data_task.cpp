@@ -13,11 +13,11 @@ namespace {
 std::atomic_int g_debug_save_block_tasks_count = { 0 };
 }
 
-SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
+SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos, uint8_t p_lod, uint8_t p_chunk_size,
 		std::shared_ptr<VoxelBufferInternal> p_voxels, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		std::shared_ptr<AsyncDependencyTracker> p_tracker) :
 		_voxels(p_voxels),
-		_position(p_block_pos),
+		_position(p_chunk_pos),
 		_volume_id(p_volume_id),
 		_lod(p_lod),
 		_chunk_size(p_chunk_size),
@@ -29,11 +29,11 @@ SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos,
 	++g_debug_save_block_tasks_count;
 }
 
-SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_block_pos, uint8_t p_lod, uint8_t p_chunk_size,
+SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos, uint8_t p_lod, uint8_t p_chunk_size,
 		UniquePtr<InstanceChunkData> p_instances, std::shared_ptr<StreamingDependency> p_stream_dependency,
 		std::shared_ptr<AsyncDependencyTracker> p_tracker) :
 		_instances(std::move(p_instances)),
-		_position(p_block_pos),
+		_position(p_chunk_pos),
 		_volume_id(p_volume_id),
 		_lod(p_lod),
 		_chunk_size(p_chunk_size),

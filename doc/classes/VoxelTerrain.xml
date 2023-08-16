@@ -23,7 +23,7 @@
 		</method>
 		<method name="chunk_to_voxel" qualifiers="const">
 			<return type="Vector3i" />
-			<param index="0" name="block_pos" type="Vector3i" />
+			<param index="0" name="chunk_pos" type="Vector3i" />
 			<description>
 				Converts data block coordinates into voxel coordinates. Voxel coordinates of a block correspond to its lowest corner.
 			</description>
@@ -69,7 +69,7 @@
 		</method>
 		<method name="has_chunk" qualifiers="const">
 			<return type="bool" />
-			<param index="0" name="block_position" type="Vector3i" />
+			<param index="0" name="chunk_position" type="Vector3i" />
 			<description>
 			</description>
 		</method>

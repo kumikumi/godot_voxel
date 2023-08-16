@@ -189,8 +189,8 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 	ZN_ASSERT_RETURN_MSG(Vector3iUtil::get_volume(dst_buffer.get_size()) > 0, "The area to copy is empty");
 	const Vector3i max_pos = min_pos + dst_buffer.get_size();
 
-	const Vector3i min_block_pos = voxel_to_block(min_pos);
-	const Vector3i max_block_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
+	const Vector3i min_chunk_pos = voxel_to_block(min_pos);
+	const Vector3i max_chunk_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
 
 	const Vector3i chunk_size_v(get_chunk_size(), get_chunk_size(), get_chunk_size());
 
@@ -199,9 +199,9 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 			VoxelBufferInternal::mask_to_channels_list(channels_mask, channels_count);
 
 	Vector3i bpos;
-	for (bpos.z = min_block_pos.z; bpos.z < max_block_pos.z; ++bpos.z) {
-		for (bpos.x = min_block_pos.x; bpos.x < max_block_pos.x; ++bpos.x) {
-			for (bpos.y = min_block_pos.y; bpos.y < max_block_pos.y; ++bpos.y) {
+	for (bpos.z = min_chunk_pos.z; bpos.z < max_chunk_pos.z; ++bpos.z) {
+		for (bpos.x = min_chunk_pos.x; bpos.x < max_chunk_pos.x; ++bpos.x) {
+			for (bpos.y = min_chunk_pos.y; bpos.y < max_chunk_pos.y; ++bpos.y) {
 				const VoxelChunkData *block = get_block(bpos);
 				const Vector3i src_chunk_origin = chunk_to_voxel(bpos);
 
@@ -248,13 +248,13 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 	//
 	const Vector3i max_pos = min_pos + src_buffer.get_size();
 
-	const Vector3i min_block_pos = voxel_to_block(min_pos);
-	const Vector3i max_block_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
+	const Vector3i min_chunk_pos = voxel_to_block(min_pos);
+	const Vector3i max_chunk_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
 
 	Vector3i bpos;
-	for (bpos.z = min_block_pos.z; bpos.z < max_block_pos.z; ++bpos.z) {
-		for (bpos.x = min_block_pos.x; bpos.x < max_block_pos.x; ++bpos.x) {
-			for (bpos.y = min_block_pos.y; bpos.y < max_block_pos.y; ++bpos.y) {
+	for (bpos.z = min_chunk_pos.z; bpos.z < max_chunk_pos.z; ++bpos.z) {
+		for (bpos.x = min_chunk_pos.x; bpos.x < max_chunk_pos.x; ++bpos.x) {
+			for (bpos.y = min_chunk_pos.y; bpos.y < max_chunk_pos.y; ++bpos.y) {
 				for (unsigned int channel = 0; channel < VoxelBufferInternal::MAX_CHANNELS; ++channel) {
 					if (((1 << channel) & channels_mask) == 0) {
 						continue;

@@ -250,17 +250,17 @@ void VoxelInstancer::process_generator_results() {
 		CRASH_COND(item == nullptr);
 
 		const int chunk_mesh_size = chunk_mesh_size_base << layer.lod_index;
-		const Transform3D block_local_transform = Transform3D(Basis(), output.render_block_position * chunk_mesh_size);
+		const Transform3D block_local_transform = Transform3D(Basis(), output.render_chunk_position * chunk_mesh_size);
 		const Transform3D block_global_transform = parent_transform * block_local_transform;
 
-		auto chunk_it = layer.chunks.find(output.render_block_position);
+		auto chunk_it = layer.chunks.find(output.render_chunk_position);
 		if (chunk_it == layer.chunks.end()) {
 			// The chunk was removed while the generation process was running?
 			ZN_PRINT_VERBOSE("Processing async instance generator results, but the block was removed.");
 			continue;
 		}
 
-		update_chunk_from_transforms(chunk_it->second, to_span_const(output.transforms), output.render_block_position,
+		update_chunk_from_transforms(chunk_it->second, to_span_const(output.transforms), output.render_chunk_position,
 				layer, *item, output.layer_id, world, block_global_transform, block_local_transform.origin);
 	}
 
@@ -538,9 +538,9 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		std::vector<Vector3i> positions;
 
 		if (parent_vlt != nullptr) {
-			parent_vlt->get_meshed_block_positions_at_lod(layer.lod_index, positions);
+			parent_vlt->get_meshed_chunk_positions_at_lod(layer.lod_index, positions);
 		} else if (parent_vt != nullptr) {
-			parent_vt->get_meshed_block_positions(positions);
+			parent_vt->get_meshed_chunk_positions(positions);
 		}
 
 		for (unsigned int i = 0; i < positions.size(); ++i) {
@@ -1308,7 +1308,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 	const int render_chunk_size_base = (1 << _parent_chunk_mesh_size_po2);
 	const int render_chunk_size = render_chunk_size_base << lod_index;
 	const int half_render_chunk_size = render_chunk_size / 2;
-	const Vector3i render_block_pos = math::floordiv(data_grid_pos, render_to_data_factor);
+	const Vector3i render_chunk_pos = math::floordiv(data_grid_pos, render_to_data_factor);
 
 	const int octant_index =
 			VoxelInstanceGenerator::get_octant_index(data_grid_pos.x & 1, data_grid_pos.y & 1, data_grid_pos.z & 1);
@@ -1326,7 +1326,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 
 		ERR_FAIL_COND_V(layer_id < 0, nullptr);
 
-		const auto render_chunk_it = layer.chunks.find(render_block_pos);
+		const auto render_chunk_it = layer.chunks.find(render_chunk_pos);
 		if (render_chunk_it == layer.chunks.end()) {
 			continue;
 		}
@@ -1392,7 +1392,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 			ZN_PROFILE_SCOPE();
 			const unsigned int instance_count = render_block.scene_instances.size();
 
-			const Vector3 render_chunk_origin = render_block_pos * render_chunk_size;
+			const Vector3 render_chunk_origin = render_chunk_pos * render_chunk_size;
 
 			if (render_to_data_factor == 1) {
 				layer_data.instances.resize(instance_count);
@@ -1430,7 +1430,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 		if (render_to_data_factor == 2) {
 			// Data chunks are on a smaller grid than render chunks so we may convert the relative position
 			// of the instances
-			const Vector3f rel = to_vec3f(chunk_size * (data_grid_pos - render_block_pos * render_to_data_factor));
+			const Vector3f rel = to_vec3f(chunk_size * (data_grid_pos - render_chunk_pos * render_to_data_factor));
 			for (InstanceChunkData::InstanceData &d : layer_data.instances) {
 				d.transform.origin -= rel;
 			}
@@ -1626,8 +1626,8 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 			const int chunk_size_po2 = base_chunk_size_po2 + layer.lod_index;
 
 			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
-													&lod, chunks_box](Vector3i block_pos) {
-				const auto chunk_it = layer.chunks.find(block_pos);
+													&lod, chunks_box](Vector3i chunk_pos) {
+				const auto chunk_it = layer.chunks.find(chunk_pos);
 				if (chunk_it == layer.chunks.end()) {
 					// No instancing chunk here
 					return;

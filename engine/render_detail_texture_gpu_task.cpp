@@ -558,7 +558,7 @@ void RenderDetailTextureGPUTask::collect(GPUTaskContext &ctx) {
 		task->edited_tiles_texture_data = std::move(edited_tiles_texture_data);
 		task->output_textures = output;
 		task->volume_id = volume_id;
-		task->chunk_mesh_position = block_position;
+		task->chunk_mesh_position = chunk_position;
 		task->chunk_mesh_size = chunk_size;
 		task->atlas_width = texture_width;
 		task->atlas_height = texture_height;

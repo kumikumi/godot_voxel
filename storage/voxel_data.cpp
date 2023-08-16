@@ -140,12 +140,12 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 		return defval;
 	}
 
-	Vector3i block_pos = pos >> get_chunk_size_po2();
+	Vector3i chunk_pos = pos >> get_chunk_size_po2();
 	bool generate = false;
 
 	if (!_streaming_enabled) {
 		const Lod &data_lod0 = _lods[0];
-		std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod0, block_pos, generate);
+		std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod0, chunk_pos, generate);
 
 		if (voxels == nullptr) {
 			// No voxel data. We know everything is loaded when data streaming is not used, so try to generate directly.
@@ -161,7 +161,7 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 				return value;
 			}
 		} else {
-			VoxelSpatialLockRead srlock(data_lod0.spatial_lock, BoxBounds3i::from_position(block_pos));
+			VoxelSpatialLockRead srlock(data_lod0.spatial_lock, BoxBounds3i::from_position(chunk_pos));
 			const Vector3i rpos = data_lod0.map.to_local(pos);
 			return get_voxel_sv(*voxels, rpos, channel_index);
 		}
@@ -178,10 +178,10 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 		for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 			const Lod &data_lod = _lods[lod_index];
 
-			std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod, block_pos, generate);
+			std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod, chunk_pos, generate);
 
 			if (voxels != nullptr) {
-				VoxelSpatialLockRead srlock(data_lod.spatial_lock, BoxBounds3i::from_position(block_pos));
+				VoxelSpatialLockRead srlock(data_lod.spatial_lock, BoxBounds3i::from_position(chunk_pos));
 				return get_voxel_sv(*voxels, data_lod.map.to_local(voxel_pos), channel_index);
 
 			} else if (generate) {
@@ -200,7 +200,7 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 			}
 
 			// Fallback on lower LOD
-			block_pos = block_pos >> 1;
+			chunk_pos = chunk_pos >> 1;
 			voxel_pos = voxel_pos >> 1;
 		}
 		return defval;
@@ -209,12 +209,12 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 
 // TODO Piggyback on `paste`? The implementation is quite complex, and it's not supposed to be an efficient use case
 bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel_index) {
-	const Vector3i block_pos_lod0 = pos >> get_chunk_size_po2();
+	const Vector3i chunk_pos_lod0 = pos >> get_chunk_size_po2();
 	Lod &data_lod0 = _lods[0];
-	const Vector3i block_pos = data_lod0.map.voxel_to_block(pos);
+	const Vector3i chunk_pos = data_lod0.map.voxel_to_block(pos);
 
 	bool can_generate = false;
-	std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod0, block_pos, can_generate);
+	std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod0, chunk_pos, can_generate);
 
 	if (voxels == nullptr) {
 		if (_streaming_enabled && !can_generate) {
@@ -230,16 +230,16 @@ bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel
 			_modifiers.apply(q.voxel_buffer, AABB(pos, q.voxel_buffer.get_size()));
 
 			RWLockWrite wlock(data_lod0.map_lock);
-			if (data_lod0.map.has_block(block_pos_lod0)) {
+			if (data_lod0.map.has_block(chunk_pos_lod0)) {
 				// A chunk was loaded by another thread, cancel our edit.
 				return false;
 			}
 
-			data_lod0.map.set_block_buffer(block_pos_lod0, voxels, true);
+			data_lod0.map.set_block_buffer(chunk_pos_lod0, voxels, true);
 		}
 	}
 	// If it turns out to be a problem, use CoW?
-	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i::from_position(block_pos));
+	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i::from_position(chunk_pos));
 	voxels->set_voxel(value, data_lod0.map.to_local(pos), channel_index);
 	// We don't update mips, this must be done by the caller
 	return true;
@@ -350,7 +350,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 	// ERR_FAIL_COND_MSG(_full_load_mode == false, nullptr, "This function can only be used in full load mode");
 
 	struct Task {
-		Vector3i block_pos;
+		Vector3i chunk_pos;
 		uint32_t lod_index;
 		std::shared_ptr<VoxelBufferInternal> voxels;
 	};
@@ -372,19 +372,19 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 
 		{
 			RWLockRead rlock(data_lod.map_lock);
-			block_box.for_each_cell([&data_lod, lod_index, &todo, streaming](Vector3i block_pos) {
+			block_box.for_each_cell([&data_lod, lod_index, &todo, streaming](Vector3i chunk_pos) {
 				// We don't check "loading chunks", because this function wants to complete the task right now.
-				const VoxelChunkData *block = data_lod.map.get_block(block_pos);
+				const VoxelChunkData *block = data_lod.map.get_block(chunk_pos);
 				if (streaming) {
 					// Non-loaded chunks must not be touched because we don't know what's in them.
 					// We can generate caches if loaded ones have no voxel data.
 					if (block != nullptr && !block->has_voxels()) {
-						todo.push_back(Task{ block_pos, lod_index, nullptr });
+						todo.push_back(Task{ chunk_pos, lod_index, nullptr });
 					}
 				} else {
 					// We can generate anywhere voxel data is not in memory
 					if (block == nullptr || !block->has_voxels()) {
-						todo.push_back(Task{ block_pos, lod_index, nullptr });
+						todo.push_back(Task{ chunk_pos, lod_index, nullptr });
 					}
 				}
 			});
@@ -404,7 +404,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 		if (generator.is_valid()) {
 			ZN_PROFILE_SCOPE_NAMED("Generate");
 			VoxelGenerator::VoxelQueryData q{ //
-				*task.voxels, task.block_pos * (chunk_size << task.lod_index), task.lod_index
+				*task.voxels, task.chunk_pos * (chunk_size << task.lod_index), task.lod_index
 			};
 			generator->generate_chunk(q);
 			modifiers.apply(q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << q.lod));
@@ -426,13 +426,13 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 			for (; task_index < end_task_index; ++task_index) {
 				Task &task = todo[task_index];
 				ZN_ASSERT(task.lod_index == lod_index);
-				const VoxelChunkData *prev_block = data_lod.map.get_block(task.block_pos);
+				const VoxelChunkData *prev_block = data_lod.map.get_block(task.chunk_pos);
 				if (prev_block != nullptr && prev_block->has_voxels()) {
 					// Sorry, that chunk has been set in the meantime by another thread.
 					// We'll assume the chunk we just generated is redundant and discard it.
 					continue;
 				}
-				data_lod.map.set_block_buffer(task.block_pos, task.voxels, true);
+				data_lod.map.set_block_buffer(task.chunk_pos, task.voxels, true);
 			}
 		}
 	}
@@ -471,8 +471,8 @@ void VoxelData::mark_area_modified(
 	{
 		RWLockRead rlock(data_lod0.map_lock);
 
-		bbox.for_each_cell([&data_lod0, lod0_new_blocks_to_lod, require_lod_updates](Vector3i block_pos_lod0) {
-			VoxelChunkData *block = data_lod0.map.get_block(block_pos_lod0);
+		bbox.for_each_cell([&data_lod0, lod0_new_blocks_to_lod, require_lod_updates](Vector3i chunk_pos_lod0) {
+			VoxelChunkData *block = data_lod0.map.get_block(chunk_pos_lod0);
 			// We can get null chunks due to the added padding...
 			// ERR_FAIL_COND(chunk == nullptr);
 			if (block == nullptr) {
@@ -493,16 +493,16 @@ void VoxelData::mark_area_modified(
 
 				// This is what indirectly causes remeshing
 				if (lod0_new_blocks_to_lod != nullptr) {
-					lod0_new_blocks_to_lod->push_back(block_pos_lod0);
+					lod0_new_blocks_to_lod->push_back(chunk_pos_lod0);
 				}
 			}
 		});
 	}
 }
 
-bool VoxelData::try_set_block(Vector3i block_position, const VoxelChunkData &block) {
+bool VoxelData::try_set_block(Vector3i chunk_position, const VoxelChunkData &block) {
 	bool inserted = true;
-	try_set_block(block_position, block,
+	try_set_block(chunk_position, block,
 			[&inserted](VoxelChunkData &existing, const VoxelChunkData &incoming) { inserted = false; });
 	return inserted;
 }

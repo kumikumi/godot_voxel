@@ -9,15 +9,15 @@ TaskPriority PriorityDependency::evaluate(uint8_t lod_index, uint8_t band2_prior
 	ERR_FAIL_COND_V(shared == nullptr, priority);
 
 	const std::vector<Vector3> &viewer_positions = shared->viewers;
-	const Vector3 block_position = world_position;
+	const Vector3 chunk_position = world_position;
 
 	float closest_distance_sq = 99999.f;
 	if (viewer_positions.size() == 0) {
 		// Assume origin
-		closest_distance_sq = block_position.length_squared();
+		closest_distance_sq = chunk_position.length_squared();
 	} else {
 		for (size_t i = 0; i < viewer_positions.size(); ++i) {
-			float d = viewer_positions[i].distance_squared_to(block_position);
+			float d = viewer_positions[i].distance_squared_to(chunk_position);
 			if (d < closest_distance_sq) {
 				closest_distance_sq = d;
 			}

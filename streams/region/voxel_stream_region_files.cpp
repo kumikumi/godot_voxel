@@ -154,15 +154,15 @@ VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_chunk(
 		out_buffer.set_channel_depth(channel_index, _meta.channel_depths[channel_index]);
 	}
 
-	const Vector3i block_pos = get_block_position_from_voxels(origin_in_voxels) >> lod;
-	const Vector3i region_pos = get_region_position_from_blocks(block_pos);
+	const Vector3i chunk_pos = get_chunk_position_from_voxels(origin_in_voxels) >> lod;
+	const Vector3i region_pos = get_region_position_from_blocks(chunk_pos);
 
 	CachedRegion *cache = open_region(region_pos, lod, false);
 	if (cache == nullptr || !cache->file_exists) {
 		return EMERGE_OK_FALLBACK;
 	}
 
-	const Vector3i block_rpos = math::wrap(block_pos, region_size);
+	const Vector3i block_rpos = math::wrap(chunk_pos, region_size);
 
 	const Error err = cache->region.load_chunk(block_rpos, out_buffer);
 	switch (err) {
@@ -213,9 +213,9 @@ void VoxelStreamRegionFiles::_save_chunk(VoxelBufferInternal &voxel_buffer, Vect
 	}
 
 	const Vector3i region_size = Vector3iUtil::create(1 << _meta.region_size_po2);
-	Vector3i block_pos = get_block_position_from_voxels(origin_in_voxels) >> lod;
-	Vector3i region_pos = get_region_position_from_blocks(block_pos);
-	Vector3i block_rpos = math::wrap(block_pos, region_size);
+	Vector3i chunk_pos = get_chunk_position_from_voxels(origin_in_voxels) >> lod;
+	Vector3i region_pos = get_region_position_from_blocks(chunk_pos);
+	Vector3i block_rpos = math::wrap(chunk_pos, region_size);
 
 	CachedRegion *cache = open_region(region_pos, lod, true);
 	ERR_FAIL_COND_MSG(cache == nullptr, "Could not save region file data");
@@ -400,12 +400,12 @@ bool VoxelStreamRegionFiles::check_meta(const Meta &meta) {
 	return true;
 }
 
-Vector3i VoxelStreamRegionFiles::get_block_position_from_voxels(const Vector3i &origin_in_voxels) const {
+Vector3i VoxelStreamRegionFiles::get_chunk_position_from_voxels(const Vector3i &origin_in_voxels) const {
 	return origin_in_voxels >> _meta.chunk_size_po2;
 }
 
-Vector3i VoxelStreamRegionFiles::get_region_position_from_blocks(const Vector3i &block_position) const {
-	return block_position >> _meta.region_size_po2;
+Vector3i VoxelStreamRegionFiles::get_region_position_from_blocks(const Vector3i &chunk_position) const {
+	return chunk_position >> _meta.region_size_po2;
 }
 
 void VoxelStreamRegionFiles::close_all_regions() {
@@ -685,11 +685,11 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 			new_block.create(new_chunk_size.x, new_chunk_size.y, new_chunk_size.z);
 
 			// Load chunk from old stream
-			Vector3i block_rpos = old_region->region.get_block_position_from_index(j);
-			Vector3i block_pos = block_rpos + region_info.position * old_region_size;
+			Vector3i block_rpos = old_region->region.get_chunk_position_from_index(j);
+			Vector3i chunk_pos = block_rpos + region_info.position * old_region_size;
 			VoxelStream::VoxelQueryData old_block_load_query{
 				old_block, //
-				block_pos * old_chunk_size << region_info.lod, //
+				chunk_pos * old_chunk_size << region_info.lod, //
 				region_info.lod, //
 				RESULT_ERROR //
 			};
@@ -699,24 +699,24 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 			if (old_chunk_size == new_chunk_size) {
 				VoxelStream::VoxelQueryData old_block_save_query{
 					old_block, //
-					block_pos * new_chunk_size << region_info.lod, //
+					chunk_pos * new_chunk_size << region_info.lod, //
 					region_info.lod,
 					RESULT_ERROR //
 				};
 				save_voxel_chunk(old_block_save_query);
 
 			} else {
-				Vector3i new_block_pos = convert_block_coordinates(block_pos, old_chunk_size, new_chunk_size);
+				Vector3i new_chunk_pos = convert_block_coordinates(chunk_pos, old_chunk_size, new_chunk_size);
 
 				// TODO Support any size? Assuming cubic chunks here
 				if (old_chunk_size.x < new_chunk_size.x) {
 					Vector3i ratio = new_chunk_size / old_chunk_size;
-					Vector3i rel = block_pos % ratio;
+					Vector3i rel = chunk_pos % ratio;
 
 					// Copy to a sub-area of one chunk
 					VoxelStream::VoxelQueryData new_block_load_query{ //
 						new_block, //
-						new_block_pos * new_chunk_size << region_info.lod, //
+						new_chunk_pos * new_chunk_size << region_info.lod, //
 						region_info.lod, //
 						RESULT_ERROR
 					};
@@ -732,7 +732,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 					new_block.compress_uniform_channels();
 					VoxelStream::VoxelQueryData new_block_save_query{ //
 						new_block, //
-						new_block_pos * new_chunk_size << region_info.lod, //
+						new_chunk_pos * new_chunk_size << region_info.lod, //
 						region_info.lod, //
 						RESULT_ERROR
 					};
@@ -756,7 +756,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 
 								VoxelStream::VoxelQueryData new_block_save_query{ //
 									new_block, //
-									(new_block_pos + rpos) * new_chunk_size << region_info.lod, //
+									(new_chunk_pos + rpos) * new_chunk_size << region_info.lod, //
 									region_info.lod, //
 									RESULT_ERROR
 								};

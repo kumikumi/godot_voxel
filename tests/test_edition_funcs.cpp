@@ -56,13 +56,13 @@ void test_run_blocky_random_tick() {
 		}
 
 		const Box3i world_blocks_box(-4, -4, -4, 8, 8, 8);
-		world_blocks_box.for_each_cell_zxy([&data, &model_buffer](Vector3i block_pos) {
+		world_blocks_box.for_each_cell_zxy([&data, &model_buffer](Vector3i chunk_pos) {
 			std::shared_ptr<VoxelBufferInternal> buffer = make_shared_instance<VoxelBufferInternal>();
 			buffer->create(model_buffer.get_size());
 			buffer->copy_from(model_buffer);
 			VoxelChunkData block(buffer, 0);
 			block.set_edited(true);
-			ZN_TEST_ASSERT(data.try_set_block(block_pos, block));
+			ZN_TEST_ASSERT(data.try_set_block(chunk_pos, block));
 		});
 	}
 

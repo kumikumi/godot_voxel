@@ -120,7 +120,7 @@ public:
 	// Asks to generate (or re-generate) a chunk at the given position asynchronously.
 	// If the chunk already exists once the chunk is generated, it will be cancelled.
 	// If the chunk is out of range of any viewer, it will be cancelled.
-	void generate_chunk_async(Vector3i block_position);
+	void generate_chunk_async(Vector3i chunk_position);
 
 	struct Stats {
 		int updated_blocks = 0;
@@ -142,8 +142,8 @@ public:
 	// Internal
 
 	void set_instancer(VoxelInstancer *instancer);
-	void get_meshed_block_positions(std::vector<Vector3i> &out_positions) const;
-	Array get_chunk_mesh_surface(Vector3i block_pos) const;
+	void get_meshed_chunk_positions(std::vector<Vector3i> &out_positions) const;
+	Array get_chunk_mesh_surface(Vector3i chunk_pos) const;
 
 	VolumeID get_volume_id() const override {
 		return _volume_id;
@@ -234,7 +234,7 @@ private:
 	Vector3i _b_chunk_to_voxel(Vector3i pos) const;
 	// void _force_load_chunks_binding(Vector3 center, Vector3 extents) { force_load_chunks(center, extents); }
 	Ref<VoxelSaveCompletionTracker> _b_save_modified_blocks();
-	void _b_save_chunk(Vector3i p_block_pos);
+	void _b_save_chunk(Vector3i p_chunk_pos);
 	void _b_set_bounds(AABB aabb);
 	AABB _b_get_bounds() const;
 	bool _b_try_set_block_data(Vector3i position, Ref<gd::VoxelBuffer> voxel_data);

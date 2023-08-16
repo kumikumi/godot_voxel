@@ -250,7 +250,7 @@ RenderDetailTextureGPUTask *RenderDetailTextureTask::make_gpu_task() {
 	gpu_task->shader_params = generator->get_detail_rendering_shader_parameters();
 	gpu_task->output = output_textures;
 	gpu_task->edited_tiles_texture_data = std::move(edited_tiles_normalmap_data);
-	gpu_task->block_position = chunk_mesh_position;
+	gpu_task->chunk_position = chunk_mesh_position;
 	gpu_task->chunk_size = chunk_mesh_size;
 	gpu_task->lod_index = lod_index;
 	gpu_task->volume_id = volume_id;
