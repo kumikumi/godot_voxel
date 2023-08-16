@@ -318,7 +318,7 @@ void test_threaded_task_postponing() {
 		Task1(int p_sleep_amount_usec, Map &p_map, Vector3i p_bpos, EventList &p_events) :
 				sleep_amount_usec(p_sleep_amount_usec), map(p_map), bpos0(p_bpos), events(p_events) {}
 
-		bool try_lock_area(std::vector<Block *> &locked_blocks) {
+		bool try_lock_area(std::vector<Block *> &locked_chunks) {
 			Vector3i delta;
 			for (delta.z = -1; delta.z < 2; ++delta.z) {
 				for (delta.x = -1; delta.x < 2; ++delta.x) {
@@ -332,14 +332,14 @@ void test_threaded_task_postponing() {
 						bool expected = false;
 						if (block.is_locked.compare_exchange_strong(expected, true) == false) {
 							// Could not lock, will have to cancel
-							for (Block *b : locked_blocks) {
+							for (Block *b : locked_chunks) {
 								b->is_locked = false;
 							}
-							locked_blocks.clear();
+							locked_chunks.clear();
 							return false;
 						} else {
 							// Successful lock
-							locked_blocks.push_back(&block);
+							locked_chunks.push_back(&block);
 						}
 					}
 				}
@@ -350,9 +350,9 @@ void test_threaded_task_postponing() {
 		void run(ThreadedTaskContext &ctx) override {
 			ZN_PROFILE_SCOPE();
 
-			static thread_local std::vector<Block *> locked_blocks;
+			static thread_local std::vector<Block *> locked_chunks;
 
-			if (!try_lock_area(locked_blocks)) {
+			if (!try_lock_area(locked_chunks)) {
 				ctx.status = ThreadedTaskContext::STATUS_POSTPONED;
 				return;
 			}
@@ -370,10 +370,10 @@ void test_threaded_task_postponing() {
 			events.push(Event{ Event::CHUNK_END, bpos0 });
 #endif
 
-			for (Block *block : locked_blocks) {
+			for (Block *block : locked_chunks) {
 				block->is_locked = false;
 			}
-			locked_blocks.clear();
+			locked_chunks.clear();
 		}
 
 		const char *get_debug_name() const override {
