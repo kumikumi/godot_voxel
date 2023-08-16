@@ -72,24 +72,24 @@ std::shared_ptr<ComputeShaderParameters> VoxelGenerator::get_detail_rendering_sh
 	}
 }
 
-std::shared_ptr<ComputeShader> VoxelGenerator::get_block_rendering_shader() {
+std::shared_ptr<ComputeShader> VoxelGenerator::get_chunk_rendering_shader() {
 	{
 		MutexLock mlock(_shader_mutex);
-		return _block_rendering_shader;
+		return _chunk_rendering_shader;
 	}
 }
 
-std::shared_ptr<ComputeShaderParameters> VoxelGenerator::get_block_rendering_shader_parameters() {
+std::shared_ptr<ComputeShaderParameters> VoxelGenerator::get_chunk_rendering_shader_parameters() {
 	{
 		MutexLock mlock(_shader_mutex);
-		return _block_rendering_shader_parameters;
+		return _chunk_rendering_shader_parameters;
 	}
 }
 
-std::shared_ptr<VoxelGenerator::ShaderOutputs> VoxelGenerator::get_block_rendering_shader_outputs() {
+std::shared_ptr<VoxelGenerator::ShaderOutputs> VoxelGenerator::get_chunk_rendering_shader_outputs() {
 	{
 		MutexLock mlock(_shader_mutex);
-		return _block_rendering_shader_outputs;
+		return _chunk_rendering_shader_outputs;
 	}
 }
 
@@ -165,7 +165,7 @@ std::shared_ptr<ComputeShader> compile_detail_rendering_compute_shader(
 	return shader;
 }
 
-std::shared_ptr<ComputeShader> compile_block_rendering_compute_shader(
+std::shared_ptr<ComputeShader> compile_chunk_rendering_compute_shader(
 		VoxelGenerator &generator, ComputeShaderParameters &out_params, VoxelGenerator::ShaderOutputs &outputs) {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND_V_MSG(!generator.supports_shaders(), ComputeShader::create_invalid(),
@@ -227,7 +227,7 @@ void VoxelGenerator::compile_shaders() {
 	std::shared_ptr<ComputeShaderParameters> block_params = make_shared_instance<ComputeShaderParameters>();
 	std::shared_ptr<ShaderOutputs> block_outputs = make_shared_instance<ShaderOutputs>();
 	std::shared_ptr<ComputeShader> block_render_shader =
-			compile_block_rendering_compute_shader(*this, *block_params, *block_outputs);
+			compile_chunk_rendering_compute_shader(*this, *block_params, *block_outputs);
 
 	{
 		MutexLock mlock(_shader_mutex);
@@ -235,9 +235,9 @@ void VoxelGenerator::compile_shaders() {
 		_detail_rendering_shader = detail_render_shader;
 		_detail_rendering_shader_parameters = block_params;
 
-		_block_rendering_shader = block_render_shader;
-		_block_rendering_shader_parameters = block_params;
-		_block_rendering_shader_outputs = block_outputs;
+		_chunk_rendering_shader = block_render_shader;
+		_chunk_rendering_shader_parameters = block_params;
+		_chunk_rendering_shader_outputs = block_outputs;
 	}
 }
 
@@ -248,9 +248,9 @@ void VoxelGenerator::invalidate_shaders() {
 		_detail_rendering_shader.reset();
 		_detail_rendering_shader_parameters.reset();
 
-		_block_rendering_shader.reset();
-		_block_rendering_shader_parameters.reset();
-		_block_rendering_shader_outputs.reset();
+		_chunk_rendering_shader.reset();
+		_chunk_rendering_shader_parameters.reset();
+		_chunk_rendering_shader_outputs.reset();
 	}
 }
 

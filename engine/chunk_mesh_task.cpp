@@ -329,14 +329,14 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 		return;
 	}
 
-	std::shared_ptr<ComputeShader> generator_shader = generator->get_block_rendering_shader();
+	std::shared_ptr<ComputeShader> generator_shader = generator->get_chunk_rendering_shader();
 	ERR_FAIL_COND(generator_shader == nullptr);
 
 	GenerateChunkGPUTask *gpu_task = memnew(GenerateChunkGPUTask);
 	gpu_task->boxes_to_generate = std::move(boxes_to_generate);
 	gpu_task->generator_shader = generator_shader;
-	gpu_task->generator_shader_params = generator->get_block_rendering_shader_parameters();
-	gpu_task->generator_shader_outputs = generator->get_block_rendering_shader_outputs();
+	gpu_task->generator_shader_params = generator->get_chunk_rendering_shader_parameters();
+	gpu_task->generator_shader_outputs = generator->get_chunk_rendering_shader_outputs();
 	gpu_task->lod_index = lod_index;
 	gpu_task->origin_in_voxels = origin_in_voxels;
 	gpu_task->consumer_task = this;

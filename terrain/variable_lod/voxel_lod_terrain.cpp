@@ -1113,7 +1113,7 @@ void VoxelLodTerrain::process(float delta) {
 	if (get_generator_use_gpu()) {
 		Ref<VoxelGenerator> generator = get_generator();
 		if (generator.is_valid() && generator->supports_shaders() &&
-				generator->get_block_rendering_shader() == nullptr) {
+				generator->get_chunk_rendering_shader() == nullptr) {
 			generator->compile_shaders();
 		}
 	}

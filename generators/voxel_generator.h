@@ -105,10 +105,10 @@ public:
 	virtual bool get_shader_source(ShaderSourceData &out_data) const;
 	std::shared_ptr<ComputeShader> get_detail_rendering_shader();
 	std::shared_ptr<ComputeShaderParameters> get_detail_rendering_shader_parameters();
-	std::shared_ptr<ComputeShader> get_block_rendering_shader();
+	std::shared_ptr<ComputeShader> get_chunk_rendering_shader();
 	// TODO Shouldn't these parameters be shared for each shader type?
-	std::shared_ptr<ComputeShaderParameters> get_block_rendering_shader_parameters();
-	std::shared_ptr<ShaderOutputs> get_block_rendering_shader_outputs();
+	std::shared_ptr<ComputeShaderParameters> get_chunk_rendering_shader_parameters();
+	std::shared_ptr<ShaderOutputs> get_chunk_rendering_shader_outputs();
 	void compile_shaders();
 	// Drops currently compiled shaders if any, so that they get recompiled when they are needed again
 	void invalidate_shaders();
@@ -133,9 +133,9 @@ protected:
 
 	std::shared_ptr<ComputeShader> _detail_rendering_shader;
 	std::shared_ptr<ComputeShaderParameters> _detail_rendering_shader_parameters;
-	std::shared_ptr<ComputeShader> _block_rendering_shader;
-	std::shared_ptr<ComputeShaderParameters> _block_rendering_shader_parameters;
-	std::shared_ptr<ShaderOutputs> _block_rendering_shader_outputs;
+	std::shared_ptr<ComputeShader> _chunk_rendering_shader;
+	std::shared_ptr<ComputeShaderParameters> _chunk_rendering_shader_parameters;
+	std::shared_ptr<ShaderOutputs> _chunk_rendering_shader_outputs;
 	Mutex _shader_mutex;
 };
 
