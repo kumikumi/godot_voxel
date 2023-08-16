@@ -59,7 +59,7 @@ VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 	buffer->create(get_chunk_size(), get_chunk_size(), get_chunk_size());
 	// buffer->set_default_values(_default_voxel);
 #ifdef DEBUG_ENABLED
-	ZN_ASSERT_RETURN_V(!has_block(bpos), nullptr);
+	ZN_ASSERT_RETURN_V(!has_chunk(bpos), nullptr);
 #endif
 	VoxelChunkData &map_chunk = _chunks_map[bpos];
 	map_chunk = VoxelChunkData(buffer, _lod_index);
@@ -169,7 +169,7 @@ VoxelChunkData *VoxelDataMap::set_empty_block(Vector3i bpos, bool overwrite) {
 	return block;
 }
 
-bool VoxelDataMap::has_block(Vector3i pos) const {
+bool VoxelDataMap::has_chunk(Vector3i pos) const {
 	return _chunks_map.find(pos) != _chunks_map.end();
 }
 
@@ -177,7 +177,7 @@ bool VoxelDataMap::is_block_surrounded(Vector3i pos) const {
 	// TODO If that check proves to be too expensive with all chunks we deal with, cache it in VoxelBlocks
 	for (unsigned int i = 0; i < Cube::MOORE_NEIGHBORING_3D_COUNT; ++i) {
 		Vector3i bpos = pos + Cube::g_moore_neighboring_3d[i];
-		if (!has_block(bpos)) {
+		if (!has_chunk(bpos)) {
 			return false;
 		}
 	}
@@ -324,7 +324,7 @@ int VoxelDataMap::get_chunk_count() const {
 bool VoxelDataMap::is_area_fully_loaded(const Box3i voxels_box) const {
 	Box3i chunk_box = voxels_box.downscaled(get_chunk_size());
 	return chunk_box.all_cells_match([this](Vector3i pos) { //
-		return has_block(pos);
+		return has_chunk(pos);
 	});
 }
 

@@ -230,7 +230,7 @@ bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel
 			_modifiers.apply(q.voxel_buffer, AABB(pos, q.voxel_buffer.get_size()));
 
 			RWLockWrite wlock(data_lod0.map_lock);
-			if (data_lod0.map.has_block(chunk_pos_lod0)) {
+			if (data_lod0.map.has_chunk(chunk_pos_lod0)) {
 				// A chunk was loaded by another thread, cancel our edit.
 				return false;
 			}
@@ -507,10 +507,10 @@ bool VoxelData::try_set_chunk(Vector3i chunk_position, const VoxelChunkData &blo
 	return inserted;
 }
 
-bool VoxelData::has_block(Vector3i bpos, unsigned int lod_index) const {
+bool VoxelData::has_chunk(Vector3i bpos, unsigned int lod_index) const {
 	const Lod &data_lod = _lods[lod_index];
 	RWLockRead rlock(data_lod.map_lock);
-	return data_lod.map.has_block(bpos);
+	return data_lod.map.has_chunk(bpos);
 }
 
 bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
@@ -522,7 +522,7 @@ bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
 	RWLockRead rlock(data_lod.map_lock);
 
 	return chunks_box.all_cells_match([&data_lod](Vector3i bpos) { //
-		return data_lod.map.has_block(bpos);
+		return data_lod.map.has_chunk(bpos);
 	});
 }
 
@@ -747,7 +747,7 @@ void VoxelData::get_missing_chunks(
 	const Lod &lod = _lods[lod_index];
 	RWLockRead rlock(lod.map_lock);
 	for (const Vector3i &pos : chunk_positions) {
-		if (!lod.map.has_block(pos)) {
+		if (!lod.map.has_chunk(pos)) {
 			out_missing.push_back(pos);
 		}
 	}
@@ -763,7 +763,7 @@ void VoxelData::get_missing_chunks(
 	RWLockRead rlock(data_lod.map_lock);
 
 	blocks_box.for_each_cell_zxy([&data_lod, &out_missing](Vector3i bpos) {
-		if (!data_lod.map.has_block(bpos)) {
+		if (!data_lod.map.has_chunk(bpos)) {
 			out_missing.push_back(bpos);
 		}
 	});

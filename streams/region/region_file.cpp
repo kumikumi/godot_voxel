@@ -632,14 +632,14 @@ unsigned int RegionFile::get_header_chunk_count() const {
 	return _header.blocks.size();
 }
 
-bool RegionFile::has_block(Vector3i position) const {
+bool RegionFile::has_chunk(Vector3i position) const {
 	ERR_FAIL_COND_V(!is_open(), false);
 	ERR_FAIL_COND_V(!is_valid_chunk_position(position), false);
 	const unsigned int bi = get_chunk_index_in_header(position);
 	return _header.blocks[bi].data != 0;
 }
 
-bool RegionFile::has_block(unsigned int index) const {
+bool RegionFile::has_chunk(unsigned int index) const {
 	ERR_FAIL_COND_V(!is_open(), false);
 	CRASH_COND(index >= _header.blocks.size());
 	return _header.blocks[index].data != 0;

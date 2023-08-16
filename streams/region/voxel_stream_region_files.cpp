@@ -674,7 +674,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 
 		const unsigned int chunks_count = old_region->region.get_header_chunk_count();
 		for (unsigned int j = 0; j < chunks_count; ++j) {
-			if (!old_region->region.has_block(j)) {
+			if (!old_region->region.has_chunk(j)) {
 				continue;
 			}
 

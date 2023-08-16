@@ -88,8 +88,8 @@ public:
 	Error save_chunk(Vector3i position, VoxelBufferInternal &block);
 
 	unsigned int get_header_chunk_count() const;
-	bool has_block(Vector3i position) const;
-	bool has_block(unsigned int index) const;
+	bool has_chunk(Vector3i position) const;
+	bool has_chunk(unsigned int index) const;
 	Vector3i get_chunk_position_from_index(uint32_t i) const;
 
 	void debug_check();

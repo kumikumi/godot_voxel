@@ -182,7 +182,7 @@ public:
 
 	// Tests if a chunk exists at the specified chunk position and LOD index.
 	// This is mainly used for debugging so it isn't optimal, don't use this if you plan to query many chunks.
-	bool has_block(Vector3i bpos, unsigned int lod_index) const;
+	bool has_chunk(Vector3i bpos, unsigned int lod_index) const;
 
 	// Tests if all chunks in a LOD0 area are loaded. If any isn't, returns false. Otherwise, returns true.
 	bool has_all_blocks_in_area(Box3i chunks_box) const;

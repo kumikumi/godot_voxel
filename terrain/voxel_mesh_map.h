@@ -88,14 +88,14 @@ public:
 			_last_accessed_block = block;
 		}
 #ifdef DEBUG_ENABLED
-		CRASH_COND(has_block(bpos));
+		CRASH_COND(has_chunk(bpos));
 #endif
 		unsigned int i = _chunks.size();
 		_chunks.push_back(block);
 		_chunks_map.insert({ bpos, { block, i } });
 	}
 
-	bool has_block(Vector3i pos) const {
+	bool has_chunk(Vector3i pos) const {
 		//(_last_accessed_chunk != nullptr && _last_accessed_chunk->pos == pos) ||
 		return _chunks_map.find(pos) != _chunks_map.end();
 	}

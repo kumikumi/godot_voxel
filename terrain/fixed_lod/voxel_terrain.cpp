@@ -627,7 +627,7 @@ void VoxelTerrain::remesh_all_blocks() {
 
 // At the moment, this function is for client-side use case in multiplayer scenarios
 void VoxelTerrain::generate_chunk_async(Vector3i chunk_position) {
-	if (_data->has_block(chunk_position, 0)) {
+	if (_data->has_chunk(chunk_position, 0)) {
 		// Already exists
 		return;
 	}
@@ -1511,7 +1511,7 @@ bool VoxelTerrain::try_set_chunk_data(Vector3i position, std::shared_ptr<VoxelBu
 }
 
 bool VoxelTerrain::has_chunk(Vector3i position) const {
-	return _data->has_block(position, 0);
+	return _data->has_chunk(position, 0);
 }
 
 void VoxelTerrain::process_meshing() {
@@ -1549,7 +1549,7 @@ void VoxelTerrain::process_meshing() {
 		// We must have picked up a valid data chunk
 		{
 			const Vector3i anchor_pos = data_box.pos + Vector3i(1, 1, 1);
-			ZN_ASSERT_CONTINUE(_data->has_block(anchor_pos, 0));
+			ZN_ASSERT_CONTINUE(_data->has_chunk(anchor_pos, 0));
 		}
 #endif
 

@@ -2432,9 +2432,9 @@ Dictionary VoxelLodTerrain::debug_get_chunk_info(Vector3 fbpos, int lod_index) c
 	int loading_state = 0;
 
 	Vector3i bpos = math::floor_to_int(fbpos);
-	const bool has_block = _data->has_block(bpos, lod_index);
+	const bool has_chunk = _data->has_chunk(bpos, lod_index);
 
-	if (has_block) {
+	if (has_chunk) {
 		loading_state = 2;
 	} else {
 		MutexLock lock(lod.loading_blocks_mutex);
