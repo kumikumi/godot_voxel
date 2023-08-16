@@ -346,8 +346,8 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 					}
 				}
 
-				const Box3i block_voxel_box(chunk_origin, Vector3iUtil::create(chunk_size));
-				Box3i local_voxel_box = voxel_box.clipped(block_voxel_box);
+				const Box3i chunk_voxel_box(chunk_origin, Vector3iUtil::create(chunk_size));
+				Box3i local_voxel_box = voxel_box.clipped(chunk_voxel_box);
 				local_voxel_box.pos -= chunk_origin;
 				const float volume_ratio = Vector3iUtil::get_volume(local_voxel_box.size) / block_volume;
 				const int local_batch_count = Math::ceil(batch_count * volume_ratio);
