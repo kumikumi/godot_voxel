@@ -61,7 +61,7 @@ VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 #ifdef DEBUG_ENABLED
 	ZN_ASSERT_RETURN_V(!has_block(bpos), nullptr);
 #endif
-	VoxelChunkData &map_block = _blocks_map[bpos];
+	VoxelChunkData &map_block = _chunks_map[bpos];
 	map_block = VoxelChunkData(buffer, _lod_index);
 	return &map_block;
 }
@@ -104,16 +104,16 @@ void VoxelDataMap::set_voxel_f(real_t value, Vector3i pos, unsigned int c) {
 }
 
 VoxelChunkData *VoxelDataMap::get_block(Vector3i bpos) {
-	auto it = _blocks_map.find(bpos);
-	if (it != _blocks_map.end()) {
+	auto it = _chunks_map.find(bpos);
+	if (it != _chunks_map.end()) {
 		return &it->second;
 	}
 	return nullptr;
 }
 
 const VoxelChunkData *VoxelDataMap::get_block(Vector3i bpos) const {
-	auto it = _blocks_map.find(bpos);
-	if (it != _blocks_map.end()) {
+	auto it = _chunks_map.find(bpos);
+	if (it != _chunks_map.end()) {
 		return &it->second;
 	}
 	return nullptr;
@@ -126,7 +126,7 @@ VoxelChunkData *VoxelDataMap::set_chunk_buffer(
 	VoxelChunkData *block = get_block(bpos);
 
 	if (block == nullptr) {
-		VoxelChunkData &map_block = _blocks_map[bpos];
+		VoxelChunkData &map_block = _chunks_map[bpos];
 		map_block = VoxelChunkData(buffer, _lod_index);
 		block = &map_block;
 
@@ -146,14 +146,14 @@ void VoxelDataMap::set_chunk(Vector3i bpos, const VoxelChunkData &block) {
 #ifdef DEBUG_ENABLED
 	ZN_ASSERT(block.get_lod_index() == _lod_index);
 #endif
-	_blocks_map[bpos] = block;
+	_chunks_map[bpos] = block;
 }
 
 VoxelChunkData *VoxelDataMap::set_empty_block(Vector3i bpos, bool overwrite) {
 	VoxelChunkData *block = get_block(bpos);
 
 	if (block == nullptr) {
-		VoxelChunkData &map_block = _blocks_map[bpos];
+		VoxelChunkData &map_block = _chunks_map[bpos];
 		map_block = VoxelChunkData(_lod_index);
 		block = &map_block;
 
@@ -170,7 +170,7 @@ VoxelChunkData *VoxelDataMap::set_empty_block(Vector3i bpos, bool overwrite) {
 }
 
 bool VoxelDataMap::has_block(Vector3i pos) const {
-	return _blocks_map.find(pos) != _blocks_map.end();
+	return _chunks_map.find(pos) != _chunks_map.end();
 }
 
 bool VoxelDataMap::is_block_surrounded(Vector3i pos) const {
@@ -314,11 +314,11 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 }
 
 void VoxelDataMap::clear() {
-	_blocks_map.clear();
+	_chunks_map.clear();
 }
 
 int VoxelDataMap::get_chunk_count() const {
-	return _blocks_map.size();
+	return _chunks_map.size();
 }
 
 bool VoxelDataMap::is_area_fully_loaded(const Box3i voxels_box) const {

@@ -28,8 +28,8 @@ public:
 		if (_last_accessed_block && _last_accessed_block->position == bpos) {
 			_last_accessed_block = nullptr;
 		}
-		auto it = _blocks_map.find(bpos);
-		if (it != _blocks_map.end()) {
+		auto it = _chunks_map.find(bpos);
+		if (it != _chunks_map.end()) {
 			const unsigned int i = it->second.index;
 #ifdef DEBUG_ENABLED
 			CRASH_COND(i >= _chunks.size());
@@ -46,8 +46,8 @@ public:
 		if (_last_accessed_block && _last_accessed_block->position == bpos) {
 			return _last_accessed_block;
 		}
-		auto it = _blocks_map.find(bpos);
-		if (it != _blocks_map.end()) {
+		auto it = _chunks_map.find(bpos);
+		if (it != _chunks_map.end()) {
 #ifdef DEBUG_ENABLED
 			const unsigned int i = it->second.index;
 			CRASH_COND(i >= _chunks.size());
@@ -65,8 +65,8 @@ public:
 		if (_last_accessed_block != nullptr && _last_accessed_block->position == bpos) {
 			return _last_accessed_block;
 		}
-		auto it = _blocks_map.find(bpos);
-		if (it != _blocks_map.end()) {
+		auto it = _chunks_map.find(bpos);
+		if (it != _chunks_map.end()) {
 #ifdef DEBUG_ENABLED
 			const unsigned int i = it->second.index;
 			CRASH_COND(i >= _chunks.size());
@@ -92,12 +92,12 @@ public:
 #endif
 		unsigned int i = _chunks.size();
 		_chunks.push_back(block);
-		_blocks_map.insert({ bpos, { block, i } });
+		_chunks_map.insert({ bpos, { block, i } });
 	}
 
 	bool has_block(Vector3i pos) const {
 		//(_last_accessed_chunk != nullptr && _last_accessed_chunk->pos == pos) ||
-		return _blocks_map.find(pos) != _blocks_map.end();
+		return _chunks_map.find(pos) != _chunks_map.end();
 	}
 
 	void clear() {
@@ -110,14 +110,14 @@ public:
 			}
 		}
 		_chunks.clear();
-		_blocks_map.clear();
+		_chunks_map.clear();
 		_last_accessed_block = nullptr;
 	}
 
 	unsigned int get_chunk_count() const {
 #ifdef DEBUG_ENABLED
-		const unsigned int blocks_map_size = _blocks_map.size();
-		CRASH_COND(_chunks.size() != blocks_map_size);
+		const unsigned int chunks_map_size = _chunks_map.size();
+		CRASH_COND(_chunks.size() != chunks_map_size);
 #endif
 		return _chunks.size();
 	}
@@ -157,7 +157,7 @@ private:
 		// We should look for a faster container, or reduce the number of entries.
 
 		// This function assumes the chunk is already freed
-		_blocks_map.erase(rm_it);
+		_chunks_map.erase(rm_it);
 
 		ChunkMesh_T *moved_block = _chunks.back();
 #ifdef DEBUG_ENABLED
@@ -167,8 +167,8 @@ private:
 		_chunks.pop_back();
 
 		if (index < _chunks.size()) {
-			auto moved_chunk_index_it = _blocks_map.find(moved_block->position);
-			CRASH_COND(moved_chunk_index_it == _blocks_map.end());
+			auto moved_chunk_index_it = _chunks_map.find(moved_block->position);
+			CRASH_COND(moved_chunk_index_it == _chunks_map.end());
 			moved_chunk_index_it->second.index = index;
 		}
 	}
@@ -190,7 +190,7 @@ private:
 
 private:
 	// Blocks stored with a spatial hash in all 3D directions.
-	std::unordered_map<Vector3i, MapItem> _blocks_map;
+	std::unordered_map<Vector3i, MapItem> _chunks_map;
 	// Blocks are stored in a vector to allow faster iteration over all of them.
 	// Use cases for this include updating the transform of the meshes
 	std::vector<ChunkMesh_T *> _chunks;

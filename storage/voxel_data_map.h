@@ -94,10 +94,10 @@ public:
 
 	template <typename Action_T>
 	void remove_chunk(Vector3i bpos, Action_T pre_delete) {
-		auto it = _blocks_map.find(bpos);
-		if (it != _blocks_map.end()) {
+		auto it = _chunks_map.find(bpos);
+		if (it != _chunks_map.end()) {
 			pre_delete(it->second);
-			_blocks_map.erase(it);
+			_chunks_map.erase(it);
 		}
 	}
 
@@ -114,7 +114,7 @@ public:
 	// op(Vector3i bpos, VoxelChunkData &chunk)
 	template <typename Op_T>
 	inline void for_each_chunk(Op_T op) {
-		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
+		for (auto it = _chunks_map.begin(); it != _chunks_map.end(); ++it) {
 			op(it->first, it->second);
 		}
 	}
@@ -122,7 +122,7 @@ public:
 	// void op(Vector3i bpos, const VoxelChunkData &chunk)
 	template <typename Op_T>
 	inline void for_each_chunk(Op_T op) const {
-		for (auto it = _blocks_map.begin(); it != _blocks_map.end(); ++it) {
+		for (auto it = _chunks_map.begin(); it != _chunks_map.end(); ++it) {
 			op(it->first, it->second);
 		}
 	}
@@ -191,7 +191,7 @@ private:
 	// defaults, but it sometimes has very long stalls on removal, which std::unordered_map doesn't seem to have
 	// (not as badly). Also overall performance is slightly better.
 	// Note: pointers to elements remain valid when inserting or removing others (only iterators may be invalidated)
-	std::unordered_map<Vector3i, VoxelChunkData> _blocks_map;
+	std::unordered_map<Vector3i, VoxelChunkData> _chunks_map;
 
 	// This was a possible optimization in a single-threaded scenario, but it's not in multithread.
 	// We want to be able to do shared read-accesses but this is a mutable variable.
