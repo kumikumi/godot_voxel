@@ -141,7 +141,7 @@
 				Executes a function on every voxel in this buffer which have associated metadata, within the specified area.
 			</description>
 		</method>
-		<method name="get_block_metadata" qualifiers="const">
+		<method name="get_chunk_metadata" qualifiers="const">
 			<return type="Variant" />
 			<description>
 				Gets metadata associated to this [VoxelBuffer].
@@ -219,7 +219,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="set_block_metadata">
+		<method name="set_chunk_metadata">
 			<return type="void" />
 			<param index="0" name="meta" type="Variant" />
 			<description>

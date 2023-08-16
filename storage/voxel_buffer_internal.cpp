@@ -640,7 +640,7 @@ void VoxelBufferInternal::move_to(VoxelBufferInternal &dst) {
 	dst._channels = _channels;
 	dst._size = _size;
 
-	dst._block_metadata = std::move(_block_metadata);
+	dst._chunk_metadata = std::move(_chunk_metadata);
 	dst._voxel_metadata = std::move(_voxel_metadata);
 
 	for (unsigned int i = 0; i < _channels.size(); ++i) {
@@ -986,7 +986,7 @@ void VoxelBufferInternal::copy_voxel_metadata(const VoxelBufferInternal &src_buf
 		meta.copy_from(src_it->value);
 	}
 
-	_block_metadata.copy_from(src_buffer._block_metadata);
+	_chunk_metadata.copy_from(src_buffer._chunk_metadata);
 }
 
 void get_unscaled_sdf(const VoxelBufferInternal &voxels, Span<float> sdf) {

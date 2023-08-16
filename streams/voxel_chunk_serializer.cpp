@@ -21,7 +21,7 @@ namespace ChunkSerializer {
 
 const unsigned int BLOCK_TRAILING_MAGIC = 0x900df00d;
 const unsigned int BLOCK_TRAILING_MAGIC_SIZE = 4;
-const unsigned int BLOCK_METADATA_HEADER_SIZE = sizeof(uint32_t);
+const unsigned int CHUNK_METADATA_HEADER_SIZE = sizeof(uint32_t);
 
 // Temporary data buffers, re-used to reduce allocations
 
@@ -83,10 +83,10 @@ size_t get_metadata_size_in_bytes(const VoxelBufferInternal &buffer) {
 	// It spares 24 bytes (40 if real_t == double),
 	// and is backward compatible with saves made before introduction of metadata.
 
-	const VoxelMetadata &block_meta = buffer.get_block_metadata();
+	const VoxelMetadata &chunk_meta = buffer.get_chunk_metadata();
 
-	if (size != 0 || block_meta.get_type() != VoxelMetadata::TYPE_EMPTY) {
-		size += get_metadata_size_in_bytes(block_meta);
+	if (size != 0 || chunk_meta.get_type() != VoxelMetadata::TYPE_EMPTY) {
+		size += get_metadata_size_in_bytes(chunk_meta);
 	}
 
 	return size;
@@ -134,8 +134,8 @@ void serialize_metadata(Span<uint8_t> p_dst, const VoxelBufferInternal &buffer) 
 	ByteSpanWithPosition bs(p_dst, 0);
 	MemoryWriterExistingBuffer mw(bs, ENDIANESS_LITTLE_ENDIAN);
 
-	const VoxelMetadata &block_meta = buffer.get_block_metadata();
-	serialize_metadata(block_meta, mw);
+	const VoxelMetadata &chunk_meta = buffer.get_chunk_metadata();
+	serialize_metadata(chunk_meta, mw);
 
 	const FlatMapMoveOnly<Vector3i, VoxelMetadata> &voxel_metadata = buffer.get_voxel_metadata();
 	for (FlatMapMoveOnly<Vector3i, VoxelMetadata>::ConstIterator it = voxel_metadata.begin();
@@ -202,7 +202,7 @@ static bool deserialize_metadata(VoxelMetadata &meta, MemoryReader &mr) {
 bool deserialize_metadata(Span<const uint8_t> p_src, VoxelBufferInternal &buffer) {
 	MemoryReader mr(p_src, ENDIANESS_LITTLE_ENDIAN);
 
-	ZN_ASSERT_RETURN_V(deserialize_metadata(buffer.get_block_metadata(), mr), false);
+	ZN_ASSERT_RETURN_V(deserialize_metadata(buffer.get_chunk_metadata(), mr), false);
 
 	typedef FlatMapMoveOnly<Vector3i, VoxelMetadata>::Pair Pair;
 	static thread_local std::vector<Pair> tls_pairs;
@@ -264,7 +264,7 @@ size_t get_size_in_bytes(const VoxelBufferInternal &buffer, size_t &metadata_siz
 
 	size_t metadata_size_with_header = 0;
 	if (metadata_size > 0) {
-		metadata_size_with_header = metadata_size + BLOCK_METADATA_HEADER_SIZE;
+		metadata_size_with_header = metadata_size + CHUNK_METADATA_HEADER_SIZE;
 	}
 
 	return size + metadata_size_with_header + BLOCK_TRAILING_MAGIC_SIZE;

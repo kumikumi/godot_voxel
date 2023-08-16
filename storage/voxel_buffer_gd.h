@@ -142,8 +142,8 @@ public:
 
 	// Metadata
 
-	Variant get_block_metadata() const;
-	void set_block_metadata(Variant meta);
+	Variant get_chunk_metadata() const;
+	void set_chunk_metadata(Variant meta);
 
 	Variant get_voxel_metadata(Vector3i pos) const;
 	void set_voxel_metadata(Vector3i pos, Variant meta);

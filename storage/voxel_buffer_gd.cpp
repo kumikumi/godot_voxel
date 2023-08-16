@@ -156,12 +156,12 @@ void VoxelBuffer::remap_values(unsigned int channel_index, PackedInt32Array map)
 	}
 }
 
-Variant VoxelBuffer::get_block_metadata() const {
-	return get_as_variant(_buffer->get_block_metadata());
+Variant VoxelBuffer::get_chunk_metadata() const {
+	return get_as_variant(_buffer->get_chunk_metadata());
 }
 
-void VoxelBuffer::set_block_metadata(Variant meta) {
-	set_as_variant(_buffer->get_block_metadata(), meta);
+void VoxelBuffer::set_chunk_metadata(Variant meta) {
+	set_as_variant(_buffer->get_chunk_metadata(), meta);
 }
 
 Variant VoxelBuffer::get_voxel_metadata(Vector3i pos) const {
@@ -379,8 +379,8 @@ void VoxelBuffer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_channel_compression", "channel"), &VoxelBuffer::get_channel_compression);
 	ClassDB::bind_method(D_METHOD("remap_values", "channel", "map"), &VoxelBuffer::remap_values);
 
-	ClassDB::bind_method(D_METHOD("get_block_metadata"), &VoxelBuffer::get_block_metadata);
-	ClassDB::bind_method(D_METHOD("set_block_metadata", "meta"), &VoxelBuffer::set_block_metadata);
+	ClassDB::bind_method(D_METHOD("get_chunk_metadata"), &VoxelBuffer::get_chunk_metadata);
+	ClassDB::bind_method(D_METHOD("set_chunk_metadata", "meta"), &VoxelBuffer::set_chunk_metadata);
 	ClassDB::bind_method(D_METHOD("get_voxel_metadata", "pos"), &VoxelBuffer::get_voxel_metadata);
 	ClassDB::bind_method(D_METHOD("set_voxel_metadata", "pos", "value"), &VoxelBuffer::set_voxel_metadata);
 	ClassDB::bind_method(D_METHOD("for_each_voxel_metadata", "callback"), &VoxelBuffer::for_each_voxel_metadata);

@@ -429,11 +429,11 @@ public:
 
 	// Metadata
 
-	VoxelMetadata &get_block_metadata() {
-		return _block_metadata;
+	VoxelMetadata &get_chunk_metadata() {
+		return _chunk_metadata;
 	}
-	const VoxelMetadata &get_block_metadata() const {
-		return _block_metadata;
+	const VoxelMetadata &get_chunk_metadata() const {
+		return _chunk_metadata;
 	}
 
 	const VoxelMetadata *get_voxel_metadata(Vector3i pos) const;
@@ -488,7 +488,7 @@ private:
 	Vector3i _size;
 
 	// TODO Could we separate metadata from VoxelBufferInternal?
-	VoxelMetadata _block_metadata;
+	VoxelMetadata _chunk_metadata;
 	// This metadata is expected to be sparse, with low amount of items.
 	FlatMapMoveOnly<Vector3i, VoxelMetadata> _voxel_metadata;
 };
