@@ -75,8 +75,8 @@ public:
 	unsigned int get_max_view_distance() const;
 	void set_max_view_distance(unsigned int distance_in_voxels);
 
-	void set_block_enter_notification_enabled(bool enable);
-	bool is_block_enter_notification_enabled() const;
+	void set_chunk_enter_notification_enabled(bool enable);
+	bool is_chunk_enter_notification_enabled() const;
 
 	void set_area_edit_notification_enabled(bool enable);
 	bool is_area_edit_notification_enabled() const;
@@ -306,7 +306,7 @@ private:
 	float _collision_margin = constants::DEFAULT_COLLISION_MARGIN;
 	bool _run_stream_in_editor = true;
 	// bool _stream_enabled = false;
-	bool _block_enter_notification_enabled = false;
+	bool _chunk_enter_notification_enabled = false;
 	bool _area_edit_notification_enabled = false;
 	// If enabled, VoxelViewers will cause chunks to automatically load around them.
 	bool _automatic_loading_enabled = true;

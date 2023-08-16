@@ -375,8 +375,8 @@ void VoxelTerrain::set_max_view_distance(unsigned int distance_in_voxels) {
 	}
 }
 
-void VoxelTerrain::set_block_enter_notification_enabled(bool enable) {
-	_block_enter_notification_enabled = enable;
+void VoxelTerrain::set_chunk_enter_notification_enabled(bool enable) {
+	_chunk_enter_notification_enabled = enable;
 
 	if (enable == false) {
 		for (auto it = _loading_blocks.begin(); it != _loading_blocks.end(); ++it) {
@@ -386,8 +386,8 @@ void VoxelTerrain::set_block_enter_notification_enabled(bool enable) {
 	}
 }
 
-bool VoxelTerrain::is_block_enter_notification_enabled() const {
-	return _block_enter_notification_enabled;
+bool VoxelTerrain::is_chunk_enter_notification_enabled() const {
+	return _chunk_enter_notification_enabled;
 }
 
 void VoxelTerrain::set_area_edit_notification_enabled(bool enable) {
@@ -1308,7 +1308,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 	// View chunks coming into range
 	if (can_load_blocks) {
 		const bool require_notifications =
-				(_block_enter_notification_enabled ||
+				(_chunk_enter_notification_enabled ||
 						(_multiplayer_synchronizer != nullptr && _multiplayer_synchronizer->is_server())) &&
 				VoxelEngine::get_singleton().viewer_exists(viewer_id) && // Could be a destroyed viewer
 				VoxelEngine::get_singleton().is_viewer_requiring_chunk_notifications(viewer_id);
@@ -1871,10 +1871,10 @@ void VoxelTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_max_view_distance", "distance_in_voxels"), &VoxelTerrain::set_max_view_distance);
 	ClassDB::bind_method(D_METHOD("get_max_view_distance"), &VoxelTerrain::get_max_view_distance);
 
-	ClassDB::bind_method(D_METHOD("set_block_enter_notification_enabled", "enabled"),
-			&VoxelTerrain::set_block_enter_notification_enabled);
+	ClassDB::bind_method(D_METHOD("set_chunk_enter_notification_enabled", "enabled"),
+			&VoxelTerrain::set_chunk_enter_notification_enabled);
 	ClassDB::bind_method(
-			D_METHOD("is_block_enter_notification_enabled"), &VoxelTerrain::is_block_enter_notification_enabled);
+			D_METHOD("is_chunk_enter_notification_enabled"), &VoxelTerrain::is_chunk_enter_notification_enabled);
 
 	ClassDB::bind_method(D_METHOD("set_area_edit_notification_enabled", "enabled"),
 			&VoxelTerrain::set_area_edit_notification_enabled);
@@ -1958,8 +1958,8 @@ void VoxelTerrain::_bind_methods() {
 
 	ADD_GROUP("Networking", "");
 
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "block_enter_notification_enabled"),
-			"set_block_enter_notification_enabled", "is_block_enter_notification_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "chunk_enter_notification_enabled"),
+			"set_chunk_enter_notification_enabled", "is_chunk_enter_notification_enabled");
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "area_edit_notification_enabled"), "set_area_edit_notification_enabled",
 			"is_area_edit_notification_enabled");

@@ -111,7 +111,7 @@
 		</member>
 		<member name="automatic_loading_enabled" type="bool" setter="set_automatic_loading_enabled" getter="is_automatic_loading_enabled" default="true">
 		</member>
-		<member name="block_enter_notification_enabled" type="bool" setter="set_block_enter_notification_enabled" getter="is_block_enter_notification_enabled" default="false">
+		<member name="chunk_enter_notification_enabled" type="bool" setter="set_chunk_enter_notification_enabled" getter="is_chunk_enter_notification_enabled" default="false">
 		</member>
 		<member name="bounds" type="AABB" setter="set_bounds" getter="get_bounds" default="AABB(-5.36871e+08, -5.36871e+08, -5.36871e+08, 1.07374e+09, 1.07374e+09, 1.07374e+09)">
 			Defines the bounds within which the terrain is allowed to have voxels. If an infinite world generator is used, blocks will only generate within this region. Everything outside will be left empty.
