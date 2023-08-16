@@ -334,10 +334,10 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 
 	f.seek(chunk_begin);
 
-	unsigned int block_data_size = f.get_32();
+	unsigned int chunk_data_size = f.get_32();
 	CRASH_COND(f.eof_reached());
 
-	ERR_FAIL_COND_V_MSG(!ChunkSerializer::decompress_and_deserialize(f, block_data_size, out_block), ERR_PARSE_ERROR,
+	ERR_FAIL_COND_V_MSG(!ChunkSerializer::decompress_and_deserialize(f, chunk_data_size, out_block), ERR_PARSE_ERROR,
 			String("Failed to read block {0}").format(varray(position)));
 
 	return OK;
@@ -666,12 +666,12 @@ void RegionFile::debug_check() {
 			continue;
 		}
 		f.seek(chunk_begin);
-		const size_t block_data_size = f.get_32();
+		const size_t chunk_data_size = f.get_32();
 		const size_t pos = f.get_position();
 		const size_t remaining_size = file_len - pos;
-		if (block_data_size > remaining_size) {
+		if (chunk_data_size > remaining_size) {
 			ZN_PRINT_ERROR(format("LUT {} {}: block size {} at offset {} is larger than remaining size {}", lut_index,
-					position, block_data_size, chunk_begin, remaining_size));
+					position, chunk_data_size, chunk_begin, remaining_size));
 		}
 	}
 }
