@@ -330,9 +330,9 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	}
 
 	const unsigned int sector_index = block_info.get_sector_index();
-	const unsigned int block_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
+	const unsigned int chunk_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
 
-	f.seek(block_begin);
+	f.seek(chunk_begin);
 
 	unsigned int block_data_size = f.get_32();
 	CRASH_COND(f.eof_reached());
@@ -659,19 +659,19 @@ void RegionFile::debug_check() {
 			continue;
 		}
 		const unsigned int sector_index = block_info.get_sector_index();
-		const unsigned int block_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
-		if (block_begin >= file_len) {
+		const unsigned int chunk_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
+		if (chunk_begin >= file_len) {
 			ZN_PRINT_ERROR(format(
-					"LUT {} {}: offset {} is larger than file size {}", lut_index, position, block_begin, file_len));
+					"LUT {} {}: offset {} is larger than file size {}", lut_index, position, chunk_begin, file_len));
 			continue;
 		}
-		f.seek(block_begin);
+		f.seek(chunk_begin);
 		const size_t block_data_size = f.get_32();
 		const size_t pos = f.get_position();
 		const size_t remaining_size = file_len - pos;
 		if (block_data_size > remaining_size) {
 			ZN_PRINT_ERROR(format("LUT {} {}: block size {} at offset {} is larger than remaining size {}", lut_index,
-					position, block_data_size, block_begin, remaining_size));
+					position, block_data_size, chunk_begin, remaining_size));
 		}
 	}
 }

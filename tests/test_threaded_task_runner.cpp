@@ -290,7 +290,7 @@ void test_threaded_task_postponing() {
 	};
 
 	struct Event {
-		enum Type { BLOCK_BEGIN, BLOCK_END };
+		enum Type { CHUNK_BEGIN, BLOCK_END };
 		Type type;
 		Vector3i bpos;
 		uint64_t time_us;
@@ -358,7 +358,7 @@ void test_threaded_task_postponing() {
 			}
 
 #ifdef VOXEL_TEST_TASK_POSTPONING_DUMP_EVENTS
-			events.push(Event{ Event::BLOCK_BEGIN, bpos0 });
+			events.push(Event{ Event::CHUNK_BEGIN, bpos0 });
 #endif
 
 			{
