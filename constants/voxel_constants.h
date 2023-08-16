@@ -13,7 +13,7 @@ static const float MAXIMUM_LOD_DISTANCE = 128.f;
 static const unsigned int MIN_CHUNK_SIZE = 16;
 static const unsigned int MAX_CHUNK_SIZE = 32;
 
-static const unsigned int MAX_BLOCK_COUNT_PER_REQUEST = 4 * 4 * 4;
+static const unsigned int MAX_CHUNK_COUNT_PER_REQUEST = 4 * 4 * 4;
 
 // 24 should be largely enough.
 // With a chunk size of 32 voxels, and if 1 voxel is 1m large,

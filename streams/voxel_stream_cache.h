@@ -38,7 +38,7 @@ public:
 	// Stores provided chunk into the cache. The cache will take ownership of the provided data.
 	void save_instance_block(Vector3i position, uint8_t lod_index, UniquePtr<InstanceChunkData> instances);
 
-	unsigned int get_indicative_block_count() const;
+	unsigned int get_indicative_chunk_count() const;
 
 	template <typename F>
 	void flush(F save_func) {

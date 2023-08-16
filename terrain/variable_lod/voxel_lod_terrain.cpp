@@ -2805,13 +2805,13 @@ int VoxelLodTerrain::_b_debug_get_chunk_mesh_count() const {
 	const unsigned int lod_count = get_lod_count();
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		const VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[lod_index];
-		sum += mesh_map.get_block_count();
+		sum += mesh_map.get_chunk_count();
 	}
 	return sum;
 }
 
 int VoxelLodTerrain::_b_debug_get_chunk_count() const {
-	return _data->get_block_count();
+	return _data->get_chunk_count();
 }
 
 Node3D *VoxelLodTerrain::debug_dump_as_nodes(bool include_instancer) const {

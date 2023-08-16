@@ -114,7 +114,7 @@ public:
 		_last_accessed_block = nullptr;
 	}
 
-	unsigned int get_block_count() const {
+	unsigned int get_chunk_count() const {
 #ifdef DEBUG_ENABLED
 		const unsigned int blocks_map_size = _blocks_map.size();
 		CRASH_COND(_chunks.size() != blocks_map_size);

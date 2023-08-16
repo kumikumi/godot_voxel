@@ -627,7 +627,7 @@ uint32_t RegionFile::get_sector_count_from_bytes(uint32_t size_in_bytes) const {
 	return (size_in_bytes - 1) / _header.format.sector_size + 1;
 }
 
-unsigned int RegionFile::get_header_block_count() const {
+unsigned int RegionFile::get_header_chunk_count() const {
 	ERR_FAIL_COND_V(!is_open(), 0);
 	return _header.blocks.size();
 }

@@ -109,7 +109,7 @@ public:
 
 	void clear();
 
-	int get_block_count() const;
+	int get_chunk_count() const;
 
 	// op(Vector3i bpos, VoxelChunkData &chunk)
 	template <typename Op_T>

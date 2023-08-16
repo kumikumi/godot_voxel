@@ -36,7 +36,7 @@ public:
 	static int debug_get_running_count();
 
 	// 3x3x3 or 4x4x4 grid of voxel chunks.
-	FixedArray<std::shared_ptr<VoxelBufferInternal>, constants::MAX_BLOCK_COUNT_PER_REQUEST> chunks;
+	FixedArray<std::shared_ptr<VoxelBufferInternal>, constants::MAX_CHUNK_COUNT_PER_REQUEST> chunks;
 	// TODO Need to provide format
 	// FixedArray<uint8_t, VoxelBufferInternal::MAX_CHANNELS> channel_depths;
 	Vector3i chunk_mesh_position; // In mesh chunks of the specified lod

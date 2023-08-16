@@ -643,7 +643,7 @@ VoxelStreamSQLite::VoxelStreamSQLite() {}
 
 VoxelStreamSQLite::~VoxelStreamSQLite() {
 	ZN_PRINT_VERBOSE("~VoxelStreamSQLite");
-	if (!_connection_path.is_empty() && _cache.get_indicative_block_count() > 0) {
+	if (!_connection_path.is_empty() && _cache.get_indicative_chunk_count() > 0) {
 		ZN_PRINT_VERBOSE("~VoxelStreamSQLite flushy flushy");
 		flush_cache();
 		ZN_PRINT_VERBOSE("~VoxelStreamSQLite flushy done");
@@ -660,7 +660,7 @@ void VoxelStreamSQLite::set_database_path(String path) {
 	if (path == _connection_path) {
 		return;
 	}
-	if (!_connection_path.is_empty() && _cache.get_indicative_block_count() > 0) {
+	if (!_connection_path.is_empty() && _cache.get_indicative_chunk_count() > 0) {
 		// Save cached data before changing the path.
 		// Not using get_connection() because it locks.
 		VoxelStreamSQLiteInternal con;
@@ -782,7 +782,7 @@ void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 	}
 
 	// TODO We should consider using a serialized cache, and measure the threshold in bytes
-	if (_cache.get_indicative_block_count() >= CACHE_SIZE) {
+	if (_cache.get_indicative_chunk_count() >= CACHE_SIZE) {
 		flush_cache();
 	}
 }
@@ -880,7 +880,7 @@ void VoxelStreamSQLite::save_instance_blocks(Span<VoxelStream::InstancesQueryDat
 	}
 
 	// TODO Optimization: we should consider using a serialized cache, and measure the threshold in bytes
-	if (_cache.get_indicative_block_count() >= CACHE_SIZE) {
+	if (_cache.get_indicative_chunk_count() >= CACHE_SIZE) {
 		flush_cache();
 	}
 }
@@ -958,7 +958,7 @@ void VoxelStreamSQLite::flush_cache() {
 // This function does not lock any mutex for internal use.
 void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_connection) {
 	ZN_PROFILE_SCOPE();
-	ZN_PRINT_VERBOSE(format("VoxelStreamSQLite: Flushing cache ({} elements)", _cache.get_indicative_block_count()));
+	ZN_PRINT_VERBOSE(format("VoxelStreamSQLite: Flushing cache ({} elements)", _cache.get_indicative_chunk_count()));
 
 	ERR_FAIL_COND(p_connection == nullptr);
 	ERR_FAIL_COND(p_connection->begin_transaction() == false);

@@ -289,7 +289,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	const unsigned int chunk_size = data.get_chunk_size();
 	const Box3i chunk_box = voxel_box.downscaled(chunk_size);
 
-	const int block_count = voxel_count / batch_count;
+	const int chunk_count = voxel_count / batch_count;
 	// const int bs_mask = map.get_chunk_size_mask();
 	const VoxelBufferInternal::ChannelId channel = VoxelBufferInternal::CHANNEL_TYPE;
 
@@ -318,7 +318,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	const VoxelBlockyLibraryBase::BakedData &lib_data = lib.get_baked_data();
 
 	// Choose chunks at random
-	for (int bi = 0; bi < block_count; ++bi) {
+	for (int bi = 0; bi < chunk_count; ++bi) {
 		const Vector3i chunk_pos = chunk_box.pos + L::urand_vec3i(random, chunk_box.size);
 
 		const Vector3i chunk_origin = data.chunk_to_voxel(chunk_pos);

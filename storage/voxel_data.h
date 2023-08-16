@@ -188,7 +188,7 @@ public:
 	bool has_all_blocks_in_area(Box3i chunks_box) const;
 
 	// Gets the total amount of allocated chunks. This includes chunks having no voxel data.
-	unsigned int get_block_count() const;
+	unsigned int get_chunk_count() const;
 
 	struct BlockLocation {
 		Vector3i position;

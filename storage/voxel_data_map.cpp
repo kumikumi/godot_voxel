@@ -317,7 +317,7 @@ void VoxelDataMap::clear() {
 	_blocks_map.clear();
 }
 
-int VoxelDataMap::get_block_count() const {
+int VoxelDataMap::get_chunk_count() const {
 	return _blocks_map.size();
 }
 

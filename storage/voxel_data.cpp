@@ -526,13 +526,13 @@ bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
 	});
 }
 
-unsigned int VoxelData::get_block_count() const {
+unsigned int VoxelData::get_chunk_count() const {
 	unsigned int sum = 0;
 	const unsigned int lod_count = get_lod_count();
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		const Lod &lod = _lods[lod_index];
 		RWLockRead rlock(lod.map_lock);
-		sum += lod.map.get_block_count();
+		sum += lod.map.get_chunk_count();
 	}
 	return sum;
 }

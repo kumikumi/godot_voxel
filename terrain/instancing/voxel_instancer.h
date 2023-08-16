@@ -90,7 +90,7 @@ public:
 
 	// Debug
 
-	int debug_get_block_count() const;
+	int debug_get_chunk_count() const;
 	void debug_get_instance_counts(std::unordered_map<uint32_t, uint32_t> &counts_per_layer) const;
 	void debug_dump_as_scene(String fpath) const;
 	Node *debug_dump_as_nodes() const;

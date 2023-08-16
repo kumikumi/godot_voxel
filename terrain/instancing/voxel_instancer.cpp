@@ -1734,7 +1734,7 @@ void VoxelInstancer::set_mesh_lod_distance(float p_lod_distance) {
 	_mesh_lod_distance = p_lod_distance;
 }
 
-int VoxelInstancer::debug_get_block_count() const {
+int VoxelInstancer::debug_get_chunk_count() const {
 	return _chunks.size();
 }
 
@@ -1922,7 +1922,7 @@ void VoxelInstancer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_up_mode", "mode"), &VoxelInstancer::set_up_mode);
 	ClassDB::bind_method(D_METHOD("get_up_mode"), &VoxelInstancer::get_up_mode);
 
-	ClassDB::bind_method(D_METHOD("debug_get_block_count"), &VoxelInstancer::debug_get_block_count);
+	ClassDB::bind_method(D_METHOD("debug_get_chunk_count"), &VoxelInstancer::debug_get_chunk_count);
 	ClassDB::bind_method(D_METHOD("debug_get_instance_counts"), &VoxelInstancer::_b_debug_get_instance_counts);
 	ClassDB::bind_method(D_METHOD("debug_dump_as_scene", "fpath"), &VoxelInstancer::debug_dump_as_scene);
 	ClassDB::bind_method(D_METHOD("debug_set_draw_enabled", "enabled"), &VoxelInstancer::debug_set_draw_enabled);

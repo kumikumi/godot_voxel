@@ -67,7 +67,7 @@ void test_octree_update() {
 		}
 	};
 
-	int initial_block_count = 0;
+	int initial_chunk_count = 0;
 	ProfilingClock profiling_clock;
 
 	// Initial
@@ -83,29 +83,29 @@ void test_octree_update() {
 		actions.lod_distance_octree_space = lod_distance / chunk_size;
 		octree.update(actions);
 
-		initial_block_count += actions.created_count;
+		initial_chunk_count += actions.created_count;
 		ZN_TEST_ASSERT(actions.destroyed_count == 0);
 	}
 
 	const int time_init = profiling_clock.restart();
 
-	int initial_block_count_rec = 0;
+	int initial_chunk_count_rec = 0;
 	for (std::map<Vector3i, LodOctree>::iterator it = octrees.begin(); it != octrees.end(); ++it) {
 		const LodOctree &octree = it->second;
-		initial_block_count_rec += octree.get_node_count();
+		initial_chunk_count_rec += octree.get_node_count();
 	}
 
-	print_line(String("Initial block count: {0}, time: {1} us").format(varray(initial_block_count, time_init)));
-	ZN_TEST_ASSERT(initial_block_count > 0);
-	ZN_TEST_ASSERT(initial_block_count == initial_block_count_rec);
+	print_line(String("Initial block count: {0}, time: {1} us").format(varray(initial_chunk_count, time_init)));
+	ZN_TEST_ASSERT(initial_chunk_count > 0);
+	ZN_TEST_ASSERT(initial_chunk_count == initial_chunk_count_rec);
 
 	// Updates without moving
-	int created_block_count = 0;
-	int destroyed_block_count = 0;
+	int created_chunk_count = 0;
+	int destroyed_chunk_count = 0;
 	for (int i = 0; i < 10; ++i) {
 		profiling_clock.restart();
 
-		created_block_count = 0;
+		created_chunk_count = 0;
 		for (std::map<Vector3i, LodOctree>::iterator it = octrees.begin(); it != octrees.end(); ++it) {
 			LodOctree &octree = it->second;
 
@@ -118,20 +118,20 @@ void test_octree_update() {
 			actions.lod_distance_octree_space = lod_distance / chunk_size;
 			octree.update(actions);
 
-			created_block_count += actions.created_count;
-			destroyed_block_count += actions.destroyed_count;
+			created_chunk_count += actions.created_count;
+			destroyed_chunk_count += actions.destroyed_count;
 		}
 
 		const int time_stay = profiling_clock.restart();
 
 		// Block count should not change
-		ZN_TEST_ASSERT(created_block_count == 0);
-		ZN_TEST_ASSERT(destroyed_block_count == 0);
+		ZN_TEST_ASSERT(created_chunk_count == 0);
+		ZN_TEST_ASSERT(destroyed_chunk_count == 0);
 		print_line(String("Stay time: {0} us").format(varray(time_stay)));
 	}
 
 	// Clearing
-	int block_count = initial_block_count;
+	int chunk_count = initial_chunk_count;
 	for (std::map<Vector3i, LodOctree>::iterator it = octrees.begin(); it != octrees.end(); ++it) {
 		LodOctree &octree = it->second;
 
@@ -145,10 +145,10 @@ void test_octree_update() {
 		DestroyAction da;
 		octree.clear(da);
 
-		block_count -= da.destroyed_blocks;
+		chunk_count -= da.destroyed_blocks;
 	}
 
-	ZN_TEST_ASSERT(block_count == 0);
+	ZN_TEST_ASSERT(chunk_count == 0);
 }
 
 void test_octree_find_in_box() {

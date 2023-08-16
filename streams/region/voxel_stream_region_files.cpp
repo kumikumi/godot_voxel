@@ -672,7 +672,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 
 		ZN_PRINT_VERBOSE(format("Converting region lod{}/{}", region_info.lod, region_info.position));
 
-		const unsigned int chunks_count = old_region->region.get_header_block_count();
+		const unsigned int chunks_count = old_region->region.get_header_chunk_count();
 		for (unsigned int j = 0; j < chunks_count; ++j) {
 			if (!old_region->region.has_block(j)) {
 				continue;

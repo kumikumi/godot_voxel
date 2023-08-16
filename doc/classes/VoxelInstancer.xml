@@ -15,7 +15,7 @@
 			<description>
 			</description>
 		</method>
-		<method name="debug_get_block_count" qualifiers="const">
+		<method name="debug_get_chunk_count" qualifiers="const">
 			<return type="int" />
 			<description>
 			</description>

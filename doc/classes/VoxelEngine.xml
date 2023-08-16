@@ -31,7 +31,7 @@
 					"memory_pools": {
 						"voxel_used": int,
 						"voxel_total": int,
-						"block_count": int
+						"chunk_count": int
 					}
 				}
 				[/codeblock]

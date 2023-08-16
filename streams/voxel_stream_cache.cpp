@@ -98,7 +98,7 @@ void VoxelStreamCache::save_instance_block(
 	}
 }
 
-unsigned int VoxelStreamCache::get_indicative_block_count() const {
+unsigned int VoxelStreamCache::get_indicative_chunk_count() const {
 	return _count;
 }
 

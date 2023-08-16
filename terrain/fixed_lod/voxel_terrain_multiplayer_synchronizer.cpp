@@ -183,9 +183,9 @@ void VoxelTerrainMultiplayerSynchronizer::_b_receive_blocks(PackedByteArray mess
 
 	MemoryReader mr(Span<const uint8_t>(message_data.ptr(), message_data.size()), ENDIANESS_LITTLE_ENDIAN);
 
-	const unsigned int block_count = mr.get_32();
+	const unsigned int chunk_count = mr.get_32();
 
-	for (unsigned int i = 0; i < block_count; ++i) {
+	for (unsigned int i = 0; i < chunk_count; ++i) {
 		Vector3i bpos;
 		// This effectively limits volume size to 1,048,576. If really required, we could double this data to cover
 		// more.
