@@ -235,7 +235,7 @@ bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel
 				return false;
 			}
 
-			data_lod0.map.set_block_buffer(chunk_pos_lod0, voxels, true);
+			data_lod0.map.set_chunk_buffer(chunk_pos_lod0, voxels, true);
 		}
 	}
 	// If it turns out to be a problem, use CoW?
@@ -432,7 +432,7 @@ void VoxelData::pre_generate_box(Box3i voxel_box, Span<Lod> lods, unsigned int c
 					// We'll assume the chunk we just generated is redundant and discard it.
 					continue;
 				}
-				data_lod.map.set_block_buffer(task.chunk_pos, task.voxels, true);
+				data_lod.map.set_chunk_buffer(task.chunk_pos, task.voxels, true);
 			}
 		}
 	}
@@ -500,9 +500,9 @@ void VoxelData::mark_area_modified(
 	}
 }
 
-bool VoxelData::try_set_block(Vector3i chunk_position, const VoxelChunkData &block) {
+bool VoxelData::try_set_chunk(Vector3i chunk_position, const VoxelChunkData &block) {
 	bool inserted = true;
-	try_set_block(chunk_position, block,
+	try_set_chunk(chunk_position, block,
 			[&inserted](VoxelChunkData &existing, const VoxelChunkData &incoming) { inserted = false; });
 	return inserted;
 }
@@ -630,7 +630,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 					_modifiers.apply(
 							q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << dst_lod_index));
 
-					dst_block = dst_data_lod.map.set_block_buffer(dst_bpos, voxels, true);
+					dst_block = dst_data_lod.map.set_chunk_buffer(dst_bpos, voxels, true);
 
 				} else {
 					ZN_PRINT_ERROR(format(

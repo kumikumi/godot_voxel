@@ -931,7 +931,7 @@ static void apply_block_data_requests_as_empty(Span<const VoxelLodTerrainUpdateD
 		}
 		{
 			VoxelChunkData empty_block(loc.lod);
-			data.try_set_block(loc.position, empty_block);
+			data.try_set_chunk(loc.position, empty_block);
 		}
 	}
 }

@@ -62,7 +62,7 @@ void test_run_blocky_random_tick() {
 			buffer->copy_from(model_buffer);
 			VoxelChunkData block(buffer, 0);
 			block.set_edited(true);
-			ZN_TEST_ASSERT(data.try_set_block(chunk_pos, block));
+			ZN_TEST_ASSERT(data.try_set_chunk(chunk_pos, block));
 		});
 	}
 

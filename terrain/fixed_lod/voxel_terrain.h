@@ -104,7 +104,7 @@ public:
 	// Creates or overrides whatever chunk data there is at the given position.
 	// The use case is multiplayer, client-side.
 	// If no local viewer is actually in range, the data will not be applied and the function returns `false`.
-	bool try_set_block_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data);
+	bool try_set_chunk_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data);
 
 	bool has_chunk(Vector3i position) const;
 
@@ -237,7 +237,7 @@ private:
 	void _b_save_chunk(Vector3i p_chunk_pos);
 	void _b_set_bounds(AABB aabb);
 	AABB _b_get_bounds() const;
-	bool _b_try_set_block_data(Vector3i position, Ref<gd::VoxelBuffer> voxel_data);
+	bool _b_try_set_chunk_data(Vector3i position, Ref<gd::VoxelBuffer> voxel_data);
 	Dictionary _b_get_statistics() const;
 	PackedInt32Array _b_get_viewer_network_peer_ids_in_area(Vector3i area_origin, Vector3i area_size) const;
 	void _b_rpc_receive_block(PackedByteArray data);

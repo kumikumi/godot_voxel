@@ -92,7 +92,7 @@
 				Note 3: saving is asynchronous and won't block the game. the save may complete only a short time after you call this method.
 			</description>
 		</method>
-		<method name="try_set_block_data">
+		<method name="try_set_chunk_data">
 			<return type="bool" />
 			<param index="0" name="position" type="Vector3i" />
 			<param index="1" name="voxels" type="VoxelBuffer" />

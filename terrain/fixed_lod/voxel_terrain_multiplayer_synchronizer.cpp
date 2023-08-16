@@ -204,7 +204,7 @@ void VoxelTerrainMultiplayerSynchronizer::_b_receive_blocks(PackedByteArray mess
 		*voxels_p = std::move(voxels);
 
 		ZN_ASSERT_RETURN(_terrain != nullptr);
-		_terrain->try_set_block_data(bpos, voxels_p);
+		_terrain->try_set_chunk_data(bpos, voxels_p);
 	}
 }
 

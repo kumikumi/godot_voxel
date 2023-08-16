@@ -31,9 +31,9 @@ public:
 			// TODO Might need to invoke the generator at some level for present chunks without voxels,
 			// or make sure all chunks contain voxel data
 			if (block != nullptr && block->has_voxels()) {
-				set_block(pos, block->get_voxels_shared());
+				set_chunk(pos, block->get_voxels_shared());
 			} else {
-				set_block(pos, nullptr);
+				set_chunk(pos, nullptr);
 			}
 		});
 		if (sl != nullptr) {
@@ -214,7 +214,7 @@ private:
 		return is_valid_relative_chunk_position(pos - _offset_in_blocks);
 	}
 
-	inline void set_block(Vector3i position, std::shared_ptr<VoxelBufferInternal> block) {
+	inline void set_chunk(Vector3i position, std::shared_ptr<VoxelBufferInternal> block) {
 		ZN_ASSERT_RETURN(is_valid_chunk_position(position));
 		position -= _offset_in_blocks;
 		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);

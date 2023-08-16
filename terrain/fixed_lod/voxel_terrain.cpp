@@ -447,7 +447,7 @@ void VoxelTerrain::view_chunk_mesh(Vector3i bpos, bool mesh_flag, bool collision
 		// Create if not found
 		block = memnew(VoxelChunkMeshVT(bpos, get_chunk_mesh_size()));
 		block->set_world(get_world_3d());
-		_mesh_map.set_block(bpos, block);
+		_mesh_map.set_chunk(bpos, block);
 	}
 	CRASH_COND(block == nullptr);
 
@@ -1431,7 +1431,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		return;
 	}
 
-	_data->try_set_block(chunk_pos, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
+	_data->try_set_chunk(chunk_pos, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
 		existing_block.set_voxels(incoming_block.get_voxels_shared());
 		existing_block.set_edited(incoming_block.is_edited());
 	});
@@ -1462,7 +1462,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 // Sets voxel data of a chunk, discarding existing data if any.
 // If the given chunk coordinates are not inside any viewer's area, this function won't do anything and return
 // false. If a chunk is already loading or generating at this position, it will be cancelled.
-bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data) {
+bool VoxelTerrain::try_set_chunk_data(Vector3i position, std::shared_ptr<VoxelBufferInternal> &voxel_data) {
 	ZN_PROFILE_SCOPE();
 	ERR_FAIL_COND_V(voxel_data == nullptr, false);
 
@@ -1498,7 +1498,7 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 	block.viewers = refcount;
 
 	// Create or update chunk data
-	_data->try_set_block(position, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
+	_data->try_set_chunk(position, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
 		existing_block.set_voxels(incoming_block.get_voxels_shared());
 		existing_block.set_edited(incoming_block.is_edited());
 	});
@@ -1820,7 +1820,7 @@ AABB VoxelTerrain::_b_get_bounds() const {
 	return AABB(b.pos, b.size);
 }
 
-bool VoxelTerrain::_b_try_set_block_data(Vector3i position, Ref<gd::VoxelBuffer> voxel_data) {
+bool VoxelTerrain::_b_try_set_chunk_data(Vector3i position, Ref<gd::VoxelBuffer> voxel_data) {
 	ERR_FAIL_COND_V(voxel_data.is_null(), false);
 	std::shared_ptr<VoxelBufferInternal> buffer = voxel_data->get_buffer_shared();
 
@@ -1837,7 +1837,7 @@ bool VoxelTerrain::_b_try_set_block_data(Vector3i position, Ref<gd::VoxelBuffer>
 	}
 #endif
 
-	return try_set_block_data(position, buffer);
+	return try_set_chunk_data(position, buffer);
 }
 
 PackedInt32Array VoxelTerrain::_b_get_viewer_network_peer_ids_in_area(Vector3i area_origin, Vector3i area_size) const {
@@ -1921,7 +1921,7 @@ void VoxelTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bounds"), &VoxelTerrain::_b_set_bounds);
 	ClassDB::bind_method(D_METHOD("get_bounds"), &VoxelTerrain::_b_get_bounds);
 
-	ClassDB::bind_method(D_METHOD("try_set_block_data", "position", "voxels"), &VoxelTerrain::_b_try_set_block_data);
+	ClassDB::bind_method(D_METHOD("try_set_chunk_data", "position", "voxels"), &VoxelTerrain::_b_try_set_chunk_data);
 
 	ClassDB::bind_method(D_METHOD("get_viewer_network_peer_ids_in_area", "area_origin", "area_size"),
 			&VoxelTerrain::_b_get_viewer_network_peer_ids_in_area);

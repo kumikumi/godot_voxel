@@ -119,7 +119,7 @@ const VoxelChunkData *VoxelDataMap::get_block(Vector3i bpos) const {
 	return nullptr;
 }
 
-VoxelChunkData *VoxelDataMap::set_block_buffer(
+VoxelChunkData *VoxelDataMap::set_chunk_buffer(
 		Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite) {
 	ZN_ASSERT_RETURN_V(buffer != nullptr, nullptr);
 
@@ -142,7 +142,7 @@ VoxelChunkData *VoxelDataMap::set_block_buffer(
 	return block;
 }
 
-void VoxelDataMap::set_block(Vector3i bpos, const VoxelChunkData &block) {
+void VoxelDataMap::set_chunk(Vector3i bpos, const VoxelChunkData &block) {
 #ifdef DEBUG_ENABLED
 	ZN_ASSERT(block.get_lod_index() == _lod_index);
 #endif

@@ -1410,7 +1410,7 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		return;
 	}
 
-	const bool inserted = _data->try_set_block(ob.position, block);
+	const bool inserted = _data->try_set_chunk(ob.position, block);
 	// TODO Might not ignore these chunks in the future, see `VoxelTerrain`
 	if (!inserted) {
 		++_stats.dropped_block_loads;
@@ -1525,7 +1525,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 		block = memnew(VoxelChunkMeshVLT(ob.position, get_chunk_mesh_size(), ob.lod));
 		block->active = active;
 		block->set_visible(active);
-		mesh_map.set_block(ob.position, block);
+		mesh_map.set_chunk(ob.position, block);
 		// ZN_PRINT_VERBOSE(format("Created chunk pos {} lod {} time {}", ob.position, int(ob.lod),
 		// 		Time::get_singleton()->get_ticks_msec()));
 	}

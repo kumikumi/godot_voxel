@@ -81,7 +81,7 @@ public:
 		return nullptr;
 	}
 
-	void set_block(Vector3i bpos, ChunkMesh_T *block) {
+	void set_chunk(Vector3i bpos, ChunkMesh_T *block) {
 		ERR_FAIL_COND(block == nullptr);
 		CRASH_COND(bpos != block->position);
 		if (_last_accessed_block == nullptr || _last_accessed_block->position == bpos) {

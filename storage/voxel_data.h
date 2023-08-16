@@ -139,13 +139,13 @@ public:
 
 	// Sets all the data of a chunk.
 	// If the chunk already exists, returns false. Otherwise, returns true.
-	bool try_set_block(Vector3i chunk_position, const VoxelChunkData &block);
+	bool try_set_chunk(Vector3i chunk_position, const VoxelChunkData &block);
 
 	// Sets all the data of a chunk.
 	// If the chunk already exists, `action_when_exists` is called.
 	// `void action_when_exists(VoxelChunkData &existing_chunk, const VoxelChunkData &incoming_chunk)`
 	template <typename F>
-	void try_set_block(Vector3i chunk_position, const VoxelChunkData &block, F action_when_exists) {
+	void try_set_chunk(Vector3i chunk_position, const VoxelChunkData &block, F action_when_exists) {
 		Lod &lod = _lods[block.get_lod_index()];
 #ifdef DEBUG_ENABLED
 		if (block.has_voxels()) {
@@ -157,7 +157,7 @@ public:
 		if (existing_block != nullptr) {
 			action_when_exists(*existing_block, block);
 		} else {
-			lod.map.set_block(chunk_position, block);
+			lod.map.set_chunk(chunk_position, block);
 		}
 	}
 
