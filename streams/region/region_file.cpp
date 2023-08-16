@@ -364,9 +364,9 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 
 		const unsigned int end_offset = _blocks_begin_offset + _sectors.size() * _header.format.sector_size;
 		f.seek(end_offset);
-		const unsigned int block_offset = f.get_position();
+		const unsigned int chunk_offset = f.get_position();
 		// Check position matches the sectors rule
-		CRASH_COND((block_offset - _blocks_begin_offset) % _header.format.sector_size != 0);
+		CRASH_COND((chunk_offset - _blocks_begin_offset) % _header.format.sector_size != 0);
 
 		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
 		ERR_FAIL_COND_V(!res.success, ERR_INVALID_PARAMETER);
@@ -375,12 +375,12 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		store_buffer(f, to_span(res.data));
 
 		const unsigned int end_pos = f.get_position();
-		CRASH_COND_MSG(written_size != (end_pos - block_offset),
-				String("written_size: {0}, block_offset: {1}, end_pos: {2}")
-						.format(varray(written_size, block_offset, end_pos)));
+		CRASH_COND_MSG(written_size != (end_pos - chunk_offset),
+				String("written_size: {0}, chunk_offset: {1}, end_pos: {2}")
+						.format(varray(written_size, chunk_offset, end_pos)));
 		pad_to_sector_size(f);
 
-		block_info.set_sector_index((block_offset - _blocks_begin_offset) / _header.format.sector_size);
+		block_info.set_sector_index((chunk_offset - _blocks_begin_offset) / _header.format.sector_size);
 		block_info.set_sector_count(get_sector_count_from_bytes(written_size));
 
 		for (unsigned int i = 0; i < block_info.get_sector_count(); ++i) {
@@ -415,14 +415,14 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 				_header_modified = true;
 			}
 
-			const size_t block_offset = _blocks_begin_offset + old_sector_index * _header.format.sector_size;
-			f.seek(block_offset);
+			const size_t chunk_offset = _blocks_begin_offset + old_sector_index * _header.format.sector_size;
+			f.seek(chunk_offset);
 
 			f.store_32(data.size());
 			store_buffer(f, to_span(data));
 
 			const size_t end_pos = f.get_position();
-			CRASH_COND(written_size != (end_pos - block_offset));
+			CRASH_COND(written_size != (end_pos - chunk_offset));
 
 		} else {
 			// The chunk now uses more sectors, we have to move others.
@@ -433,14 +433,14 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 			// This also shifts the rest of the file so the freed sectors may get re-occupied.
 			remove_sectors_from_block(position, old_sector_count);
 
-			const size_t block_offset = _blocks_begin_offset + _sectors.size() * _header.format.sector_size;
-			f.seek(block_offset);
+			const size_t chunk_offset = _blocks_begin_offset + _sectors.size() * _header.format.sector_size;
+			f.seek(chunk_offset);
 
 			f.store_32(data.size());
 			store_buffer(f, to_span(data));
 
 			const size_t end_pos = f.get_position();
-			CRASH_COND(written_size != (end_pos - block_offset));
+			CRASH_COND(written_size != (end_pos - chunk_offset));
 
 			pad_to_sector_size(f);
 

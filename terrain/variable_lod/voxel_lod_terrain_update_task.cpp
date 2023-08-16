@@ -237,12 +237,12 @@ void process_octrees_sliding_box(VoxelLodTerrainUpdateData::State &state, Vector
 	if (new_box != prev_box) {
 		struct CleanOctreeAction {
 			VoxelLodTerrainUpdateData::State &state;
-			Vector3i block_offset_lod0;
+			Vector3i chunk_offset_lod0;
 
 			void operator()(Vector3i node_pos, unsigned int lod_index) {
 				VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
 
-				Vector3i bpos = node_pos + (block_offset_lod0 >> lod_index);
+				Vector3i bpos = node_pos + (chunk_offset_lod0 >> lod_index);
 
 				auto chunk_it = lod.mesh_map_state.map.find(bpos);
 				if (chunk_it != lod.mesh_map_state.map.end()) {
@@ -616,7 +616,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 			const VoxelLodTerrainUpdateData::Settings &settings;
 			VoxelData &data;
 			std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load;
-			Vector3i block_offset_lod0;
+			Vector3i chunk_offset_lod0;
 			unsigned int blocked_count = 0;
 			float lod_distance_octree_space;
 			Vector3 viewer_pos_octree_space;
@@ -624,7 +624,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 
 			void create_child(Vector3i node_pos, int lod_index, LodOctree::NodeData &node_data) {
 				VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-				const Vector3i bpos = node_pos + (block_offset_lod0 >> lod_index);
+				const Vector3i bpos = node_pos + (chunk_offset_lod0 >> lod_index);
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				// Never show a child that hasn't been meshed, if we got here that would be a bug
@@ -639,7 +639,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 
 			void destroy_child(Vector3i node_pos, int lod_index) {
 				VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-				const Vector3i bpos = node_pos + (block_offset_lod0 >> lod_index);
+				const Vector3i bpos = node_pos + (chunk_offset_lod0 >> lod_index);
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				if (chunk_mesh_it != lod.mesh_map_state.map.end()) {
@@ -652,7 +652,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 
 			void show_parent(Vector3i node_pos, int lod_index) {
 				VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-				Vector3i bpos = node_pos + (block_offset_lod0 >> lod_index);
+				Vector3i bpos = node_pos + (chunk_offset_lod0 >> lod_index);
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				// If we teleport far away, the area we were in is going to merge,
@@ -673,7 +673,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 			}
 
 			bool can_create_root(int lod_index) {
-				const Vector3i offset = block_offset_lod0 >> lod_index;
+				const Vector3i offset = chunk_offset_lod0 >> lod_index;
 				const bool can =
 						check_block_loaded_and_meshed(state, settings, data, offset, lod_index, chunks_to_load);
 				if (!can) {
@@ -689,7 +689,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 					return false;
 				}
 				const int child_lod_index = lod_index - 1;
-				const Vector3i offset = block_offset_lod0 >> child_lod_index;
+				const Vector3i offset = chunk_offset_lod0 >> child_lod_index;
 				bool can = true;
 
 				// Can only subdivide if higher detail meshes are ready to be shown, otherwise it will produce holes
@@ -727,7 +727,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				// Can only unsubdivide if the parent mesh is ready
 				VoxelLodTerrainUpdateData::Lod &lod = state.lods[parent_lod_index];
 
-				Vector3i bpos = node_pos + (block_offset_lod0 >> parent_lod_index);
+				Vector3i bpos = node_pos + (chunk_offset_lod0 >> parent_lod_index);
 				auto chunk_mesh_it = lod.mesh_map_state.map.find(bpos);
 
 				if (chunk_mesh_it == lod.mesh_map_state.map.end()) {
@@ -750,15 +750,15 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 		};
 
 		const Vector3i chunk_pos_maxlod = octree_it->first;
-		const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
-		const Vector3 relative_viewer_pos = p_viewer_pos - Vector3(chunk_mesh_size * block_offset_lod0);
+		const Vector3i chunk_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
+		const Vector3 relative_viewer_pos = p_viewer_pos - Vector3(chunk_mesh_size * chunk_offset_lod0);
 
 		OctreeActions octree_actions{ //
 			state, //
 			settings, //
 			data, //
 			chunks_to_load, //
-			block_offset_lod0, //
+			chunk_offset_lod0, //
 			0, //
 			lod_distance_octree_space, //
 			relative_viewer_pos / octree_leaf_node_size, //

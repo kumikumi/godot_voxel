@@ -2676,13 +2676,13 @@ void VoxelLodTerrain::update_gizmos() {
 			const LodOctree &octree = it->second.octree;
 
 			const Vector3i chunk_pos_maxlod = it->first;
-			const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
+			const Vector3i chunk_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
 
-			octree.for_each_leaf([&dr, block_offset_lod0, chunk_mesh_size, parent_transform, lod_count_f](
+			octree.for_each_leaf([&dr, chunk_offset_lod0, chunk_mesh_size, parent_transform, lod_count_f](
 										 Vector3i node_pos, int lod_index, const LodOctree::NodeData &node_data) {
 				//
 				const int size = chunk_mesh_size << lod_index;
-				const Vector3i voxel_pos = chunk_mesh_size * ((node_pos << lod_index) + block_offset_lod0);
+				const Vector3i voxel_pos = chunk_mesh_size * ((node_pos << lod_index) + chunk_offset_lod0);
 				const Transform3D local_transform(Basis().scaled(Vector3(size, size, size)), voxel_pos);
 				const Transform3D t = parent_transform * local_transform;
 				// Squaring because lower lod indexes are more interesting to see, so we give them more contrast.

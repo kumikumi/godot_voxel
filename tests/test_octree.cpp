@@ -75,8 +75,8 @@ void test_octree_update() {
 		LodOctree &octree = it->second;
 
 		const Vector3i chunk_pos_maxlod = it->first;
-		const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
-		const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(block_offset_lod0);
+		const Vector3i chunk_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
+		const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(chunk_offset_lod0);
 
 		OctreeActions actions;
 		actions.viewer_pos_octree_space = viewer_pos / chunk_size;
@@ -110,8 +110,8 @@ void test_octree_update() {
 			LodOctree &octree = it->second;
 
 			const Vector3i chunk_pos_maxlod = it->first;
-			const Vector3i block_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
-			const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(block_offset_lod0);
+			const Vector3i chunk_offset_lod0 = chunk_pos_maxlod << (lod_count - 1);
+			const Vector3 relative_viewer_pos = viewer_pos - chunk_size_v * Vector3(chunk_offset_lod0);
 
 			OctreeActions actions;
 			actions.viewer_pos_octree_space = viewer_pos / chunk_size;
