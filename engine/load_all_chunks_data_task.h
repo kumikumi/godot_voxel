@@ -1,5 +1,5 @@
-#ifndef LOAD_ALL_BLOCKS_DATA_TASK_H
-#define LOAD_ALL_BLOCKS_DATA_TASK_H
+#ifndef LOAD_ALL_CHUNKS_DATA_TASK_H
+#define LOAD_ALL_CHUNKS_DATA_TASK_H
 
 #include "../streams/voxel_stream.h"
 #include "../util/tasks/threaded_task.h"
@@ -31,4 +31,4 @@ private:
 
 } // namespace zylann::voxel
 
-#endif // LOAD_ALL_BLOCKS_DATA_TASK_H
+#endif // LOAD_ALL_CHUNKS_DATA_TASK_H

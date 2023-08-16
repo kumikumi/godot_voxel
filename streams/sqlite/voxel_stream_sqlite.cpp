@@ -93,7 +93,7 @@ public:
 	bool save_chunk(BlockLocation loc, const std::vector<uint8_t> &chunk_data, BlockType type);
 	VoxelStream::ResultCode load_chunk(BlockLocation loc, std::vector<uint8_t> &out_chunk_data, BlockType type);
 
-	bool load_all_blocks(void *callback_data,
+	bool load_all_chunks(void *callback_data,
 			void (*process_block_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
 					Span<const uint8_t> instances_data));
 
@@ -142,7 +142,7 @@ private:
 	sqlite3_stmt *_save_meta_statement = nullptr;
 	sqlite3_stmt *_load_channels_statement = nullptr;
 	sqlite3_stmt *_save_channel_statement = nullptr;
-	sqlite3_stmt *_load_all_blocks_statement = nullptr;
+	sqlite3_stmt *_load_all_chunks_statement = nullptr;
 	sqlite3_stmt *_load_all_block_keys_statement = nullptr;
 };
 
@@ -217,7 +217,7 @@ bool VoxelStreamSQLiteInternal::open(const char *fpath) {
 				"ON CONFLICT(idx) DO UPDATE SET depth=excluded.depth")) {
 		return false;
 	}
-	if (!prepare(db, &_load_all_blocks_statement, "SELECT * FROM blocks")) {
+	if (!prepare(db, &_load_all_chunks_statement, "SELECT * FROM blocks")) {
 		return false;
 	}
 	if (!prepare(db, &_load_all_block_keys_statement, "SELECT loc FROM blocks")) {
@@ -257,7 +257,7 @@ void VoxelStreamSQLiteInternal::close() {
 	finalize(_save_meta_statement);
 	finalize(_load_channels_statement);
 	finalize(_save_channel_statement);
-	finalize(_load_all_blocks_statement);
+	finalize(_load_all_chunks_statement);
 	finalize(_load_all_block_keys_statement);
 	sqlite3_close(_db);
 	_db = nullptr;
@@ -408,37 +408,37 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 	return result;
 }
 
-bool VoxelStreamSQLiteInternal::load_all_blocks(void *callback_data,
+bool VoxelStreamSQLiteInternal::load_all_chunks(void *callback_data,
 		void (*process_block_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
 				Span<const uint8_t> instances_data)) {
 	ZN_PROFILE_SCOPE();
 	CRASH_COND(process_block_func == nullptr);
 
 	sqlite3 *db = _db;
-	sqlite3_stmt *load_all_blocks_statement = _load_all_blocks_statement;
+	sqlite3_stmt *load_all_chunks_statement = _load_all_chunks_statement;
 
 	int rc;
 
-	rc = sqlite3_reset(load_all_blocks_statement);
+	rc = sqlite3_reset(load_all_chunks_statement);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return false;
 	}
 
 	while (true) {
-		rc = sqlite3_step(load_all_blocks_statement);
+		rc = sqlite3_step(load_all_chunks_statement);
 
 		if (rc == SQLITE_ROW) {
 			ZN_PROFILE_SCOPE_NAMED("Row");
 
-			const uint64_t eloc = sqlite3_column_int64(load_all_blocks_statement, 0);
+			const uint64_t eloc = sqlite3_column_int64(load_all_chunks_statement, 0);
 			const BlockLocation loc = BlockLocation::decode(eloc);
 
-			const void *voxels_blob = sqlite3_column_blob(load_all_blocks_statement, 1);
-			const size_t voxels_blob_size = sqlite3_column_bytes(load_all_blocks_statement, 1);
+			const void *voxels_blob = sqlite3_column_blob(load_all_chunks_statement, 1);
+			const size_t voxels_blob_size = sqlite3_column_bytes(load_all_chunks_statement, 1);
 
-			const void *instances_blob = sqlite3_column_blob(load_all_blocks_statement, 2);
-			const size_t instances_blob_size = sqlite3_column_bytes(load_all_blocks_statement, 2);
+			const void *instances_blob = sqlite3_column_blob(load_all_chunks_statement, 2);
+			const size_t instances_blob_size = sqlite3_column_bytes(load_all_chunks_statement, 2);
 
 			// Using a function pointer because returning a big list of a copy of all the blobs can
 			// waste a lot of temporary memory
@@ -885,7 +885,7 @@ void VoxelStreamSQLite::save_instance_blocks(Span<VoxelStream::InstancesQueryDat
 	}
 }
 
-void VoxelStreamSQLite::load_all_blocks(FullLoadingResult &result) {
+void VoxelStreamSQLite::load_all_chunks(FullLoadingResult &result) {
 	ZN_PROFILE_SCOPE();
 
 	VoxelStreamSQLiteInternal *con = get_connection();
@@ -939,7 +939,7 @@ void VoxelStreamSQLite::load_all_blocks(FullLoadingResult &result) {
 	// Had to suffix `_outer`,
 	// because otherwise GCC thinks it shadows a variable inside the local function/captureless lambda
 	Context ctx_outer{ result };
-	const bool request_result = con->load_all_blocks(&ctx_outer, L::process_block_func);
+	const bool request_result = con->load_all_chunks(&ctx_outer, L::process_block_func);
 	ERR_FAIL_COND(request_result == false);
 }
 

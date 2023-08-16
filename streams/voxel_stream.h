@@ -92,7 +92,7 @@ public:
 		return false;
 	}
 
-	virtual void load_all_blocks(FullLoadingResult &result);
+	virtual void load_all_chunks(FullLoadingResult &result);
 
 	// Tells which channels can be found in this stream.
 	// The simplest implementation is to return them all.

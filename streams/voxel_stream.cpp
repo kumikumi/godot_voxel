@@ -47,8 +47,8 @@ void VoxelStream::save_instance_blocks(Span<InstancesQueryData> p_blocks) {
 	// Can be implemented in subclasses
 }
 
-void VoxelStream::load_all_blocks(FullLoadingResult &result) {
-	ZN_PRINT_ERROR(format("{} does not support `load_all_blocks`", get_class()));
+void VoxelStream::load_all_chunks(FullLoadingResult &result) {
+	ZN_PRINT_ERROR(format("{} does not support `load_all_chunks`", get_class()));
 }
 
 int VoxelStream::get_used_channels_mask() const {

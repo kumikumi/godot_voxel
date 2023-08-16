@@ -9,7 +9,7 @@
 #include "../util/profiling.h"
 #include "../util/string_funcs.h"
 #include "generate_chunk_task.h"
-#include "load_all_blocks_data_task.h"
+#include "load_all_chunks_data_task.h"
 #include "load_chunk_data_task.h"
 #include "chunk_mesh_task.h"
 #include "save_chunk_data_task.h"

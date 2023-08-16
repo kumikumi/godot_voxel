@@ -2,7 +2,7 @@
 #include "../../constants/voxel_string_names.h"
 #include "../../edition/voxel_tool_lod_terrain.h"
 #include "../../engine/detail_rendering.h"
-#include "../../engine/load_all_blocks_data_task.h"
+#include "../../engine/load_all_chunks_data_task.h"
 #include "../../engine/voxel_engine_gd.h"
 #include "../../engine/voxel_engine_updater.h"
 #include "../../meshers/blocky/voxel_mesher_blocky.h"

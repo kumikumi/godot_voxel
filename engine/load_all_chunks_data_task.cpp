@@ -1,4 +1,4 @@
-#include "load_all_blocks_data_task.h"
+#include "load_all_chunks_data_task.h"
 #include "../storage/voxel_data.h"
 #include "../util/log.h"
 #include "../util/profiling.h"
@@ -14,7 +14,7 @@ void LoadAllBlocksDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	Ref<VoxelStream> stream = stream_dependency->stream;
 	CRASH_COND(stream.is_null());
 
-	stream->load_all_blocks(_result);
+	stream->load_all_chunks(_result);
 
 	ZN_PRINT_VERBOSE(format("Loaded {} blocks for volume {}", _result.blocks.size(), volume_id));
 }

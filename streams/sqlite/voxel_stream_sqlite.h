@@ -43,7 +43,7 @@ public:
 	bool supports_loading_all_blocks() const override {
 		return true;
 	}
-	void load_all_blocks(FullLoadingResult &result) override;
+	void load_all_chunks(FullLoadingResult &result) override;
 
 	int get_used_channels_mask() const override;
 
