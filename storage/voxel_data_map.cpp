@@ -203,7 +203,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 		for (bpos.x = min_block_pos.x; bpos.x < max_block_pos.x; ++bpos.x) {
 			for (bpos.y = min_block_pos.y; bpos.y < max_block_pos.y; ++bpos.y) {
 				const VoxelChunkData *block = get_block(bpos);
-				const Vector3i src_block_origin = chunk_to_voxel(bpos);
+				const Vector3i src_chunk_origin = chunk_to_voxel(bpos);
 
 				if (block != nullptr && block->has_voxels()) {
 					const VoxelBufferInternal &src_buffer = block->get_voxels_const();
@@ -213,7 +213,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 						dst_buffer.set_channel_depth(channel, src_buffer.get_channel_depth(channel));
 						// Note: copy_from takes care of clamping the area if it's on an edge
 						dst_buffer.copy_from(
-								src_buffer, min_pos - src_block_origin, src_buffer.get_size(), Vector3i(), channel);
+								src_buffer, min_pos - src_chunk_origin, src_buffer.get_size(), Vector3i(), channel);
 					}
 
 				} else if (gen_func != nullptr) {
@@ -235,7 +235,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 						// For now, inexistent chunks default to hardcoded defaults, corresponding to "empty space".
 						// If we want to change this, we may have to add an API for that.
 						dst_buffer.fill_area(VoxelBufferInternal::get_default_value_static(channel),
-								src_block_origin - min_pos, src_block_origin - min_pos + chunk_size_v, channel);
+								src_chunk_origin - min_pos, src_chunk_origin - min_pos + chunk_size_v, channel);
 					}
 				}
 			}
@@ -272,12 +272,12 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 					// TODO In this situation, the generator has to be invoked to fill the blanks
 					ZN_ASSERT_CONTINUE_MSG(block->has_voxels(), "Area not cached");
 
-					const Vector3i dst_block_origin = chunk_to_voxel(bpos);
+					const Vector3i dst_chunk_origin = chunk_to_voxel(bpos);
 
 					VoxelBufferInternal &dst_buffer = block->get_voxels();
 
 					if (use_mask) {
-						const Box3i dst_box(min_pos - dst_block_origin, src_buffer.get_size());
+						const Box3i dst_box(min_pos - dst_chunk_origin, src_buffer.get_size());
 
 						const Vector3i src_offset = -dst_box.pos;
 
@@ -305,7 +305,7 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 
 					} else {
 						dst_buffer.copy_from(
-								src_buffer, Vector3i(), src_buffer.get_size(), min_pos - dst_block_origin, channel);
+								src_buffer, Vector3i(), src_buffer.get_size(), min_pos - dst_chunk_origin, channel);
 					}
 				}
 			}

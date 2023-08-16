@@ -146,10 +146,10 @@ public:
 				block = create_default_chunk(block_pos);
 				gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 			}
-			const Vector3i block_origin = chunk_to_voxel(block_pos);
-			Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
+			const Vector3i chunk_origin = chunk_to_voxel(block_pos);
+			Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 			local_box.clip(Box3i(Vector3i(), chunk_size));
-			block->get_voxels().write_box(local_box, channel, action, block_origin);
+			block->get_voxels().write_box(local_box, channel, action, chunk_origin);
 		});
 	}
 
@@ -170,11 +170,11 @@ public:
 						block = create_default_chunk(block_pos);
 						gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 					}
-					const Vector3i block_origin = chunk_to_voxel(block_pos);
-					Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
+					const Vector3i chunk_origin = chunk_to_voxel(block_pos);
+					Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 					local_box.clip(Box3i(Vector3i(), chunk_size));
 					block->get_voxels().write_box_2_template<F, uint16_t, uint16_t>(
-							local_box, channel0, channel1, action, block_origin);
+							local_box, channel0, channel1, action, chunk_origin);
 				});
 	}
 

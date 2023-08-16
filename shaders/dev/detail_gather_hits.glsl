@@ -39,7 +39,7 @@ layout (set = 0, binding = 3, std430) restrict readonly buffer AtlasInfo {
 } u_tile_data;
 
 layout (set = 0, binding = 4, std430) restrict readonly buffer Params {
-	vec3 block_origin_world;
+	vec3 chunk_origin_world;
 	// How big is a pixel of the atlas in world space
 	float pixel_world_step;
 	int tile_size_pixels;
@@ -164,7 +164,7 @@ void main() {
 		+ tile_index * u_params.tile_size_pixels * u_params.tile_size_pixels;
 
 	if (nearest_hit_tri_index != -1) {
-		const vec3 hit_pos_world = ray_origin_mesh + ray_dir * nearest_hit_distance + u_params.block_origin_world;
+		const vec3 hit_pos_world = ray_origin_mesh + ray_dir * nearest_hit_distance + u_params.chunk_origin_world;
 		u_hits.positions[index] = vec4(hit_pos_world, nearest_hit_tri_index);
 	} else {
 		u_hits.positions[index] = vec4(0.0, 0.0, 0.0, -1.0);

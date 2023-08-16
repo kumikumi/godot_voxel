@@ -40,7 +40,7 @@ public:
 	std::vector<TileData> tile_data;
 
 	struct Params {
-		Vector3f block_origin_world;
+		Vector3f chunk_origin_world;
 		float pixel_world_step;
 		float max_deviation_cosine;
 		float max_deviation_sine;

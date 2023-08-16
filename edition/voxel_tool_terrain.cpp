@@ -321,7 +321,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	for (int bi = 0; bi < block_count; ++bi) {
 		const Vector3i block_pos = block_box.pos + L::urand_vec3i(random, block_box.size);
 
-		const Vector3i block_origin = data.chunk_to_voxel(block_pos);
+		const Vector3i chunk_origin = data.chunk_to_voxel(block_pos);
 
 		picks.clear();
 
@@ -346,9 +346,9 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 					}
 				}
 
-				const Box3i block_voxel_box(block_origin, Vector3iUtil::create(chunk_size));
+				const Box3i block_voxel_box(chunk_origin, Vector3iUtil::create(chunk_size));
 				Box3i local_voxel_box = voxel_box.clipped(block_voxel_box);
-				local_voxel_box.pos -= block_origin;
+				local_voxel_box.pos -= chunk_origin;
 				const float volume_ratio = Vector3iUtil::get_volume(local_voxel_box.size) / block_volume;
 				const int local_batch_count = Math::ceil(batch_count * volume_ratio);
 
@@ -373,7 +373,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 				const VoxelBlockyModel::BakedData &vt = lib_data.models[pick.value];
 
 				if (vt.is_random_tickable) {
-					ERR_FAIL_COND(!callback(callback_data, pick.rpos + block_origin, pick.value));
+					ERR_FAIL_COND(!callback(callback_data, pick.rpos + chunk_origin, pick.value));
 				}
 			}
 		}
@@ -460,15 +460,15 @@ void VoxelToolTerrain::for_each_voxel_metadata_in_area(AABB voxel_area, const Ca
 			return;
 		}
 
-		const Vector3i block_origin = block_pos * data.get_chunk_size();
-		const Box3i rel_voxel_box(voxel_box.pos - block_origin, voxel_box.size);
+		const Vector3i chunk_origin = block_pos * data.get_chunk_size();
+		const Box3i rel_voxel_box(voxel_box.pos - chunk_origin, voxel_box.size);
 		// TODO Worth it locking chunks for metadata?
 
 #if defined(ZN_GODOT)
 		voxels_ptr->for_each_voxel_metadata_in_area(
-				rel_voxel_box, [&callback, block_origin](Vector3i rel_pos, const VoxelMetadata &meta) {
+				rel_voxel_box, [&callback, chunk_origin](Vector3i rel_pos, const VoxelMetadata &meta) {
 					Variant v = gd::get_as_variant(meta);
-					const Variant key = rel_pos + block_origin;
+					const Variant key = rel_pos + chunk_origin;
 					const Variant *args[2] = { &key, &v };
 					Callable::CallError err;
 					Variant retval; // We don't care about the return value, Callable API requires it

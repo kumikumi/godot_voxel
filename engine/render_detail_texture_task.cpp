@@ -210,7 +210,7 @@ RenderDetailTextureGPUTask *RenderDetailTextureTask::make_gpu_task() {
 	ZN_ASSERT(cell_triangles.size() > 0);
 
 	RenderDetailTextureGPUTask::Params params;
-	params.block_origin_world = to_vec3f(origin_in_voxels);
+	params.chunk_origin_world = to_vec3f(origin_in_voxels);
 	params.pixel_world_step = float(1 << lod_index) / float(tile_resolution);
 	params.max_deviation_cosine = Math::cos(math::deg_to_rad(float(detail_texture_settings.max_deviation_degrees)));
 	params.max_deviation_sine = Math::sin(math::deg_to_rad(float(detail_texture_settings.max_deviation_degrees)));

@@ -141,14 +141,14 @@ void RenderDetailTextureGPUTask::prepare(GPUTaskContext &ctx) {
 	// Gather hits params
 
 	struct GatherHitsParams {
-		Vector3f block_origin_world;
+		Vector3f chunk_origin_world;
 		float pixel_world_step;
 		int32_t tile_size_pixels;
 	};
 
 	PackedByteArray gather_hits_params_pba;
 	copy_bytes_to(gather_hits_params_pba,
-			GatherHitsParams{ params.block_origin_world, params.pixel_world_step, params.tile_size_pixels });
+			GatherHitsParams{ params.chunk_origin_world, params.pixel_world_step, params.tile_size_pixels });
 
 	// TODO Might be better to use a Uniform Buffer for this. They might be faster for small amounts of data, but need
 	// to care more about alignment

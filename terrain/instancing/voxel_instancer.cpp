@@ -1392,7 +1392,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 			ZN_PROFILE_SCOPE();
 			const unsigned int instance_count = render_block.scene_instances.size();
 
-			const Vector3 render_block_origin = render_block_pos * render_chunk_size;
+			const Vector3 render_chunk_origin = render_block_pos * render_chunk_size;
 
 			if (render_to_data_factor == 1) {
 				layer_data.instances.resize(instance_count);
@@ -1401,7 +1401,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 					const SceneInstance instance = render_block.scene_instances[instance_index];
 					ERR_CONTINUE(instance.root == nullptr);
 					layer_data.instances[instance_index].transform =
-							to_transform3f(instance.root->get_transform().translated(-render_block_origin));
+							to_transform3f(instance.root->get_transform().translated(-render_chunk_origin));
 				}
 
 			} else if (render_to_data_factor == 2) {
@@ -1409,7 +1409,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 					const SceneInstance instance = render_block.scene_instances[instance_index];
 					ERR_CONTINUE(instance.root == nullptr);
 					Transform3D t = instance.root->get_transform();
-					t.origin -= render_block_origin;
+					t.origin -= render_chunk_origin;
 					const int instance_octant_index =
 							VoxelInstanceGenerator::get_octant_index(to_vec3f(t.origin), half_render_chunk_size);
 					if (instance_octant_index == octant_index) {

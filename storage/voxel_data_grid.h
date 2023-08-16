@@ -184,10 +184,10 @@ private:
 					if (block == nullptr) {
 						continue;
 					}
-					const Vector3i block_origin = block_rpos * _chunk_size + area_origin_in_voxels;
-					Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
+					const Vector3i chunk_origin = block_rpos * _chunk_size + area_origin_in_voxels;
+					Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 					local_box.clip(Box3i(Vector3i(), Vector3iUtil::create(_chunk_size)));
-					block_action(*block, local_box, block_origin);
+					block_action(*block, local_box, chunk_origin);
 				}
 			}
 		}
