@@ -1195,10 +1195,10 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			// ERR_CONTINUE(chunk == nullptr);
 			bool with_fading = false;
 			if (_lod_fade_duration > 0.f) {
-				const Vector3 block_center = volume_transform.xform(
+				const Vector3 chunk_center = volume_transform.xform(
 						to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 				// Don't start fading on chunks behind the camera
-				with_fading = camera.forward.dot(block_center - camera.position) > 0.0;
+				with_fading = camera.forward.dot(chunk_center - camera.position) > 0.0;
 			}
 			set_chunk_mesh_active(*block, true, with_fading);
 			activated_blocks.insert(block);
@@ -1214,10 +1214,10 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			// ERR_CONTINUE(chunk == nullptr);
 			bool with_fading = false;
 			if (_lod_fade_duration > 0.f) {
-				const Vector3 block_center = volume_transform.xform(
+				const Vector3 chunk_center = volume_transform.xform(
 						to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 				// Don't start fading on chunks behind the camera
-				with_fading = camera.forward.dot(block_center - camera.position) > 0.0;
+				with_fading = camera.forward.dot(chunk_center - camera.position) > 0.0;
 			}
 			set_chunk_mesh_active(*block, false, with_fading);
 		}
@@ -1275,11 +1275,11 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 						activated_blocks.find(block) == activated_blocks.end() &&
 						tu.transition_mask != block->get_transition_mask()) {
 					//
-					const Vector3 block_center = volume_transform.xform(
+					const Vector3 chunk_center = volume_transform.xform(
 							to_vec3(block->position * chunk_mesh_size + Vector3iUtil::create(chunk_mesh_size / 2)));
 
 					// Don't do fading for chunks behind the camera.
-					if (camera.forward.dot(block_center - camera.position) > 0.f) {
+					if (camera.forward.dot(chunk_center - camera.position) > 0.f) {
 						FadingOutMesh item;
 
 						item.local_position = block->position * chunk_mesh_size;

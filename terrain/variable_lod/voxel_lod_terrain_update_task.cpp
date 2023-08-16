@@ -823,7 +823,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 #endif
 }
 
-inline Vector3i get_block_center(Vector3i pos, int bs, int lod) {
+inline Vector3i get_chunk_center(Vector3i pos, int bs, int lod) {
 	return (pos << lod) * bs + Vector3iUtil::create(bs / 2);
 }
 
@@ -831,7 +831,7 @@ static void init_sparse_octree_priority_dependency(PriorityDependency &dep, Vect
 		int chunk_size, std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data,
 		const Transform3D &volume_transform, float octree_lod_distance) {
 	//
-	const Vector3i voxel_pos = get_block_center(chunk_position, chunk_size, lod);
+	const Vector3i voxel_pos = get_chunk_center(chunk_position, chunk_size, lod);
 	const float block_radius = (chunk_size << lod) / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);

@@ -418,8 +418,8 @@ void VoxelInstancer::process_mesh_lods() {
 
 		const int lod_chunk_size = chunk_size << lod_index;
 		const int hs = lod_chunk_size >> 1;
-		const Vector3 block_center_local(block.grid_position * lod_chunk_size + Vector3i(hs, hs, hs));
-		const float distance_squared = cam_pos_local.distance_squared_to(block_center_local);
+		const Vector3 chunk_center_local(block.grid_position * lod_chunk_size + Vector3i(hs, hs, hs));
+		const float distance_squared = cam_pos_local.distance_squared_to(chunk_center_local);
 
 		if (block.current_mesh_lod + 1 < mesh_lod_count &&
 				distance_squared > lod.mesh_lod_distances[block.current_mesh_lod].enter_distance_squared) {

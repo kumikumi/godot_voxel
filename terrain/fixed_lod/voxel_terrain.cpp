@@ -818,13 +818,13 @@ void VoxelTerrain::_notification(int p_what) {
 	}
 }
 
-inline Vector3i get_block_center(Vector3i pos, int bs) {
+inline Vector3i get_chunk_center(Vector3i pos, int bs) {
 	return pos * bs + Vector3iUtil::create(bs / 2);
 }
 
 static void init_sparse_grid_priority_dependency(PriorityDependency &dep, Vector3i chunk_position, int chunk_size,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, const Transform3D &volume_transform) {
-	const Vector3i voxel_pos = get_block_center(chunk_position, chunk_size);
+	const Vector3i voxel_pos = get_chunk_center(chunk_position, chunk_size);
 	const float block_radius = chunk_size / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);
