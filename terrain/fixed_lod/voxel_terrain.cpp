@@ -641,7 +641,7 @@ void VoxelTerrain::generate_chunk_async(Vector3i block_position) {
 	// }
 
 	LoadingBlock new_loading_block;
-	const Box3i block_box(_data->block_to_voxel(block_position), Vector3iUtil::create(_data->get_chunk_size()));
+	const Box3i block_box(_data->chunk_to_voxel(block_position), Vector3iUtil::create(_data->get_chunk_size()));
 	for (size_t i = 0; i < _paired_viewers.size(); ++i) {
 		const PairedViewer &viewer = _paired_viewers[i];
 		if (viewer.state.data_box.intersects(block_box)) {
@@ -1447,7 +1447,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	// TODO Optimize: initial loading can hang for a while here.
 	// Because lots of chunks are loaded at once, which leads to many chunk queries.
 	try_schedule_mesh_update_from_data(
-			Box3i(_data->block_to_voxel(block_pos), Vector3iUtil::create(get_chunk_size())));
+			Box3i(_data->chunk_to_voxel(block_pos), Vector3iUtil::create(get_chunk_size())));
 
 	// We might have requested some chunks again (if we got a dropped one while we still need them)
 	// if (stream_enabled) {
@@ -1505,7 +1505,7 @@ bool VoxelTerrain::try_set_block_data(Vector3i position, std::shared_ptr<VoxelBu
 
 	// The chunk itself might not be suitable for meshing yet, but chunks surrounding it might be now
 	try_schedule_mesh_update_from_data(
-			Box3i(_data->block_to_voxel(position), Vector3iUtil::create(get_chunk_size())));
+			Box3i(_data->chunk_to_voxel(position), Vector3iUtil::create(get_chunk_size())));
 
 	return true;
 }
@@ -1792,7 +1792,7 @@ Vector3i VoxelTerrain::_b_voxel_to_chunk(Vector3 pos) const {
 }
 
 Vector3i VoxelTerrain::_b_chunk_to_voxel(Vector3i pos) const {
-	return _data->block_to_voxel(pos);
+	return _data->chunk_to_voxel(pos);
 }
 
 Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_blocks() {

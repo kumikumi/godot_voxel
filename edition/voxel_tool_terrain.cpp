@@ -321,7 +321,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	for (int bi = 0; bi < block_count; ++bi) {
 		const Vector3i block_pos = block_box.pos + L::urand_vec3i(random, block_box.size);
 
-		const Vector3i block_origin = data.block_to_voxel(block_pos);
+		const Vector3i block_origin = data.chunk_to_voxel(block_pos);
 
 		picks.clear();
 

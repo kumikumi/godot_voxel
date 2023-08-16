@@ -44,7 +44,7 @@ public:
 	}
 
 	// Converts chunk coordinates into voxel coordinates.
-	inline Vector3i block_to_voxel(Vector3i bpos) const {
+	inline Vector3i chunk_to_voxel(Vector3i bpos) const {
 		return bpos * CHUNK_SIZE;
 	}
 
@@ -146,7 +146,7 @@ public:
 				block = create_default_chunk(block_pos);
 				gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 			}
-			const Vector3i block_origin = block_to_voxel(block_pos);
+			const Vector3i block_origin = chunk_to_voxel(block_pos);
 			Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
 			local_box.clip(Box3i(Vector3i(), chunk_size));
 			block->get_voxels().write_box(local_box, channel, action, block_origin);
@@ -170,7 +170,7 @@ public:
 						block = create_default_chunk(block_pos);
 						gen_func(block->get_voxels(), block_pos << get_chunk_size_pow2());
 					}
-					const Vector3i block_origin = block_to_voxel(block_pos);
+					const Vector3i block_origin = chunk_to_voxel(block_pos);
 					Box3i local_box(voxel_box.pos - block_origin, voxel_box.size);
 					local_box.clip(Box3i(Vector3i(), chunk_size));
 					block->get_voxels().write_box_2_template<F, uint16_t, uint16_t>(

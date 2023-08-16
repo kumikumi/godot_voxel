@@ -203,7 +203,7 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 		for (bpos.x = min_block_pos.x; bpos.x < max_block_pos.x; ++bpos.x) {
 			for (bpos.y = min_block_pos.y; bpos.y < max_block_pos.y; ++bpos.y) {
 				const VoxelChunkData *block = get_block(bpos);
-				const Vector3i src_block_origin = block_to_voxel(bpos);
+				const Vector3i src_block_origin = chunk_to_voxel(bpos);
 
 				if (block != nullptr && block->has_voxels()) {
 					const VoxelBufferInternal &src_buffer = block->get_voxels_const();
@@ -272,7 +272,7 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 					// TODO In this situation, the generator has to be invoked to fill the blanks
 					ZN_ASSERT_CONTINUE_MSG(block->has_voxels(), "Area not cached");
 
-					const Vector3i dst_block_origin = block_to_voxel(bpos);
+					const Vector3i dst_block_origin = chunk_to_voxel(bpos);
 
 					VoxelBufferInternal &dst_buffer = block->get_voxels();
 

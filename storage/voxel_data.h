@@ -38,8 +38,8 @@ public:
 		return _lods[0].map.voxel_to_block(pos);
 	}
 
-	inline Vector3i block_to_voxel(Vector3i pos) const {
-		return _lods[0].map.block_to_voxel(pos);
+	inline Vector3i chunk_to_voxel(Vector3i pos) const {
+		return _lods[0].map.chunk_to_voxel(pos);
 	}
 
 	void set_lod_count(unsigned int p_lod_count);
