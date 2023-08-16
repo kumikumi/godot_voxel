@@ -1,7 +1,7 @@
 // Generated file
 
 // clang-format off
-const char *g_block_modifier_shader_template_0 =
+const char *g_chunk_modifier_shader_template_0 =
 "#version 450\n"
 "\n"
 "layout (local_size_x = 4, local_size_y = 4, local_size_z = 4) in;\n"
@@ -30,7 +30,7 @@ const char *g_block_modifier_shader_template_0 =
 // clang-format on
 
 // clang-format off
-const char *g_block_modifier_shader_template_1 =
+const char *g_chunk_modifier_shader_template_1 =
 "\n"
 "float sd_smooth_union(float a, float b, float s) {\n"
 "	const float h = clamp(0.5 + 0.5 * (b - a) / s, 0.0, 1.0);\n"

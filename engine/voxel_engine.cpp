@@ -113,13 +113,13 @@ void VoxelEngine::load_shaders() {
 						String(g_modifier_mesh_shader_snippet) + String(g_detail_modifier_shader_template_1),
 				"zylann.voxel.detail_modifier_mesh_shader");
 
-		_block_modifier_sphere_shader.load_from_glsl(String(g_block_modifier_shader_template_0) +
-						String(g_modifier_sphere_shader_snippet) + String(g_block_modifier_shader_template_1),
-				"zylann.voxel.block_modifier_sphere_shader");
+		_chunk_modifier_sphere_shader.load_from_glsl(String(g_chunk_modifier_shader_template_0) +
+						String(g_modifier_sphere_shader_snippet) + String(g_chunk_modifier_shader_template_1),
+				"zylann.voxel.chunk_modifier_sphere_shader");
 
-		_block_modifier_mesh_shader.load_from_glsl(String(g_block_modifier_shader_template_0) +
-						String(g_modifier_mesh_shader_snippet) + String(g_block_modifier_shader_template_1),
-				"zylann.voxel.block_modifier_mesh_shader");
+		_chunk_modifier_mesh_shader.load_from_glsl(String(g_chunk_modifier_shader_template_0) +
+						String(g_modifier_mesh_shader_snippet) + String(g_chunk_modifier_shader_template_1),
+				"zylann.voxel.chunk_modifier_mesh_shader");
 	}
 }
 
@@ -140,8 +140,8 @@ VoxelEngine::~VoxelEngine() {
 		_detail_normalmap_shader.clear();
 		_detail_modifier_sphere_shader.clear();
 		_detail_modifier_mesh_shader.clear();
-		_block_modifier_sphere_shader.clear();
-		_block_modifier_mesh_shader.clear();
+		_chunk_modifier_sphere_shader.clear();
+		_chunk_modifier_mesh_shader.clear();
 
 		free_rendering_device_rid(*_rendering_device, _filtering_sampler_rid);
 		_filtering_sampler_rid = RID();

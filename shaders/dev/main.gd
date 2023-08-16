@@ -82,7 +82,7 @@ func _export_to_cpp():
 	)
 
 	TextToCpp.export_to_cpp(
-		"block_modifier_template.glsl",
-		root + "block_modifier_shader_template.h", 
-		"g_block_modifier_shader_template"
+		"chunk_modifier_template.glsl",
+		root + "chunk_modifier_shader_template.h", 
+		"g_chunk_modifier_shader_template"
 	)
