@@ -61,9 +61,9 @@ VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 #ifdef DEBUG_ENABLED
 	ZN_ASSERT_RETURN_V(!has_block(bpos), nullptr);
 #endif
-	VoxelChunkData &map_block = _chunks_map[bpos];
-	map_block = VoxelChunkData(buffer, _lod_index);
-	return &map_block;
+	VoxelChunkData &map_chunk = _chunks_map[bpos];
+	map_chunk = VoxelChunkData(buffer, _lod_index);
+	return &map_chunk;
 }
 
 VoxelChunkData *VoxelDataMap::get_or_create_chunk_at_voxel_pos(Vector3i pos) {
@@ -126,9 +126,9 @@ VoxelChunkData *VoxelDataMap::set_chunk_buffer(
 	VoxelChunkData *block = get_block(bpos);
 
 	if (block == nullptr) {
-		VoxelChunkData &map_block = _chunks_map[bpos];
-		map_block = VoxelChunkData(buffer, _lod_index);
-		block = &map_block;
+		VoxelChunkData &map_chunk = _chunks_map[bpos];
+		map_chunk = VoxelChunkData(buffer, _lod_index);
+		block = &map_chunk;
 
 	} else if (overwrite) {
 		block->set_voxels(buffer);
@@ -153,9 +153,9 @@ VoxelChunkData *VoxelDataMap::set_empty_block(Vector3i bpos, bool overwrite) {
 	VoxelChunkData *block = get_block(bpos);
 
 	if (block == nullptr) {
-		VoxelChunkData &map_block = _chunks_map[bpos];
-		map_block = VoxelChunkData(_lod_index);
-		block = &map_block;
+		VoxelChunkData &map_chunk = _chunks_map[bpos];
+		map_chunk = VoxelChunkData(_lod_index);
+		block = &map_chunk;
 
 	} else if (overwrite) {
 		block->clear_voxels();
