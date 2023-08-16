@@ -76,9 +76,9 @@ func _export_to_cpp():
 	)
 
 	TextToCpp.export_to_cpp(
-		"block_generator_template.glsl",
-		root + "block_generator_shader_template.h", 
-		"g_block_generator_shader_template"
+		"chunk_generator_template.glsl",
+		root + "chunk_generator_shader_template.h", 
+		"g_chunk_generator_shader_template"
 	)
 
 	TextToCpp.export_to_cpp(

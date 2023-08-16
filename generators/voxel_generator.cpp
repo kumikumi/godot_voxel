@@ -179,7 +179,7 @@ std::shared_ptr<ComputeShader> compile_block_rendering_compute_shader(
 	String source_text;
 	const unsigned int generator_uniform_binding_start = 2;
 
-	source_text += g_block_generator_shader_template_0;
+	source_text += g_chunk_generator_shader_template_0;
 
 	append_generator_parameter_uniforms(source_text, out_params, shader_data, generator_uniform_binding_start);
 
@@ -192,7 +192,7 @@ std::shared_ptr<ComputeShader> compile_block_rendering_compute_shader(
 	source_text += shader_data.glsl;
 
 	// Header of main()
-	source_text += g_block_generator_shader_template_1;
+	source_text += g_chunk_generator_shader_template_1;
 
 	// Call generator function
 	{
@@ -206,11 +206,11 @@ std::shared_ptr<ComputeShader> compile_block_rendering_compute_shader(
 	}
 
 	// Footer of main()
-	source_text += g_block_generator_shader_template_2;
+	source_text += g_chunk_generator_shader_template_2;
 
 	// TODO Pick different name somehow for different generators
 	std::shared_ptr<ComputeShader> shader =
-			ComputeShader::create_from_glsl(source_text, "zylann.voxel.block_generator.gen");
+			ComputeShader::create_from_glsl(source_text, "zylann.voxel.chunk_generator.gen");
 
 	return shader;
 }

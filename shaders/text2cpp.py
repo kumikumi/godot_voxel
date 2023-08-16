@@ -172,7 +172,7 @@ def process_file(src_fpath, dst_fpath):
 
 
 if __name__ == '__main__':
-	process_file("dev/block_generator_template.glsl",                 "block_generator_shader_template.h")
+	process_file("dev/chunk_generator_template.glsl",                 "chunk_generator_shader_template.h")
 	process_file("dev/chunk_modifier_template.glsl",                  "chunk_modifier_shader_template.h")
 	process_file("dev/detail_gather_hits.glsl",                       "detail_gather_hits_shader.h")
 	process_file("dev/detail_generator_template.glsl",                "detail_generator_shader_template.h")
