@@ -136,7 +136,7 @@ private:
 	// and which position their chunk is. The same chunk can span multiple sectors.
 	// This is essentially a reverse table of `Header::chunks`.
 	std::vector<Vector3u16> _sectors;
-	uint32_t _blocks_begin_offset;
+	uint32_t _chunks_begin_offset;
 	String _file_path;
 };
 

@@ -100,8 +100,8 @@ static bool save_header(
 					block_infos.size() * sizeof(RegionBlockInfo)));
 
 #ifdef DEBUG_ENABLED
-	const size_t blocks_begin_offset = f.get_position();
-	CRASH_COND(blocks_begin_offset != get_header_size_v3(format));
+	const size_t chunks_begin_offset = f.get_position();
+	CRASH_COND(chunks_begin_offset != get_header_size_v3(format));
 #endif
 
 	return true;
@@ -330,7 +330,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	}
 
 	const unsigned int sector_index = block_info.get_sector_index();
-	const unsigned int block_begin = _blocks_begin_offset + sector_index * _header.format.sector_size;
+	const unsigned int block_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
 
 	f.seek(block_begin);
 
@@ -362,11 +362,11 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 	if (block_info.data == 0) {
 		// The chunk isn't in the file yet, append at the end
 
-		const unsigned int end_offset = _blocks_begin_offset + _sectors.size() * _header.format.sector_size;
+		const unsigned int end_offset = _chunks_begin_offset + _sectors.size() * _header.format.sector_size;
 		f.seek(end_offset);
 		const unsigned int chunk_offset = f.get_position();
 		// Check position matches the sectors rule
-		CRASH_COND((chunk_offset - _blocks_begin_offset) % _header.format.sector_size != 0);
+		CRASH_COND((chunk_offset - _chunks_begin_offset) % _header.format.sector_size != 0);
 
 		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
 		ERR_FAIL_COND_V(!res.success, ERR_INVALID_PARAMETER);
@@ -380,7 +380,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 						.format(varray(written_size, chunk_offset, end_pos)));
 		pad_to_sector_size(f);
 
-		block_info.set_sector_index((chunk_offset - _blocks_begin_offset) / _header.format.sector_size);
+		block_info.set_sector_index((chunk_offset - _chunks_begin_offset) / _header.format.sector_size);
 		block_info.set_sector_count(get_sector_count_from_bytes(written_size));
 
 		for (unsigned int i = 0; i < block_info.get_sector_count(); ++i) {
@@ -415,7 +415,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 				_header_modified = true;
 			}
 
-			const size_t chunk_offset = _blocks_begin_offset + old_sector_index * _header.format.sector_size;
+			const size_t chunk_offset = _chunks_begin_offset + old_sector_index * _header.format.sector_size;
 			f.seek(chunk_offset);
 
 			f.store_32(data.size());
@@ -433,7 +433,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 			// This also shifts the rest of the file so the freed sectors may get re-occupied.
 			remove_sectors_from_block(position, old_sector_count);
 
-			const size_t chunk_offset = _blocks_begin_offset + _sectors.size() * _header.format.sector_size;
+			const size_t chunk_offset = _chunks_begin_offset + _sectors.size() * _header.format.sector_size;
 			f.seek(chunk_offset);
 
 			f.store_32(data.size());
@@ -459,7 +459,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 }
 
 void RegionFile::pad_to_sector_size(FileAccess &f) {
-	const int64_t rpos = f.get_position() - _blocks_begin_offset;
+	const int64_t rpos = f.get_position() - _chunks_begin_offset;
 	if (rpos == 0) {
 		return;
 	}
@@ -484,14 +484,14 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 
 	FileAccess &f = **_file_access;
 	const unsigned int sector_size = _header.format.sector_size;
-	const unsigned int old_end_offset = _blocks_begin_offset + _sectors.size() * sector_size;
+	const unsigned int old_end_offset = _chunks_begin_offset + _sectors.size() * sector_size;
 
 	const unsigned int chunk_index = get_chunk_index_in_header(chunk_pos);
 	CRASH_COND(chunk_index >= _header.blocks.size());
 	RegionBlockInfo &block_info = _header.blocks[chunk_index];
 
 	unsigned int src_offset =
-			_blocks_begin_offset + (block_info.get_sector_index() + block_info.get_sector_count()) * sector_size;
+			_chunks_begin_offset + (block_info.get_sector_index() + block_info.get_sector_count()) * sector_size;
 
 	unsigned int dst_offset = src_offset - p_sector_count * sector_size;
 
@@ -499,7 +499,7 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 	CRASH_COND(src_offset - sector_size < dst_offset);
 	CRASH_COND(block_info.get_sector_index() + p_sector_count > _sectors.size());
 	CRASH_COND(p_sector_count > block_info.get_sector_count());
-	CRASH_COND(dst_offset < _blocks_begin_offset);
+	CRASH_COND(dst_offset < _chunks_begin_offset);
 
 	std::vector<uint8_t> temp;
 	temp.resize(sector_size);
@@ -552,7 +552,7 @@ bool RegionFile::save_header(FileAccess &f) {
 		ERR_FAIL_COND_V(migrate_to_latest(f) == false, false);
 	}
 	ERR_FAIL_COND_V(!zylann::voxel::save_header(f, _header.version, _header.format, _header.blocks), false);
-	_blocks_begin_offset = f.get_position();
+	_chunks_begin_offset = f.get_position();
 	_header_modified = false;
 	return true;
 }
@@ -611,7 +611,7 @@ bool RegionFile::migrate_to_latest(FileAccess &f) {
 
 Error RegionFile::load_header(FileAccess &f) {
 	ERR_FAIL_COND_V(!zylann::voxel::load_header(f, _header.version, _header.format, _header.blocks), ERR_PARSE_ERROR);
-	_blocks_begin_offset = f.get_position();
+	_chunks_begin_offset = f.get_position();
 	return OK;
 }
 
@@ -659,7 +659,7 @@ void RegionFile::debug_check() {
 			continue;
 		}
 		const unsigned int sector_index = block_info.get_sector_index();
-		const unsigned int block_begin = _blocks_begin_offset + sector_index * _header.format.sector_size;
+		const unsigned int block_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
 		if (block_begin >= file_len) {
 			ZN_PRINT_ERROR(format(
 					"LUT {} {}: offset {} is larger than file size {}", lut_index, position, block_begin, file_len));
