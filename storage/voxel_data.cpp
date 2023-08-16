@@ -211,7 +211,7 @@ VoxelSingleValue VoxelData::get_voxel(Vector3i pos, unsigned int channel_index, 
 bool VoxelData::try_set_voxel(uint64_t value, Vector3i pos, unsigned int channel_index) {
 	const Vector3i chunk_pos_lod0 = pos >> get_chunk_size_po2();
 	Lod &data_lod0 = _lods[0];
-	const Vector3i chunk_pos = data_lod0.map.voxel_to_block(pos);
+	const Vector3i chunk_pos = data_lod0.map.voxel_to_chunk(pos);
 
 	bool can_generate = false;
 	std::shared_ptr<VoxelBufferInternal> voxels = try_get_voxel_buffer_with_lock(data_lod0, chunk_pos, can_generate);
@@ -903,7 +903,7 @@ std::shared_ptr<VoxelBufferInternal> VoxelData::try_get_chunk_voxels(Vector3i bp
 void VoxelData::set_voxel_metadata(Vector3i pos, Variant meta) {
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
-	const Vector3i bpos = lod.map.voxel_to_block(pos);
+	const Vector3i bpos = lod.map.voxel_to_chunk(pos);
 	VoxelChunkData *block = lod.map.get_block(bpos);
 	ZN_ASSERT_RETURN_MSG(block != nullptr, "Area not editable");
 	VoxelSpatialLockWrite swlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
@@ -918,7 +918,7 @@ void VoxelData::set_voxel_metadata(Vector3i pos, Variant meta) {
 Variant VoxelData::get_voxel_metadata(Vector3i pos) {
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
-	const Vector3i bpos = lod.map.voxel_to_block(pos);
+	const Vector3i bpos = lod.map.voxel_to_chunk(pos);
 	VoxelChunkData *block = lod.map.get_block(bpos);
 	ZN_ASSERT_RETURN_V_MSG(block != nullptr, Variant(), "Area not editable");
 	VoxelSpatialLockRead srlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));

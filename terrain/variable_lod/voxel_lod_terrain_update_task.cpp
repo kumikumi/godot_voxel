@@ -86,7 +86,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 
 		const unsigned int chunk_size_po2_lod = chunk_size_po2 + lod_index;
 		const Vector3i viewer_chunk_pos_within_lod =
-				VoxelDataMap::voxel_to_block_b(math::floor_to_int(p_viewer_pos), chunk_size_po2_lod);
+				VoxelDataMap::voxel_to_chunk_b(math::floor_to_int(p_viewer_pos), chunk_size_po2_lod);
 
 		const Box3i bounds_in_blocks = Box3i( //
 				bounds_in_voxels.pos >> chunk_size_po2_lod, //

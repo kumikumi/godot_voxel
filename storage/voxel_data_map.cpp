@@ -46,7 +46,7 @@ unsigned int VoxelDataMap::get_lod_index() const {
 }
 
 int VoxelDataMap::get_voxel(Vector3i pos, unsigned int c) const {
-	Vector3i bpos = voxel_to_block(pos);
+	Vector3i bpos = voxel_to_chunk(pos);
 	const VoxelChunkData *block = get_block(bpos);
 	if (block == nullptr || !block->has_voxels()) {
 		return VoxelBufferInternal::get_default_value_static(c);
@@ -67,7 +67,7 @@ VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 }
 
 VoxelChunkData *VoxelDataMap::get_or_create_chunk_at_voxel_pos(Vector3i pos) {
-	Vector3i bpos = voxel_to_block(pos);
+	Vector3i bpos = voxel_to_chunk(pos);
 	VoxelChunkData *block = get_block(bpos);
 	if (block == nullptr) {
 		block = create_default_chunk(bpos);
@@ -83,7 +83,7 @@ void VoxelDataMap::set_voxel(int value, Vector3i pos, unsigned int c) {
 }
 
 float VoxelDataMap::get_voxel_f(Vector3i pos, unsigned int c) const {
-	Vector3i bpos = voxel_to_block(pos);
+	Vector3i bpos = voxel_to_chunk(pos);
 	const VoxelChunkData *block = get_block(bpos);
 	// TODO The generator needs to be invoked if the chunk has no voxels
 	if (block == nullptr || !block->has_voxels()) {
@@ -189,8 +189,8 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 	ZN_ASSERT_RETURN_MSG(Vector3iUtil::get_volume(dst_buffer.get_size()) > 0, "The area to copy is empty");
 	const Vector3i max_pos = min_pos + dst_buffer.get_size();
 
-	const Vector3i min_chunk_pos = voxel_to_block(min_pos);
-	const Vector3i max_chunk_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
+	const Vector3i min_chunk_pos = voxel_to_chunk(min_pos);
+	const Vector3i max_chunk_pos = voxel_to_chunk(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
 
 	const Vector3i chunk_size_v(get_chunk_size(), get_chunk_size(), get_chunk_size());
 
@@ -248,8 +248,8 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 	//
 	const Vector3i max_pos = min_pos + src_buffer.get_size();
 
-	const Vector3i min_chunk_pos = voxel_to_block(min_pos);
-	const Vector3i max_chunk_pos = voxel_to_block(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
+	const Vector3i min_chunk_pos = voxel_to_chunk(min_pos);
+	const Vector3i max_chunk_pos = voxel_to_chunk(max_pos - Vector3i(1, 1, 1)) + Vector3i(1, 1, 1);
 
 	Vector3i bpos;
 	for (bpos.z = min_chunk_pos.z; bpos.z < max_chunk_pos.z; ++bpos.z) {

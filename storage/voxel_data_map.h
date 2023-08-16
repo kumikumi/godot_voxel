@@ -31,12 +31,12 @@ public:
 
 	// Converts voxel coordinates into chunk coordinates.
 	// Don't use division because it introduces an offset in negative coordinates.
-	static inline Vector3i voxel_to_block_b(Vector3i pos, int chunk_size_pow2) {
+	static inline Vector3i voxel_to_chunk_b(Vector3i pos, int chunk_size_pow2) {
 		return pos >> chunk_size_pow2;
 	}
 
-	inline Vector3i voxel_to_block(Vector3i pos) const {
-		return voxel_to_block_b(pos, CHUNK_SIZE_PO2);
+	inline Vector3i voxel_to_chunk(Vector3i pos) const {
+		return voxel_to_chunk_b(pos, CHUNK_SIZE_PO2);
 	}
 
 	inline Vector3i to_local(Vector3i pos) const {

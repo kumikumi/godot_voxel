@@ -1788,7 +1788,7 @@ void VoxelTerrain::get_configuration_warnings(PackedStringArray &warnings) const
 #endif
 
 Vector3i VoxelTerrain::_b_voxel_to_chunk(Vector3 pos) const {
-	return _data->voxel_to_block(math::floor_to_int(pos));
+	return _data->voxel_to_chunk(math::floor_to_int(pos));
 }
 
 Vector3i VoxelTerrain::_b_chunk_to_voxel(Vector3i pos) const {

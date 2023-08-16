@@ -34,8 +34,8 @@ public:
 		return _lods[0].map.get_chunk_size_pow2();
 	}
 
-	inline Vector3i voxel_to_block(Vector3i pos) const {
-		return _lods[0].map.voxel_to_block(pos);
+	inline Vector3i voxel_to_chunk(Vector3i pos) const {
+		return _lods[0].map.voxel_to_chunk(pos);
 	}
 
 	inline Vector3i chunk_to_voxel(Vector3i pos) const {

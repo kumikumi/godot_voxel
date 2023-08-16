@@ -924,7 +924,7 @@ int VoxelLodTerrain::get_chunk_mesh_region_extent() const {
 Vector3i VoxelLodTerrain::voxel_to_chunk_position(Vector3 vpos, int lod_index) const {
 	ERR_FAIL_COND_V(lod_index < 0, Vector3i());
 	ERR_FAIL_COND_V(lod_index >= get_lod_count(), Vector3i());
-	const Vector3i bpos = _data->voxel_to_block(math::floor_to_int(vpos)) >> lod_index;
+	const Vector3i bpos = _data->voxel_to_chunk(math::floor_to_int(vpos)) >> lod_index;
 	return bpos;
 }
 
