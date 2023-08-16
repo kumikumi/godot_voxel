@@ -63,7 +63,7 @@ static uint32_t get_header_size_v3(const RegionFormat &format) {
 }
 
 static bool save_header(
-		FileAccess &f, uint8_t version, const RegionFormat &format, const std::vector<RegionBlockInfo> &block_infos) {
+		FileAccess &f, uint8_t version, const RegionFormat &format, const std::vector<RegionBlockInfo> &chunk_infos) {
 	f.seek(0);
 
 	store_buffer(f, Span<const uint8_t>(reinterpret_cast<const uint8_t *>(FORMAT_REGION_MAGIC), 4));
@@ -96,8 +96,8 @@ static bool save_header(
 
 	// TODO Deal with endianess, this should be little-endian
 	store_buffer(f,
-			Span<const uint8_t>(reinterpret_cast<const uint8_t *>(block_infos.data()),
-					block_infos.size() * sizeof(RegionBlockInfo)));
+			Span<const uint8_t>(reinterpret_cast<const uint8_t *>(chunk_infos.data()),
+					chunk_infos.size() * sizeof(RegionBlockInfo)));
 
 #ifdef DEBUG_ENABLED
 	const size_t chunks_begin_offset = f.get_position();
@@ -108,7 +108,7 @@ static bool save_header(
 }
 
 static bool load_header(
-		FileAccess &f, uint8_t &out_version, RegionFormat &out_format, std::vector<RegionBlockInfo> &out_block_infos) {
+		FileAccess &f, uint8_t &out_version, RegionFormat &out_format, std::vector<RegionBlockInfo> &out_chunk_infos) {
 	ERR_FAIL_COND_V(f.get_position() != 0, false);
 	ERR_FAIL_COND_V(f.get_length() < MAGIC_AND_VERSION_SIZE, false);
 
@@ -156,11 +156,11 @@ static bool load_header(
 	}
 
 	out_version = version;
-	out_block_infos.resize(Vector3iUtil::get_volume(out_format.region_size));
+	out_chunk_infos.resize(Vector3iUtil::get_volume(out_format.region_size));
 
 	// TODO Deal with endianess
-	const size_t blocks_len = out_block_infos.size() * sizeof(RegionBlockInfo);
-	const size_t read_size = get_buffer(f, Span<uint8_t>((uint8_t *)out_block_infos.data(), blocks_len));
+	const size_t blocks_len = out_chunk_infos.size() * sizeof(RegionBlockInfo);
+	const size_t read_size = get_buffer(f, Span<uint8_t>((uint8_t *)out_chunk_infos.data(), blocks_len));
 	ERR_FAIL_COND_V(read_size != blocks_len, false);
 
 	return true;
@@ -317,9 +317,9 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	ERR_FAIL_COND_V(!is_valid_chunk_position(position), ERR_INVALID_PARAMETER);
 	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
-	const RegionBlockInfo &block_info = _header.blocks[lut_index];
+	const RegionBlockInfo &chunk_info = _header.blocks[lut_index];
 
-	if (block_info.data == 0) {
+	if (chunk_info.data == 0) {
 		return ERR_DOES_NOT_EXIST;
 	}
 
@@ -329,7 +329,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 		out_block.set_channel_depth(channel_index, _header.format.channel_depths[channel_index]);
 	}
 
-	const unsigned int sector_index = block_info.get_sector_index();
+	const unsigned int sector_index = chunk_info.get_sector_index();
 	const unsigned int chunk_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
 
 	f.seek(chunk_begin);
@@ -357,9 +357,9 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 
 	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
-	RegionBlockInfo &block_info = _header.blocks[lut_index];
+	RegionBlockInfo &chunk_info = _header.blocks[lut_index];
 
-	if (block_info.data == 0) {
+	if (chunk_info.data == 0) {
 		// The chunk isn't in the file yet, append at the end
 
 		const unsigned int end_offset = _chunks_begin_offset + _sectors.size() * _header.format.sector_size;
@@ -380,10 +380,10 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 						.format(varray(written_size, chunk_offset, end_pos)));
 		pad_to_sector_size(f);
 
-		block_info.set_sector_index((chunk_offset - _chunks_begin_offset) / _header.format.sector_size);
-		block_info.set_sector_count(get_sector_count_from_bytes(written_size));
+		chunk_info.set_sector_index((chunk_offset - _chunks_begin_offset) / _header.format.sector_size);
+		chunk_info.set_sector_count(get_sector_count_from_bytes(written_size));
 
-		for (unsigned int i = 0; i < block_info.get_sector_count(); ++i) {
+		for (unsigned int i = 0; i < chunk_info.get_sector_count(); ++i) {
 			_sectors.push_back(position);
 		}
 
@@ -394,8 +394,8 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 
 		CRASH_COND(_sectors.size() == 0);
 
-		const int old_sector_index = block_info.get_sector_index();
-		const int old_sector_count = block_info.get_sector_count();
+		const int old_sector_index = chunk_info.get_sector_index();
+		const int old_sector_count = chunk_info.get_sector_count();
 		CRASH_COND(old_sector_count < 1);
 
 		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
@@ -444,7 +444,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 
 			pad_to_sector_size(f);
 
-			block_info.set_sector_index(_sectors.size());
+			chunk_info.set_sector_index(_sectors.size());
 			for (int i = 0; i < new_sector_count; ++i) {
 				_sectors.push_back(Vector3u16(position));
 			}
@@ -452,7 +452,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 			_header_modified = true;
 		}
 
-		block_info.set_sector_count(new_sector_count);
+		chunk_info.set_sector_count(new_sector_count);
 	}
 
 	return OK;
@@ -488,17 +488,17 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 
 	const unsigned int chunk_index = get_chunk_index_in_header(chunk_pos);
 	CRASH_COND(chunk_index >= _header.blocks.size());
-	RegionBlockInfo &block_info = _header.blocks[chunk_index];
+	RegionBlockInfo &chunk_info = _header.blocks[chunk_index];
 
 	unsigned int src_offset =
-			_chunks_begin_offset + (block_info.get_sector_index() + block_info.get_sector_count()) * sector_size;
+			_chunks_begin_offset + (chunk_info.get_sector_index() + chunk_info.get_sector_count()) * sector_size;
 
 	unsigned int dst_offset = src_offset - p_sector_count * sector_size;
 
 	CRASH_COND(_sectors.size() < p_sector_count);
 	CRASH_COND(src_offset - sector_size < dst_offset);
-	CRASH_COND(block_info.get_sector_index() + p_sector_count > _sectors.size());
-	CRASH_COND(p_sector_count > block_info.get_sector_count());
+	CRASH_COND(chunk_info.get_sector_index() + p_sector_count > _sectors.size());
+	CRASH_COND(p_sector_count > chunk_info.get_sector_count());
 	CRASH_COND(dst_offset < _chunks_begin_offset);
 
 	std::vector<uint8_t> temp;
@@ -522,17 +522,17 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 	// but FileAccess doesn't have any function to do that... so can't rely on EOF either
 
 	// Erase sectors from cache
-	_sectors.erase(_sectors.begin() + (block_info.get_sector_index() + block_info.get_sector_count() - p_sector_count),
-			_sectors.begin() + (block_info.get_sector_index() + block_info.get_sector_count()));
+	_sectors.erase(_sectors.begin() + (chunk_info.get_sector_index() + chunk_info.get_sector_count() - p_sector_count),
+			_sectors.begin() + (chunk_info.get_sector_index() + chunk_info.get_sector_count()));
 
-	const unsigned int old_sector_index = block_info.get_sector_index();
+	const unsigned int old_sector_index = chunk_info.get_sector_index();
 
 	// Reduce sectors of current chunk in header.
-	if (block_info.get_sector_count() > p_sector_count) {
-		block_info.set_sector_count(block_info.get_sector_count() - p_sector_count);
+	if (chunk_info.get_sector_count() > p_sector_count) {
+		chunk_info.set_sector_count(chunk_info.get_sector_count() - p_sector_count);
 	} else {
 		// Block removed
-		block_info.data = 0;
+		chunk_info.data = 0;
 	}
 
 	// Shift sector index of following chunks
@@ -653,12 +653,12 @@ void RegionFile::debug_check() {
 	const size_t file_len = f.get_length();
 
 	for (unsigned int lut_index = 0; lut_index < _header.blocks.size(); ++lut_index) {
-		const RegionBlockInfo &block_info = _header.blocks[lut_index];
+		const RegionBlockInfo &chunk_info = _header.blocks[lut_index];
 		const Vector3i position = get_chunk_position_from_index(lut_index);
-		if (block_info.data == 0) {
+		if (chunk_info.data == 0) {
 			continue;
 		}
-		const unsigned int sector_index = block_info.get_sector_index();
+		const unsigned int sector_index = chunk_info.get_sector_index();
 		const unsigned int chunk_begin = _chunks_begin_offset + sector_index * _header.format.sector_size;
 		if (chunk_begin >= file_len) {
 			ZN_PRINT_ERROR(format(
