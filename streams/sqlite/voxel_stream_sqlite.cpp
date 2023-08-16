@@ -134,10 +134,10 @@ private:
 	sqlite3 *_db = nullptr;
 	sqlite3_stmt *_begin_statement = nullptr;
 	sqlite3_stmt *_end_statement = nullptr;
-	sqlite3_stmt *_update_voxel_block_statement = nullptr;
-	sqlite3_stmt *_get_voxel_block_statement = nullptr;
-	sqlite3_stmt *_update_instance_block_statement = nullptr;
-	sqlite3_stmt *_get_instance_block_statement = nullptr;
+	sqlite3_stmt *_update_voxel_chunk_statement = nullptr;
+	sqlite3_stmt *_get_voxel_chunk_statement = nullptr;
+	sqlite3_stmt *_update_instance_chunk_statement = nullptr;
+	sqlite3_stmt *_get_instance_chunk_statement = nullptr;
 	sqlite3_stmt *_load_meta_statement = nullptr;
 	sqlite3_stmt *_save_meta_statement = nullptr;
 	sqlite3_stmt *_load_channels_statement = nullptr;
@@ -181,20 +181,20 @@ bool VoxelStreamSQLiteInternal::open(const char *fpath) {
 	}
 
 	// Prepare statements
-	if (!prepare(db, &_update_voxel_block_statement,
+	if (!prepare(db, &_update_voxel_chunk_statement,
 				"INSERT INTO blocks VALUES (:loc, :vb, null) "
 				"ON CONFLICT(loc) DO UPDATE SET vb=excluded.vb")) {
 		return false;
 	}
-	if (!prepare(db, &_get_voxel_block_statement, "SELECT vb FROM blocks WHERE loc=:loc")) {
+	if (!prepare(db, &_get_voxel_chunk_statement, "SELECT vb FROM blocks WHERE loc=:loc")) {
 		return false;
 	}
-	if (!prepare(db, &_update_instance_block_statement,
+	if (!prepare(db, &_update_instance_chunk_statement,
 				"INSERT INTO blocks VALUES (:loc, null, :instances) "
 				"ON CONFLICT(loc) DO UPDATE SET instances=excluded.instances")) {
 		return false;
 	}
-	if (!prepare(db, &_get_instance_block_statement, "SELECT instances FROM blocks WHERE loc=:loc")) {
+	if (!prepare(db, &_get_instance_chunk_statement, "SELECT instances FROM blocks WHERE loc=:loc")) {
 		return false;
 	}
 	if (!prepare(db, &_begin_statement, "BEGIN")) {
@@ -249,10 +249,10 @@ void VoxelStreamSQLiteInternal::close() {
 	}
 	finalize(_begin_statement);
 	finalize(_end_statement);
-	finalize(_update_voxel_block_statement);
-	finalize(_get_voxel_block_statement);
-	finalize(_update_instance_block_statement);
-	finalize(_get_instance_block_statement);
+	finalize(_update_voxel_chunk_statement);
+	finalize(_get_voxel_chunk_statement);
+	finalize(_update_instance_chunk_statement);
+	finalize(_get_instance_chunk_statement);
 	finalize(_load_meta_statement);
 	finalize(_save_meta_statement);
 	finalize(_load_channels_statement);
@@ -304,19 +304,19 @@ bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<
 
 	sqlite3 *db = _db;
 
-	sqlite3_stmt *update_block_statement;
+	sqlite3_stmt *update_chunk_statement;
 	switch (type) {
 		case VOXELS:
-			update_block_statement = _update_voxel_block_statement;
+			update_chunk_statement = _update_voxel_chunk_statement;
 			break;
 		case INSTANCES:
-			update_block_statement = _update_instance_block_statement;
+			update_chunk_statement = _update_instance_chunk_statement;
 			break;
 		default:
 			CRASH_NOW();
 	}
 
-	int rc = sqlite3_reset(update_block_statement);
+	int rc = sqlite3_reset(update_chunk_statement);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return false;
@@ -324,24 +324,24 @@ bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<
 
 	const uint64_t eloc = loc.encode();
 
-	rc = sqlite3_bind_int64(update_block_statement, 1, eloc);
+	rc = sqlite3_bind_int64(update_chunk_statement, 1, eloc);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return false;
 	}
 
 	if (block_data.size() == 0) {
-		rc = sqlite3_bind_null(update_block_statement, 2);
+		rc = sqlite3_bind_null(update_chunk_statement, 2);
 	} else {
 		// We use SQLITE_TRANSIENT so SQLite will make its own copy of the data
-		rc = sqlite3_bind_blob(update_block_statement, 2, block_data.data(), block_data.size(), SQLITE_TRANSIENT);
+		rc = sqlite3_bind_blob(update_chunk_statement, 2, block_data.data(), block_data.size(), SQLITE_TRANSIENT);
 	}
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return false;
 	}
 
-	rc = sqlite3_step(update_block_statement);
+	rc = sqlite3_step(update_chunk_statement);
 	if (rc != SQLITE_DONE) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return false;
@@ -354,13 +354,13 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 		BlockLocation loc, std::vector<uint8_t> &out_block_data, BlockType type) {
 	sqlite3 *db = _db;
 
-	sqlite3_stmt *get_block_statement;
+	sqlite3_stmt *get_chunk_statement;
 	switch (type) {
 		case VOXELS:
-			get_block_statement = _get_voxel_block_statement;
+			get_chunk_statement = _get_voxel_chunk_statement;
 			break;
 		case INSTANCES:
-			get_block_statement = _get_instance_block_statement;
+			get_chunk_statement = _get_instance_chunk_statement;
 			break;
 		default:
 			CRASH_NOW();
@@ -368,7 +368,7 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 
 	int rc;
 
-	rc = sqlite3_reset(get_block_statement);
+	rc = sqlite3_reset(get_chunk_statement);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return VoxelStream::RESULT_ERROR;
@@ -376,7 +376,7 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 
 	const uint64_t eloc = loc.encode();
 
-	rc = sqlite3_bind_int64(get_block_statement, 1, eloc);
+	rc = sqlite3_bind_int64(get_chunk_statement, 1, eloc);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return VoxelStream::RESULT_ERROR;
@@ -385,11 +385,11 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 	VoxelStream::ResultCode result = VoxelStream::RESULT_BLOCK_NOT_FOUND;
 
 	while (true) {
-		rc = sqlite3_step(get_block_statement);
+		rc = sqlite3_step(get_chunk_statement);
 		if (rc == SQLITE_ROW) {
-			const void *blob = sqlite3_column_blob(get_block_statement, 0);
+			const void *blob = sqlite3_column_blob(get_chunk_statement, 0);
 			// const uint8_t *b = reinterpret_cast<const uint8_t *>(blob);
-			const size_t blob_size = sqlite3_column_bytes(get_block_statement, 0);
+			const size_t blob_size = sqlite3_column_bytes(get_chunk_statement, 0);
 			if (blob_size != 0) {
 				result = VoxelStream::RESULT_BLOCK_FOUND;
 				out_block_data.resize(blob_size);
