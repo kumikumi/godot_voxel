@@ -16,13 +16,13 @@ void VoxelMemoryPool::create_singleton() {
 }
 
 void VoxelMemoryPool::destroy_singleton() {
-	const unsigned int used_blocks = VoxelMemoryPool::get_singleton().debug_get_used_blocks();
-	if (used_blocks > 0) {
+	const unsigned int used_chunks = VoxelMemoryPool::get_singleton().debug_get_used_chunks();
+	if (used_chunks > 0) {
 		ZN_PRINT_ERROR(format("VoxelMemoryPool: "
 							  "{} memory blocks are still used when unregistering the module. Recycling leak?",
-				used_blocks));
+				used_chunks));
 #ifdef DEBUG_ENABLED
-		VoxelMemoryPool::get_singleton().debug_print_used_blocks(10);
+		VoxelMemoryPool::get_singleton().debug_print_used_chunks(10);
 #endif
 	}
 
@@ -33,16 +33,16 @@ void VoxelMemoryPool::destroy_singleton() {
 }
 
 #ifdef DEBUG_ENABLED
-void VoxelMemoryPool::debug_print_used_blocks(unsigned int max_count) {
+void VoxelMemoryPool::debug_print_used_chunks(unsigned int max_count) {
 	struct L {
-		static void debug_print_used_blocks(const VoxelMemoryPool::DebugUsedBlocks &debug_used_blocks,
+		static void debug_print_used_chunks(const VoxelMemoryPool::DebugUsedBlocks &debug_used_chunks,
 				unsigned int &count, unsigned int max_count, size_t mem_size) {
 			if (count > max_count) {
-				count += debug_used_blocks.blocks.size();
+				count += debug_used_chunks.blocks.size();
 				return;
 			}
 			const unsigned int initial_count = count;
-			for (auto it = debug_used_blocks.blocks.begin(); it != debug_used_blocks.blocks.end(); ++it) {
+			for (auto it = debug_used_chunks.blocks.begin(); it != debug_used_chunks.blocks.end(); ++it) {
 				if (count > max_count) {
 					break;
 				}
@@ -57,16 +57,16 @@ void VoxelMemoryPool::debug_print_used_blocks(unsigned int max_count) {
 				println(s);
 				++count;
 			}
-			count = initial_count + debug_used_blocks.blocks.size();
+			count = initial_count + debug_used_chunks.blocks.size();
 		}
 	};
 
 	unsigned int count = 0;
 	for (unsigned int pool_index = 0; pool_index < _pot_pools.size(); ++pool_index) {
 		const Pool &pool = _pot_pools[pool_index];
-		L::debug_print_used_blocks(pool.debug_used_blocks, count, max_count, get_size_from_pool_index(pool_index));
+		L::debug_print_used_chunks(pool.debug_used_chunks, count, max_count, get_size_from_pool_index(pool_index));
 	}
-	L::debug_print_used_blocks(_debug_nonpooled_used_blocks, count, max_count, 0);
+	L::debug_print_used_chunks(_debug_nonpooled_used_chunks, count, max_count, 0);
 	if (count > 0 && count > max_count) {
 		println(format("[...] and {} more allocs.", max_count - count));
 	}
@@ -107,7 +107,7 @@ uint8_t *VoxelMemoryPool::allocate(size_t size) {
 		_total_memory += size;
 #ifdef DEBUG_ENABLED
 		if (block != nullptr) {
-			_debug_nonpooled_used_blocks.add(block);
+			_debug_nonpooled_used_chunks.add(block);
 		}
 #endif
 	} else {
@@ -132,14 +132,14 @@ uint8_t *VoxelMemoryPool::allocate(size_t size) {
 		}
 #ifdef DEBUG_ENABLED
 		if (block != nullptr) {
-			pool.debug_used_blocks.add(block);
+			pool.debug_used_chunks.add(block);
 		}
 #endif
 	}
 	if (block == nullptr) {
 		ZN_PRINT_ERROR("Out of memory");
 	} else {
-		++_used_blocks;
+		++_used_chunks;
 		_used_memory += size;
 	}
 	return block;
@@ -157,7 +157,7 @@ void VoxelMemoryPool::recycle(uint8_t *block, size_t size) {
 	if (size > get_highest_supported_size()) {
 #ifdef DEBUG_ENABLED
 		// Make sure this allocation was done by this pool in this scenario
-		_debug_nonpooled_used_blocks.remove(block);
+		_debug_nonpooled_used_chunks.remove(block);
 #endif
 		ZN_FREE(block);
 		_total_memory -= size;
@@ -166,16 +166,16 @@ void VoxelMemoryPool::recycle(uint8_t *block, size_t size) {
 		Pool &pool = _pot_pools[pot];
 #ifdef DEBUG_ENABLED
 		// Make sure this allocation was done by this pool in this scenario
-		pool.debug_used_blocks.remove(block);
+		pool.debug_used_chunks.remove(block);
 #endif
 		MutexLock lock(pool.mutex);
 		pool.blocks.push_back(block);
 	}
-	--_used_blocks;
+	--_used_chunks;
 	_used_memory -= size;
 }
 
-void VoxelMemoryPool::clear_unused_blocks() {
+void VoxelMemoryPool::clear_unused_chunks() {
 	for (unsigned int pot = 0; pot < _pot_pools.size(); ++pot) {
 		Pool &pool = _pot_pools[pot];
 		MutexLock lock(pool.mutex);
@@ -200,7 +200,7 @@ void VoxelMemoryPool::clear() {
 	}
 	_used_memory = 0;
 	_total_memory = 0;
-	_used_blocks = 0;
+	_used_chunks = 0;
 }
 
 void VoxelMemoryPool::debug_print() {
@@ -212,8 +212,8 @@ void VoxelMemoryPool::debug_print() {
 	}
 }
 
-unsigned int VoxelMemoryPool::debug_get_used_blocks() const {
-	return _used_blocks;
+unsigned int VoxelMemoryPool::debug_get_used_chunks() const {
+	return _used_chunks;
 }
 
 size_t VoxelMemoryPool::debug_get_used_memory() const {

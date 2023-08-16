@@ -48,7 +48,7 @@ private:
 		// Would a linked list be better?
 		std::vector<uint8_t *> blocks;
 #ifdef DEBUG_ENABLED
-		DebugUsedBlocks debug_used_blocks;
+		DebugUsedBlocks debug_used_chunks;
 #endif
 	};
 
@@ -63,10 +63,10 @@ public:
 	uint8_t *allocate(size_t size);
 	void recycle(uint8_t *block, size_t size);
 
-	void clear_unused_blocks();
+	void clear_unused_chunks();
 
 	void debug_print();
-	unsigned int debug_get_used_blocks() const;
+	unsigned int debug_get_used_chunks() const;
 	size_t debug_get_used_memory() const;
 	size_t debug_get_total_memory() const;
 
@@ -90,7 +90,7 @@ private:
 	}
 
 #ifdef DEBUG_ENABLED
-	void debug_print_used_blocks(unsigned int max_amount);
+	void debug_print_used_chunks(unsigned int max_amount);
 #endif
 
 	// We handle allocations with up to 2^20 = 1,048,576 bytes.
@@ -99,10 +99,10 @@ private:
 	// that contain 2^index bytes in them.
 	FixedArray<Pool, 21> _pot_pools;
 #ifdef DEBUG_ENABLED
-	DebugUsedBlocks _debug_nonpooled_used_blocks;
+	DebugUsedBlocks _debug_nonpooled_used_chunks;
 #endif
 
-	std::atomic_uint32_t _used_blocks = { 0 };
+	std::atomic_uint32_t _used_chunks = { 0 };
 	size_t _used_memory = 0;
 	size_t _total_memory = 0;
 };

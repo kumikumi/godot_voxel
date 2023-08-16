@@ -100,7 +100,7 @@ Dictionary to_dict(const zylann::voxel::VoxelEngine::Stats &stats) {
 	Dictionary mem;
 	mem["voxel_total"] = ZN_SIZE_T_TO_VARIANT(VoxelMemoryPool::get_singleton().debug_get_total_memory());
 	mem["voxel_used"] = ZN_SIZE_T_TO_VARIANT(VoxelMemoryPool::get_singleton().debug_get_used_memory());
-	mem["chunk_count"] = VoxelMemoryPool::get_singleton().debug_get_used_blocks();
+	mem["chunk_count"] = VoxelMemoryPool::get_singleton().debug_get_used_chunks();
 
 	Dictionary d;
 	d["thread_pools"] = pools;
