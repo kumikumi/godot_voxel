@@ -136,16 +136,16 @@ void test_octree_update() {
 		LodOctree &octree = it->second;
 
 		struct DestroyAction {
-			int destroyed_blocks = 0;
+			int destroyed_chunks = 0;
 			inline void operator()(Vector3i node_pos, int lod) {
-				++destroyed_blocks;
+				++destroyed_chunks;
 			}
 		};
 
 		DestroyAction da;
 		octree.clear(da);
 
-		chunk_count -= da.destroyed_blocks;
+		chunk_count -= da.destroyed_chunks;
 	}
 
 	ZN_TEST_ASSERT(chunk_count == 0);
