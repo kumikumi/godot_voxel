@@ -1298,9 +1298,9 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 
 	const Lod &lod = _lods[lod_index];
 
-	UniquePtr<InstanceChunkData> block_data = make_unique_instance<InstanceChunkData>();
+	UniquePtr<InstanceChunkData> chunk_data = make_unique_instance<InstanceChunkData>();
 	const int chunk_size = (1 << _parent_chunk_size_po2) << lod_index;
-	block_data->position_range = chunk_size;
+	chunk_data->position_range = chunk_size;
 
 	const int render_to_data_factor = (1 << _parent_chunk_mesh_size_po2) / (1 << _parent_chunk_size_po2);
 	ERR_FAIL_COND_V_MSG(render_to_data_factor < 1 || render_to_data_factor > 2, nullptr, "Unsupported block size");
@@ -1337,8 +1337,8 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 #endif
 		Block &render_block = *_chunks[render_chunk_index];
 
-		block_data->layers.push_back(InstanceChunkData::LayerData());
-		InstanceChunkData::LayerData &layer_data = block_data->layers.back();
+		chunk_data->layers.push_back(InstanceChunkData::LayerData());
+		InstanceChunkData::LayerData &layer_data = chunk_data->layers.back();
 
 		layer_data.instances.clear();
 		layer_data.id = layer_id;
@@ -1443,7 +1443,7 @@ SaveChunkDataTask *VoxelInstancer::save_chunk(
 	ZN_ASSERT(stream_dependency != nullptr);
 
 	SaveChunkDataTask *task = ZN_NEW(SaveChunkDataTask(
-			volume_id, data_grid_pos, lod_index, chunk_size, std::move(block_data), stream_dependency, tracker));
+			volume_id, data_grid_pos, lod_index, chunk_size, std::move(chunk_data), stream_dependency, tracker));
 
 	return task;
 }

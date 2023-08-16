@@ -55,8 +55,8 @@ struct InstanceChunkData {
 	}
 };
 
-bool serialize_instance_block_data(const InstanceChunkData &src, std::vector<uint8_t> &dst);
-bool deserialize_instance_block_data(InstanceChunkData &dst, Span<const uint8_t> src);
+bool serialize_instance_chunk_data(const InstanceChunkData &src, std::vector<uint8_t> &dst);
+bool deserialize_instance_chunk_data(InstanceChunkData &dst, Span<const uint8_t> src);
 
 } // namespace zylann::voxel
 

@@ -1,5 +1,5 @@
-#ifndef LOAD_BLOCK_DATA_TASK_H
-#define LOAD_BLOCK_DATA_TASK_H
+#ifndef LOAD_CHUNK_DATA_TASK_H
+#define LOAD_CHUNK_DATA_TASK_H
 
 #include "../util/memory.h"
 #include "../util/tasks/threaded_task.h"
@@ -53,4 +53,4 @@ private:
 
 } // namespace zylann::voxel
 
-#endif // LOAD_BLOCK_DATA_TASK_H
+#endif // LOAD_CHUNK_DATA_TASK_H

@@ -1,6 +1,6 @@
 #include "voxel_lod_terrain_update_task.h"
 #include "../../engine/generate_chunk_task.h"
-#include "../../engine/load_block_data_task.h"
+#include "../../engine/load_chunk_data_task.h"
 #include "../../engine/chunk_mesh_task.h"
 #include "../../engine/save_chunk_data_task.h"
 #include "../../engine/voxel_engine.h"
@@ -906,7 +906,7 @@ static void request_block_load(VolumeID volume_id, unsigned int chunk_size,
 	}
 }
 
-static void send_block_data_requests(VolumeID volume_id,
+static void send_chunk_data_requests(VolumeID volume_id,
 		Span<const VoxelLodTerrainUpdateData::BlockLocation> blocks_to_load,
 		std::shared_ptr<StreamingDependency> &stream_dependency, const std::shared_ptr<VoxelData> &data,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, unsigned int chunk_size,
@@ -920,7 +920,7 @@ static void send_block_data_requests(VolumeID volume_id,
 	}
 }
 
-static void apply_block_data_requests_as_empty(Span<const VoxelLodTerrainUpdateData::BlockLocation> blocks_to_load,
+static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateData::BlockLocation> blocks_to_load,
 		VoxelData &data, VoxelLodTerrainUpdateData::State &state) {
 	for (unsigned int i = 0; i < blocks_to_load.size(); ++i) {
 		const VoxelLodTerrainUpdateData::BlockLocation loc = blocks_to_load[i];
@@ -1306,10 +1306,10 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 				// TODO Optimization: not ideal because a bit delayed. It requires a second update cycle for meshes to
 				// get requested. We could instead set those empty chunks right away instead of putting them in that
 				// list, but it's simpler code for now.
-				apply_block_data_requests_as_empty(to_span(chunks_to_load), data, state);
+				apply_chunk_data_requests_as_empty(to_span(chunks_to_load), data, state);
 
 			} else {
-				send_block_data_requests(_volume_id, to_span(chunks_to_load), _streaming_dependency, _data,
+				send_chunk_data_requests(_volume_id, to_span(chunks_to_load), _streaming_dependency, _data,
 						_shared_viewers_data, chunk_size, _request_instances, _volume_transform, settings,
 						task_scheduler);
 			}

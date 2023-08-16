@@ -3,7 +3,7 @@
 #include "../../constants/voxel_string_names.h"
 #include "../../edition/voxel_tool_terrain.h"
 #include "../../engine/generate_chunk_task.h"
-#include "../../engine/load_block_data_task.h"
+#include "../../engine/load_chunk_data_task.h"
 #include "../../engine/chunk_mesh_task.h"
 #include "../../engine/save_chunk_data_task.h"
 #include "../../engine/voxel_engine.h"
@@ -526,7 +526,7 @@ void VoxelTerrain::save_all_modified_blocks(bool with_copy, std::shared_ptr<Asyn
 	}
 
 	// And flush immediately
-	consume_block_data_save_requests(task_scheduler, tracker);
+	consume_chunk_data_save_requests(task_scheduler, tracker);
 	task_scheduler.flush();
 }
 
@@ -902,7 +902,7 @@ void VoxelTerrain::send_data_load_requests() {
 	}
 }
 
-void VoxelTerrain::consume_block_data_save_requests(
+void VoxelTerrain::consume_chunk_data_save_requests(
 		BufferedTaskScheduler &task_scheduler, std::shared_ptr<AsyncDependencyTracker> saving_tracker) {
 	ZN_PROFILE_SCOPE();
 
@@ -1238,7 +1238,7 @@ void VoxelTerrain::process_viewers() {
 	if (can_load_blocks) {
 		send_data_load_requests();
 		BufferedTaskScheduler &task_scheduler = BufferedTaskScheduler::get_for_current_thread();
-		consume_block_data_save_requests(task_scheduler, nullptr);
+		consume_chunk_data_save_requests(task_scheduler, nullptr);
 		task_scheduler.flush();
 	}
 

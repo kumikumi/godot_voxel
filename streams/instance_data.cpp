@@ -55,7 +55,7 @@ struct CompressedQuaternion4b {
 	}
 };
 
-bool serialize_instance_block_data(const InstanceChunkData &src, std::vector<uint8_t> &dst) {
+bool serialize_instance_chunk_data(const InstanceChunkData &src, std::vector<uint8_t> &dst) {
 	const uint8_t instance_format = InstanceChunkData::FORMAT_SIMPLE_11B_V1;
 
 	// TODO Apparently big-endian is dead
@@ -118,7 +118,7 @@ bool serialize_instance_block_data(const InstanceChunkData &src, std::vector<uin
 	return true;
 }
 
-bool deserialize_instance_block_data(InstanceChunkData &dst, Span<const uint8_t> src) {
+bool deserialize_instance_chunk_data(InstanceChunkData &dst, Span<const uint8_t> src) {
 	const uint8_t expected_version = INSTANCE_BLOCK_FORMAT_VERSION_1;
 	const uint8_t expected_instance_format = InstanceChunkData::FORMAT_SIMPLE_11B_V1;
 

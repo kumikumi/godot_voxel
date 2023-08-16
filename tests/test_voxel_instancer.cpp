@@ -46,10 +46,10 @@ void test_instance_data_serialization() {
 
 	std::vector<uint8_t> serialized_data;
 
-	ZN_TEST_ASSERT(serialize_instance_block_data(src_data, serialized_data));
+	ZN_TEST_ASSERT(serialize_instance_chunk_data(src_data, serialized_data));
 
 	InstanceChunkData dst_data;
-	ZN_TEST_ASSERT(deserialize_instance_block_data(dst_data, to_span_const(serialized_data)));
+	ZN_TEST_ASSERT(deserialize_instance_chunk_data(dst_data, to_span_const(serialized_data)));
 
 	// Compare chunks
 	ZN_TEST_ASSERT(src_data.layers.size() == dst_data.layers.size());

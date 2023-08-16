@@ -90,8 +90,8 @@ public:
 	bool begin_transaction();
 	bool end_transaction();
 
-	bool save_chunk(BlockLocation loc, const std::vector<uint8_t> &block_data, BlockType type);
-	VoxelStream::ResultCode load_chunk(BlockLocation loc, std::vector<uint8_t> &out_block_data, BlockType type);
+	bool save_chunk(BlockLocation loc, const std::vector<uint8_t> &chunk_data, BlockType type);
+	VoxelStream::ResultCode load_chunk(BlockLocation loc, std::vector<uint8_t> &out_chunk_data, BlockType type);
 
 	bool load_all_blocks(void *callback_data,
 			void (*process_block_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
@@ -299,7 +299,7 @@ bool VoxelStreamSQLiteInternal::end_transaction() {
 	return true;
 }
 
-bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<uint8_t> &block_data, BlockType type) {
+bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<uint8_t> &chunk_data, BlockType type) {
 	ZN_PROFILE_SCOPE();
 
 	sqlite3 *db = _db;
@@ -330,11 +330,11 @@ bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<
 		return false;
 	}
 
-	if (block_data.size() == 0) {
+	if (chunk_data.size() == 0) {
 		rc = sqlite3_bind_null(update_chunk_statement, 2);
 	} else {
 		// We use SQLITE_TRANSIENT so SQLite will make its own copy of the data
-		rc = sqlite3_bind_blob(update_chunk_statement, 2, block_data.data(), block_data.size(), SQLITE_TRANSIENT);
+		rc = sqlite3_bind_blob(update_chunk_statement, 2, chunk_data.data(), chunk_data.size(), SQLITE_TRANSIENT);
 	}
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
@@ -351,7 +351,7 @@ bool VoxelStreamSQLiteInternal::save_chunk(BlockLocation loc, const std::vector<
 }
 
 VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
-		BlockLocation loc, std::vector<uint8_t> &out_block_data, BlockType type) {
+		BlockLocation loc, std::vector<uint8_t> &out_chunk_data, BlockType type) {
 	sqlite3 *db = _db;
 
 	sqlite3_stmt *get_chunk_statement;
@@ -392,8 +392,8 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 			const size_t blob_size = sqlite3_column_bytes(get_chunk_statement, 0);
 			if (blob_size != 0) {
 				result = VoxelStream::RESULT_BLOCK_FOUND;
-				out_block_data.resize(blob_size);
-				memcpy(out_block_data.data(), blob, blob_size);
+				out_chunk_data.resize(blob_size);
+				memcpy(out_chunk_data.data(), blob, blob_size);
 			}
 			// The query is still ongoing, we'll need to step one more time to complete it
 			continue;
@@ -629,13 +629,13 @@ void VoxelStreamSQLiteInternal::save_meta(Meta meta) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace {
-std::vector<uint8_t> &get_tls_temp_block_data() {
-	thread_local std::vector<uint8_t> tls_temp_block_data;
-	return tls_temp_block_data;
+std::vector<uint8_t> &get_tls_temp_chunk_data() {
+	thread_local std::vector<uint8_t> tls_temp_chunk_data;
+	return tls_temp_chunk_data;
 }
-std::vector<uint8_t> &get_tls_temp_compressed_block_data() {
-	thread_local std::vector<uint8_t> tls_temp_compressed_block_data;
-	return tls_temp_compressed_block_data;
+std::vector<uint8_t> &get_tls_temp_compressed_chunk_data() {
+	thread_local std::vector<uint8_t> tls_temp_compressed_chunk_data;
+	return tls_temp_compressed_chunk_data;
 }
 } // namespace
 
@@ -744,13 +744,13 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 		loc.z = q.origin_in_voxels.z >> po2;
 		loc.lod = q.lod;
 
-		std::vector<uint8_t> &temp_block_data = get_tls_temp_block_data();
+		std::vector<uint8_t> &temp_chunk_data = get_tls_temp_chunk_data();
 
-		const ResultCode res = con->load_chunk(loc, temp_block_data, VoxelStreamSQLiteInternal::VOXELS);
+		const ResultCode res = con->load_chunk(loc, temp_chunk_data, VoxelStreamSQLiteInternal::VOXELS);
 
 		if (res == RESULT_BLOCK_FOUND) {
 			// TODO Not sure if we should actually expect non-null. There can be legit not found chunks.
-			ChunkSerializer::decompress_and_deserialize(to_span_const(temp_block_data), q.voxel_buffer);
+			ChunkSerializer::decompress_and_deserialize(to_span_const(temp_chunk_data), q.voxel_buffer);
 		}
 
 		q.result = res;
@@ -832,20 +832,20 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 		loc.z = q.position.z;
 		loc.lod = q.lod;
 
-		std::vector<uint8_t> &temp_compressed_block_data = get_tls_temp_compressed_block_data();
+		std::vector<uint8_t> &temp_compressed_chunk_data = get_tls_temp_compressed_chunk_data();
 
-		const ResultCode res = con->load_chunk(loc, temp_compressed_block_data, VoxelStreamSQLiteInternal::INSTANCES);
+		const ResultCode res = con->load_chunk(loc, temp_compressed_chunk_data, VoxelStreamSQLiteInternal::INSTANCES);
 
 		if (res == RESULT_BLOCK_FOUND) {
-			std::vector<uint8_t> &temp_block_data = get_tls_temp_block_data();
+			std::vector<uint8_t> &temp_chunk_data = get_tls_temp_chunk_data();
 
-			if (!CompressedData::decompress(to_span_const(temp_compressed_block_data), temp_block_data)) {
+			if (!CompressedData::decompress(to_span_const(temp_compressed_chunk_data), temp_chunk_data)) {
 				ERR_PRINT("Failed to decompress instance block");
 				q.result = RESULT_ERROR;
 				continue;
 			}
 			q.data = make_unique_instance<InstanceChunkData>();
-			if (!deserialize_instance_block_data(*q.data, to_span_const(temp_block_data))) {
+			if (!deserialize_instance_chunk_data(*q.data, to_span_const(temp_chunk_data))) {
 				ERR_PRINT("Failed to deserialize instance block");
 				q.result = RESULT_ERROR;
 				continue;
@@ -920,13 +920,13 @@ void VoxelStreamSQLite::load_all_blocks(FullLoadingResult &result) {
 			}
 
 			if (instances_data.size() > 0) {
-				std::vector<uint8_t> &temp_block_data = get_tls_temp_block_data();
-				if (!CompressedData::decompress(instances_data, temp_block_data)) {
+				std::vector<uint8_t> &temp_chunk_data = get_tls_temp_chunk_data();
+				if (!CompressedData::decompress(instances_data, temp_chunk_data)) {
 					ERR_PRINT("Failed to decompress instance block");
 					return;
 				}
 				result_block.instances_data = make_unique_instance<InstanceChunkData>();
-				if (!deserialize_instance_block_data(*result_block.instances_data, to_span_const(temp_block_data))) {
+				if (!deserialize_instance_chunk_data(*result_block.instances_data, to_span_const(temp_chunk_data))) {
 					ERR_PRINT("Failed to deserialize instance block");
 					return;
 				}
@@ -963,8 +963,8 @@ void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_c
 	ERR_FAIL_COND(p_connection == nullptr);
 	ERR_FAIL_COND(p_connection->begin_transaction() == false);
 
-	std::vector<uint8_t> &temp_data = get_tls_temp_block_data();
-	std::vector<uint8_t> &temp_compressed_data = get_tls_temp_compressed_block_data();
+	std::vector<uint8_t> &temp_data = get_tls_temp_chunk_data();
+	std::vector<uint8_t> &temp_compressed_data = get_tls_temp_compressed_chunk_data();
 
 	// TODO Needs better error rollback handling
 	_cache.flush([p_connection, &temp_data, &temp_compressed_data](VoxelStreamCache::Block &block) {
@@ -993,7 +993,7 @@ void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_c
 		if (block.instances != nullptr) {
 			temp_data.clear();
 
-			ERR_FAIL_COND(!serialize_instance_block_data(*block.instances, temp_data));
+			ERR_FAIL_COND(!serialize_instance_chunk_data(*block.instances, temp_data));
 
 			ERR_FAIL_COND(!CompressedData::compress(
 					to_span_const(temp_data), temp_compressed_data, CompressedData::COMPRESSION_NONE));

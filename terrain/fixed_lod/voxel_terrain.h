@@ -200,7 +200,7 @@ private:
 	void save_all_modified_blocks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker);
 	void get_viewer_pos_and_direction(Vector3 &out_pos, Vector3 &out_direction) const;
 	void send_data_load_requests();
-	void consume_block_data_save_requests(
+	void consume_chunk_data_save_requests(
 			BufferedTaskScheduler &task_scheduler, std::shared_ptr<AsyncDependencyTracker> saving_tracker);
 
 	void emit_chunk_data_loaded(Vector3i bpos);
