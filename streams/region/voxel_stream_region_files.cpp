@@ -162,9 +162,9 @@ VoxelStreamRegionFiles::EmergeResult VoxelStreamRegionFiles::_load_chunk(
 		return EMERGE_OK_FALLBACK;
 	}
 
-	const Vector3i block_rpos = math::wrap(chunk_pos, region_size);
+	const Vector3i chunk_rpos = math::wrap(chunk_pos, region_size);
 
-	const Error err = cache->region.load_chunk(block_rpos, out_buffer);
+	const Error err = cache->region.load_chunk(chunk_rpos, out_buffer);
 	switch (err) {
 		case OK:
 			return EMERGE_OK;
@@ -215,11 +215,11 @@ void VoxelStreamRegionFiles::_save_chunk(VoxelBufferInternal &voxel_buffer, Vect
 	const Vector3i region_size = Vector3iUtil::create(1 << _meta.region_size_po2);
 	Vector3i chunk_pos = get_chunk_position_from_voxels(origin_in_voxels) >> lod;
 	Vector3i region_pos = get_region_position_from_blocks(chunk_pos);
-	Vector3i block_rpos = math::wrap(chunk_pos, region_size);
+	Vector3i chunk_rpos = math::wrap(chunk_pos, region_size);
 
 	CachedRegion *cache = open_region(region_pos, lod, true);
 	ERR_FAIL_COND_MSG(cache == nullptr, "Could not save region file data");
-	ERR_FAIL_COND(cache->region.save_chunk(block_rpos, voxel_buffer) != OK);
+	ERR_FAIL_COND(cache->region.save_chunk(chunk_rpos, voxel_buffer) != OK);
 }
 
 String VoxelStreamRegionFiles::get_directory() const {
@@ -685,8 +685,8 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 			new_chunk.create(new_chunk_size.x, new_chunk_size.y, new_chunk_size.z);
 
 			// Load chunk from old stream
-			Vector3i block_rpos = old_region->region.get_chunk_position_from_index(j);
-			Vector3i chunk_pos = block_rpos + region_info.position * old_region_size;
+			Vector3i chunk_rpos = old_region->region.get_chunk_position_from_index(j);
+			Vector3i chunk_pos = chunk_rpos + region_info.position * old_region_size;
 			VoxelStream::VoxelQueryData old_chunk_load_query{
 				old_chunk, //
 				chunk_pos * old_chunk_size << region_info.lod, //
