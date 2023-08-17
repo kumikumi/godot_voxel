@@ -33,7 +33,7 @@ struct RegionFormat {
 	bool verify_block(const VoxelBufferInternal &block) const;
 };
 
-struct RegionBlockInfo {
+struct RegionChunkInfo {
 	static const unsigned int MAX_SECTOR_INDEX = 0xffffff;
 	static const unsigned int MAX_SECTOR_COUNT = 0xff;
 
@@ -61,7 +61,7 @@ struct RegionBlockInfo {
 	}
 };
 
-static_assert(sizeof(RegionBlockInfo) == 4, "Data in this struct must have a consistent size on all target platforms.");
+static_assert(sizeof(RegionChunkInfo) == 4, "Data in this struct must have a consistent size on all target platforms.");
 
 // Archive file storing voxels in a fixed sparse grid data structure.
 // The format is designed to be easily writable in chunks so it can be used for partial in-game loading and saving.
@@ -115,7 +115,7 @@ private:
 		// Location and size of chunks, indexed by flat position.
 		// This table always has the same size,
 		// and the same index always corresponds to the same 3D position.
-		std::vector<RegionBlockInfo> blocks;
+		std::vector<RegionChunkInfo> blocks;
 	};
 
 	Ref<FileAccess> _file_access;

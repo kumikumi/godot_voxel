@@ -40,9 +40,9 @@ bool RegionFormat::validate() const {
 	}
 	bytes_per_block *= Vector3iUtil::get_volume(Vector3iUtil::create(1 << chunk_size_po2));
 	const size_t sectors_per_block = (bytes_per_block - 1) / sector_size + 1;
-	ERR_FAIL_COND_V(sectors_per_block > RegionBlockInfo::MAX_SECTOR_COUNT, false);
+	ERR_FAIL_COND_V(sectors_per_block > RegionChunkInfo::MAX_SECTOR_COUNT, false);
 	const size_t max_potential_sectors = Vector3iUtil::get_volume(region_size) * sectors_per_block;
-	ERR_FAIL_COND_V(max_potential_sectors > RegionBlockInfo::MAX_SECTOR_INDEX, false);
+	ERR_FAIL_COND_V(max_potential_sectors > RegionChunkInfo::MAX_SECTOR_INDEX, false);
 
 	return true;
 }
@@ -59,11 +59,11 @@ static uint32_t get_header_size_v3(const RegionFormat &format) {
 	// Which file offset chunk data is starting
 	// magic + version + chunkinfos
 	return MAGIC_AND_VERSION_SIZE + FIXED_HEADER_DATA_SIZE + (format.has_palette ? PALETTE_SIZE_IN_BYTES : 0) +
-			Vector3iUtil::get_volume(format.region_size) * sizeof(RegionBlockInfo);
+			Vector3iUtil::get_volume(format.region_size) * sizeof(RegionChunkInfo);
 }
 
 static bool save_header(
-		FileAccess &f, uint8_t version, const RegionFormat &format, const std::vector<RegionBlockInfo> &chunk_infos) {
+		FileAccess &f, uint8_t version, const RegionFormat &format, const std::vector<RegionChunkInfo> &chunk_infos) {
 	f.seek(0);
 
 	store_buffer(f, Span<const uint8_t>(reinterpret_cast<const uint8_t *>(FORMAT_REGION_MAGIC), 4));
@@ -97,7 +97,7 @@ static bool save_header(
 	// TODO Deal with endianess, this should be little-endian
 	store_buffer(f,
 			Span<const uint8_t>(reinterpret_cast<const uint8_t *>(chunk_infos.data()),
-					chunk_infos.size() * sizeof(RegionBlockInfo)));
+					chunk_infos.size() * sizeof(RegionChunkInfo)));
 
 #ifdef DEBUG_ENABLED
 	const size_t chunks_begin_offset = f.get_position();
@@ -108,7 +108,7 @@ static bool save_header(
 }
 
 static bool load_header(
-		FileAccess &f, uint8_t &out_version, RegionFormat &out_format, std::vector<RegionBlockInfo> &out_chunk_infos) {
+		FileAccess &f, uint8_t &out_version, RegionFormat &out_format, std::vector<RegionChunkInfo> &out_chunk_infos) {
 	ERR_FAIL_COND_V(f.get_position() != 0, false);
 	ERR_FAIL_COND_V(f.get_length() < MAGIC_AND_VERSION_SIZE, false);
 
@@ -159,7 +159,7 @@ static bool load_header(
 	out_chunk_infos.resize(Vector3iUtil::get_volume(out_format.region_size));
 
 	// TODO Deal with endianess
-	const size_t blocks_len = out_chunk_infos.size() * sizeof(RegionBlockInfo);
+	const size_t blocks_len = out_chunk_infos.size() * sizeof(RegionChunkInfo);
 	const size_t read_size = get_buffer(f, Span<uint8_t>((uint8_t *)out_chunk_infos.data(), blocks_len));
 	ERR_FAIL_COND_V(read_size != blocks_len, false);
 
@@ -227,14 +227,14 @@ Error RegionFile::open(const String &fpath, bool create_if_not_found) {
 	// This will be useful to know when sectors get moved on insertion and removal
 
 	struct ChunkInfoAndIndex {
-		RegionBlockInfo b;
+		RegionChunkInfo b;
 		unsigned int i;
 	};
 
 	// Filter only present chunks and keep the index around because it represents the 3D position of the chunk
 	std::vector<ChunkInfoAndIndex> blocks_sorted_by_offset;
 	for (unsigned int i = 0; i < _header.blocks.size(); ++i) {
-		const RegionBlockInfo b = _header.blocks[i];
+		const RegionChunkInfo b = _header.blocks[i];
 		if (b.data != 0) {
 			ChunkInfoAndIndex p;
 			p.b = b;
@@ -317,7 +317,7 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	ERR_FAIL_COND_V(!is_valid_chunk_position(position), ERR_INVALID_PARAMETER);
 	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
-	const RegionBlockInfo &chunk_info = _header.blocks[lut_index];
+	const RegionChunkInfo &chunk_info = _header.blocks[lut_index];
 
 	if (chunk_info.data == 0) {
 		return ERR_DOES_NOT_EXIST;
@@ -357,7 +357,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 
 	const unsigned int lut_index = get_chunk_index_in_header(position);
 	ERR_FAIL_COND_V(lut_index >= _header.blocks.size(), ERR_INVALID_PARAMETER);
-	RegionBlockInfo &chunk_info = _header.blocks[lut_index];
+	RegionChunkInfo &chunk_info = _header.blocks[lut_index];
 
 	if (chunk_info.data == 0) {
 		// The chunk isn't in the file yet, append at the end
@@ -488,7 +488,7 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 
 	const unsigned int chunk_index = get_chunk_index_in_header(chunk_pos);
 	CRASH_COND(chunk_index >= _header.blocks.size());
-	RegionBlockInfo &chunk_info = _header.blocks[chunk_index];
+	RegionChunkInfo &chunk_info = _header.blocks[chunk_index];
 
 	unsigned int src_offset =
 			_chunks_begin_offset + (chunk_info.get_sector_index() + chunk_info.get_sector_count()) * sector_size;
@@ -538,7 +538,7 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 	// Shift sector index of following chunks
 	if (old_sector_index < _sectors.size()) {
 		for (unsigned int i = 0; i < _header.blocks.size(); ++i) {
-			RegionBlockInfo &b = _header.blocks[i];
+			RegionChunkInfo &b = _header.blocks[i];
 			if (b.data != 0 && b.get_sector_index() > old_sector_index) {
 				b.set_sector_index(b.get_sector_index() - p_sector_count);
 			}
@@ -653,7 +653,7 @@ void RegionFile::debug_check() {
 	const size_t file_len = f.get_length();
 
 	for (unsigned int lut_index = 0; lut_index < _header.blocks.size(); ++lut_index) {
-		const RegionBlockInfo &chunk_info = _header.blocks[lut_index];
+		const RegionChunkInfo &chunk_info = _header.blocks[lut_index];
 		const Vector3i position = get_chunk_position_from_index(lut_index);
 		if (chunk_info.data == 0) {
 			continue;
