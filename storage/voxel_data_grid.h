@@ -170,24 +170,24 @@ private:
 		return _chunk_size;
 	}
 
-	template <typename Block_F>
-	inline void _box_loop(Box3i voxel_box, Block_F block_action) {
-		Vector3i block_rpos;
+	template <typename Chunk_F>
+	inline void _box_loop(Box3i voxel_box, Chunk_F chunk_action) {
+		Vector3i chunk_rpos;
 		const Vector3i area_origin_in_voxels = _offset_in_chunks * _chunk_size;
 		unsigned int index = 0;
-		for (block_rpos.z = 0; block_rpos.z < _size_in_chunks.z; ++block_rpos.z) {
-			for (block_rpos.x = 0; block_rpos.x < _size_in_chunks.x; ++block_rpos.x) {
-				for (block_rpos.y = 0; block_rpos.y < _size_in_chunks.y; ++block_rpos.y) {
-					VoxelBufferInternal *block = _chunks[index].get();
+		for (chunk_rpos.z = 0; chunk_rpos.z < _size_in_chunks.z; ++chunk_rpos.z) {
+			for (chunk_rpos.x = 0; chunk_rpos.x < _size_in_chunks.x; ++chunk_rpos.x) {
+				for (chunk_rpos.y = 0; chunk_rpos.y < _size_in_chunks.y; ++chunk_rpos.y) {
+					VoxelBufferInternal *chunk = _chunks[index].get();
 					// Flat grid and iteration order allows us to just increment the index since we iterate them all
 					++index;
-					if (block == nullptr) {
+					if (chunk == nullptr) {
 						continue;
 					}
-					const Vector3i chunk_origin = block_rpos * _chunk_size + area_origin_in_voxels;
+					const Vector3i chunk_origin = chunk_rpos * _chunk_size + area_origin_in_voxels;
 					Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 					local_box.clip(Box3i(Vector3i(), Vector3iUtil::create(_chunk_size)));
-					block_action(*block, local_box, chunk_origin);
+					chunk_action(*chunk, local_box, chunk_origin);
 				}
 			}
 		}
