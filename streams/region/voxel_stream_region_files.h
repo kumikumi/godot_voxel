@@ -91,7 +91,7 @@ private:
 	void _convert_files(Meta new_meta);
 
 	// Orders chunk requests so those querying the same regions get grouped together
-	struct BlockQueryComparator {
+	struct ChunkQueryComparator {
 		VoxelStreamRegionFiles *self = nullptr;
 
 		// operator<

@@ -77,7 +77,7 @@ void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData>
 
 	// Had to copy input to sort it, as some areas in the module break if they get responses in different order
 	std::vector<unsigned int> sorted_chunk_indices;
-	BlockQueryComparator comparator;
+	ChunkQueryComparator comparator;
 	comparator.self = this;
 	get_sorted_indices(p_blocks, comparator, sorted_chunk_indices);
 
@@ -107,7 +107,7 @@ void VoxelStreamRegionFiles::save_voxel_chunks(Span<VoxelStream::VoxelQueryData>
 
 	// Had to copy input to sort it, as some areas in the module break if they get responses in different order
 	std::vector<unsigned int> sorted_chunk_indices;
-	BlockQueryComparator comparator;
+	ChunkQueryComparator comparator;
 	comparator.self = this;
 	get_sorted_indices(p_blocks, comparator, sorted_chunk_indices);
 
