@@ -607,12 +607,12 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 			// Besides, in per-chunk streaming mode, it is not needed because chunks are supposed to be present
 			RWLockRead wlock(dst_data_lod.map_lock);
 
-			VoxelChunkData *src_block = src_data_lod.map.get_chunk(src_bpos);
-			VoxelChunkData *dst_block = dst_data_lod.map.get_chunk(dst_bpos);
+			VoxelChunkData *src_chunk = src_data_lod.map.get_chunk(src_bpos);
+			VoxelChunkData *dst_chunk = dst_data_lod.map.get_chunk(dst_bpos);
 
-			src_block->set_needs_lodding(false);
+			src_chunk->set_needs_lodding(false);
 
-			if (dst_block == nullptr) {
+			if (dst_chunk == nullptr) {
 				if (!streaming_enabled) {
 					// TODO Doing this on the main thread can be very demanding and cause a stall.
 					// We should find a way to make it asynchronous, not need mips, or not edit outside viewers area.
@@ -630,7 +630,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 					_modifiers.apply(
 							q.voxel_buffer, AABB(q.origin_in_voxels, q.voxel_buffer.get_size() << dst_lod_index));
 
-					dst_block = dst_data_lod.map.set_chunk_buffer(dst_bpos, voxels, true);
+					dst_chunk = dst_data_lod.map.set_chunk_buffer(dst_bpos, voxels, true);
 
 				} else {
 					ZN_PRINT_ERROR(format(
@@ -641,19 +641,19 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 
 			// The chunk and its lower LOD indices are expected to be available.
 			// Otherwise it means the function was called too late?
-			ZN_ASSERT(src_block != nullptr);
+			ZN_ASSERT(src_chunk != nullptr);
 			// ZN_ASSERT(dst_chunk != nullptr);
 			// The chunk should have voxels if it has been edited or mipped.
-			ZN_ASSERT(src_block->has_voxels());
+			ZN_ASSERT(src_chunk->has_voxels());
 
 			if (out_updated_chunks != nullptr) {
 				out_updated_chunks->push_back(BlockLocation{ dst_bpos, dst_lod_index });
 			}
 
-			dst_block->set_modified(true);
+			dst_chunk->set_modified(true);
 
-			if (dst_lod_index != lod_count - 1 && !dst_block->get_needs_lodding()) {
-				dst_block->set_needs_lodding(true);
+			if (dst_lod_index != lod_count - 1 && !dst_chunk->get_needs_lodding()) {
+				dst_chunk->set_needs_lodding(true);
 				dst_lod_blocks_to_process.push_back(dst_bpos);
 			}
 
@@ -668,8 +668,8 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 				// TODO The destination chunk should be locked!
 				// Maybe it hasn't been done so far because nothing else accesses higher LOD indices yet, or because we
 				// are holding a lock on the map that contains it
-				src_block->get_voxels().downscale_to(
-						dst_block->get_voxels(), Vector3i(), src_block->get_voxels_const().get_size(), rel * half_bs);
+				src_chunk->get_voxels().downscale_to(
+						dst_chunk->get_voxels(), Vector3i(), src_chunk->get_voxels_const().get_size(), rel * half_bs);
 			}
 		}
 
