@@ -215,7 +215,7 @@ public:
 
 	// If the chunk at the specified LOD0 position exists and is modified, marks it as non-modified and returns a copy
 	// of its data to save. Returns true if there is something to save.
-	bool consume_block_modifications(Vector3i bpos, BlockToSave &out_to_save);
+	bool consume_chunk_modifications(Vector3i bpos, BlockToSave &out_to_save);
 
 	// Marks all modified chunks as unmodified and returns their data to save. if `with_copy` is true, the returned data
 	// will be a copy, otherwise it will reference voxel data. Prefer using references when about to quit for example.

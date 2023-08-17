@@ -711,7 +711,7 @@ void VoxelData::unload_chunks(Span<const Vector3i> positions, std::vector<BlockT
 	}
 }
 
-bool VoxelData::consume_block_modifications(Vector3i bpos, VoxelData::BlockToSave &out_to_save) {
+bool VoxelData::consume_chunk_modifications(Vector3i bpos, VoxelData::BlockToSave &out_to_save) {
 	Lod &lod = _lods[0];
 	VoxelSpatialLockRead srlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
 	RWLockRead rlock(lod.map_lock);

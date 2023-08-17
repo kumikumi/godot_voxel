@@ -1805,7 +1805,7 @@ Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_blocks() {
 // Explicitly ask to save a chunk if it was modified
 void VoxelTerrain::_b_save_chunk(Vector3i p_chunk_pos) {
 	VoxelData::BlockToSave to_save;
-	if (_data->consume_block_modifications(p_chunk_pos, to_save)) {
+	if (_data->consume_chunk_modifications(p_chunk_pos, to_save)) {
 		_chunks_to_save.push_back(to_save);
 	}
 }
