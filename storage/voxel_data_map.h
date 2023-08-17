@@ -186,7 +186,7 @@ private:
 	// void set_chunk_size_pow2(unsigned int p);
 
 private:
-	// Blocks stored with a spatial hash in all 3D directions.
+	// Chunks stored with a spatial hash in all 3D directions.
 	// Before I used Godot 3's HashMap with RELATIONSHIP = 2 because that delivers better performance compared to
 	// defaults, but it sometimes has very long stalls on removal, which std::unordered_map doesn't seem to have
 	// (not as badly). Also overall performance is slightly better.
