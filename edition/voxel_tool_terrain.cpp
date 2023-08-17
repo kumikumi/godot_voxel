@@ -300,8 +300,8 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 	static thread_local std::vector<Pick> picks;
 	picks.reserve(batch_count);
 
-	const float block_volume = math::cubed(chunk_size);
-	CRASH_COND(block_volume < 0.1f);
+	const float chunk_volume = math::cubed(chunk_size);
+	CRASH_COND(chunk_volume < 0.1f);
 
 	struct L {
 		static inline int urand(RandomPCG &random, uint32_t max_value) {
@@ -349,7 +349,7 @@ void VoxelToolTerrain::run_blocky_random_tick_static(VoxelData &data, Box3i voxe
 				const Box3i chunk_voxel_box(chunk_origin, Vector3iUtil::create(chunk_size));
 				Box3i local_voxel_box = voxel_box.clipped(chunk_voxel_box);
 				local_voxel_box.pos -= chunk_origin;
-				const float volume_ratio = Vector3iUtil::get_volume(local_voxel_box.size) / block_volume;
+				const float volume_ratio = Vector3iUtil::get_volume(local_voxel_box.size) / chunk_volume;
 				const int local_batch_count = Math::ceil(batch_count * volume_ratio);
 
 				// Choose a bunch of voxels at random within the chunk.

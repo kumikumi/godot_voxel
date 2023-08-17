@@ -267,9 +267,9 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 	{
 		const Box3i voxel_box = Box3i::from_min_max(query_min_pos_i, query_max_pos_i);
 		const Vector3i chunk_box_size = voxel_box.size >> constants::DEFAULT_CHUNK_SIZE_PO2;
-		const int64_t block_volume = Vector3iUtil::get_volume(chunk_box_size);
+		const int64_t chunk_volume = Vector3iUtil::get_volume(chunk_box_size);
 		// TODO Don't hardcode chunk size (even though for now I have no plan to make it configurable)
-		if (block_volume > math::cubed(MAX_EDITED_BLOCKS_ACROSS)) {
+		if (chunk_volume > math::cubed(MAX_EDITED_BLOCKS_ACROSS)) {
 			// Box too big for quick sparse readings, won't handle edits. Fallback on generator.
 			// One way to speed this up would be to have an octree storing where edited data is.
 			// Or we would have to use the slowest query model, going through data structures for every voxel.
@@ -278,7 +278,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 		}
 
 		// In case there are lots of potential queries to make, do a broad check using LOD mips.
-		if (block_volume <= 8 || voxel_data.has_chunks_with_voxels_in_area_broad_mip_test(voxel_box)) {
+		if (chunk_volume <= 8 || voxel_data.has_chunks_with_voxels_in_area_broad_mip_test(voxel_box)) {
 			voxel_data.get_chunks_grid(grid, voxel_box, 0);
 		}
 		// const VoxelDataLodMap::Lod &lod0 = voxel_data.lods[0];
