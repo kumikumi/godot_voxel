@@ -1708,12 +1708,12 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 
 	// Broader test
 	/*{
-		struct BlockTest {
+		struct ChunkTest {
 			Vector3i origin;
 			bool expect_spot;
 		};
 
-		std::vector<BlockTest> chunk_tests;
+		std::vector<ChunkTest> chunk_tests;
 
 		generator->set_use_optimized_execution_map(false);
 
@@ -1722,14 +1722,14 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 			for (bpos.x = -4; bpos.x < 4; ++bpos.x) {
 				const Vector3i origin = bpos * CHUNK_SIZE;
 				generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin, 0 });
-				chunk_tests.push_back(BlockTest{ origin, L::has_spot(voxels) });
+				chunk_tests.push_back(ChunkTest{ origin, L::has_spot(voxels) });
 			}
 		}
 
 		generator->set_use_optimized_execution_map(true);
 
 		for (unsigned int bti = 0; bti < chunk_tests.size(); ++bti) {
-			const BlockTest bt = chunk_tests[bti];
+			const ChunkTest bt = chunk_tests[bti];
 			generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, bt.origin, 0 });
 			const bool spot_found = L::has_spot(voxels);
 			ZN_TEST_ASSERT(bt.expect_spot == spot_found);
