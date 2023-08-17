@@ -828,17 +828,17 @@ static void init_sparse_grid_priority_dependency(PriorityDependency &dep, Vector
 	const float block_radius = chunk_size / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);
-	const float transformed_block_radius =
+	const float transformed_chunk_radius =
 			volume_transform.basis.xform(Vector3(block_radius, block_radius, block_radius)).length();
 
 	// Distance beyond which no field of view can overlap the chunk.
 	// Doubling chunk radius to account for an extra margin of chunks,
 	// since they are used to provide neighbors when meshing
 	dep.drop_distance_squared =
-			math::squared(shared_viewers_data->highest_view_distance + 2.f * transformed_block_radius);
+			math::squared(shared_viewers_data->highest_view_distance + 2.f * transformed_chunk_radius);
 }
 
-static void request_block_load(VolumeID volume_id, std::shared_ptr<StreamingDependency> stream_dependency,
+static void request_chunk_load(VolumeID volume_id, std::shared_ptr<StreamingDependency> stream_dependency,
 		Vector3i chunk_pos, std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data,
 		const Transform3D volume_transform, bool request_instances, BufferedTaskScheduler &scheduler, bool use_gpu,
 		const std::shared_ptr<VoxelData> &voxel_data) {
@@ -894,7 +894,7 @@ void VoxelTerrain::send_data_load_requests() {
 		// Blocks to load
 		for (size_t i = 0; i < _chunks_pending_load.size(); ++i) {
 			const Vector3i chunk_pos = _chunks_pending_load[i];
-			request_block_load(_volume_id, _streaming_dependency, chunk_pos, shared_viewers_data, volume_transform,
+			request_chunk_load(_volume_id, _streaming_dependency, chunk_pos, shared_viewers_data, volume_transform,
 					_instancer != nullptr, scheduler, _generator_use_gpu, _data);
 		}
 		scheduler.flush();

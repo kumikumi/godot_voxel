@@ -40,7 +40,7 @@ VoxelStringNames::VoxelStringNames() {
 	pivot_mode = StringName("pivot_mode");
 
 	u_transition_mask = StringName("u_transition_mask");
-	u_block_local_transform = StringName("u_block_local_transform");
+	u_chunk_local_transform = StringName("u_chunk_local_transform");
 	u_lod_fade = StringName("u_lod_fade");
 
 	voxel_normalmap_atlas = StringName("voxel_normalmap_atlas");

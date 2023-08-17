@@ -10,7 +10,7 @@
 namespace zylann::voxel {
 
 namespace {
-std::atomic_int g_debug_save_block_tasks_count = { 0 };
+std::atomic_int g_debug_save_chunk_tasks_count = { 0 };
 }
 
 SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos, uint8_t p_lod, uint8_t p_chunk_size,
@@ -26,7 +26,7 @@ SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos,
 		_stream_dependency(p_stream_dependency),
 		_tracker(p_tracker) {
 	//
-	++g_debug_save_block_tasks_count;
+	++g_debug_save_chunk_tasks_count;
 }
 
 SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos, uint8_t p_lod, uint8_t p_chunk_size,
@@ -42,15 +42,15 @@ SaveChunkDataTask::SaveChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos,
 		_stream_dependency(p_stream_dependency),
 		_tracker(p_tracker) {
 	//
-	++g_debug_save_block_tasks_count;
+	++g_debug_save_chunk_tasks_count;
 }
 
 SaveChunkDataTask::~SaveChunkDataTask() {
-	--g_debug_save_block_tasks_count;
+	--g_debug_save_chunk_tasks_count;
 }
 
 int SaveChunkDataTask::debug_get_running_count() {
-	return g_debug_save_block_tasks_count;
+	return g_debug_save_chunk_tasks_count;
 }
 
 void SaveChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {

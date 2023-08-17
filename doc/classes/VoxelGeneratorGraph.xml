@@ -88,7 +88,7 @@
 		</method>
 	</methods>
 	<members>
-		<member name="debug_block_clipping" type="bool" setter="set_debug_clipped_blocks" getter="is_debug_clipped_blocks" default="false">
+		<member name="debug_chunk_clipping" type="bool" setter="set_debug_clipped_blocks" getter="is_debug_clipped_blocks" default="false">
 			When enabled, if the graph outputs SDF data, generated blocks that would otherwise be clipped will be inverted. This has the effect of them showing up as "walls artifacts", which is useful to visualize where the optimization occurs.
 		</member>
 		<member name="sdf_clip_threshold" type="float" setter="set_sdf_clip_threshold" getter="get_sdf_clip_threshold" default="1.5">

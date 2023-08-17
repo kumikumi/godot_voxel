@@ -94,11 +94,11 @@ public:
 	VoxelStream::ResultCode load_chunk(BlockLocation loc, std::vector<uint8_t> &out_chunk_data, BlockType type);
 
 	bool load_all_chunks(void *callback_data,
-			void (*process_block_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
+			void (*process_chunk_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
 					Span<const uint8_t> instances_data));
 
-	bool load_all_block_keys(
-			void *callback_data, void (*process_block_func)(void *callback_data, BlockLocation location));
+	bool load_all_chunk_keys(
+			void *callback_data, void (*process_chunk_func)(void *callback_data, BlockLocation location));
 
 	Meta load_meta();
 	void save_meta(Meta meta);
@@ -143,7 +143,7 @@ private:
 	sqlite3_stmt *_load_channels_statement = nullptr;
 	sqlite3_stmt *_save_channel_statement = nullptr;
 	sqlite3_stmt *_load_all_chunks_statement = nullptr;
-	sqlite3_stmt *_load_all_block_keys_statement = nullptr;
+	sqlite3_stmt *_load_all_chunk_keys_statement = nullptr;
 };
 
 VoxelStreamSQLiteInternal::VoxelStreamSQLiteInternal() {}
@@ -220,7 +220,7 @@ bool VoxelStreamSQLiteInternal::open(const char *fpath) {
 	if (!prepare(db, &_load_all_chunks_statement, "SELECT * FROM blocks")) {
 		return false;
 	}
-	if (!prepare(db, &_load_all_block_keys_statement, "SELECT loc FROM blocks")) {
+	if (!prepare(db, &_load_all_chunk_keys_statement, "SELECT loc FROM blocks")) {
 		return false;
 	}
 
@@ -258,7 +258,7 @@ void VoxelStreamSQLiteInternal::close() {
 	finalize(_load_channels_statement);
 	finalize(_save_channel_statement);
 	finalize(_load_all_chunks_statement);
-	finalize(_load_all_block_keys_statement);
+	finalize(_load_all_chunk_keys_statement);
 	sqlite3_close(_db);
 	_db = nullptr;
 	_opened_path.clear();
@@ -382,7 +382,7 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 		return VoxelStream::RESULT_ERROR;
 	}
 
-	VoxelStream::ResultCode result = VoxelStream::RESULT_BLOCK_NOT_FOUND;
+	VoxelStream::ResultCode result = VoxelStream::RESULT_CHUNK_NOT_FOUND;
 
 	while (true) {
 		rc = sqlite3_step(get_chunk_statement);
@@ -391,7 +391,7 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 			// const uint8_t *b = reinterpret_cast<const uint8_t *>(blob);
 			const size_t blob_size = sqlite3_column_bytes(get_chunk_statement, 0);
 			if (blob_size != 0) {
-				result = VoxelStream::RESULT_BLOCK_FOUND;
+				result = VoxelStream::RESULT_CHUNK_FOUND;
 				out_chunk_data.resize(blob_size);
 				memcpy(out_chunk_data.data(), blob, blob_size);
 			}
@@ -409,10 +409,10 @@ VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
 }
 
 bool VoxelStreamSQLiteInternal::load_all_chunks(void *callback_data,
-		void (*process_block_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
+		void (*process_chunk_func)(void *callback_data, BlockLocation location, Span<const uint8_t> voxel_data,
 				Span<const uint8_t> instances_data)) {
 	ZN_PROFILE_SCOPE();
-	CRASH_COND(process_block_func == nullptr);
+	CRASH_COND(process_chunk_func == nullptr);
 
 	sqlite3 *db = _db;
 	sqlite3_stmt *load_all_chunks_statement = _load_all_chunks_statement;
@@ -442,7 +442,7 @@ bool VoxelStreamSQLiteInternal::load_all_chunks(void *callback_data,
 
 			// Using a function pointer because returning a big list of a copy of all the blobs can
 			// waste a lot of temporary memory
-			process_block_func(callback_data, loc,
+			process_chunk_func(callback_data, loc,
 					Span<const uint8_t>(reinterpret_cast<const uint8_t *>(voxels_blob), voxels_blob_size),
 					Span<const uint8_t>(reinterpret_cast<const uint8_t *>(instances_blob), instances_blob_size));
 
@@ -458,34 +458,34 @@ bool VoxelStreamSQLiteInternal::load_all_chunks(void *callback_data,
 	return true;
 }
 
-bool VoxelStreamSQLiteInternal::load_all_block_keys(
-		void *callback_data, void (*process_block_func)(void *callback_data, BlockLocation location)) {
+bool VoxelStreamSQLiteInternal::load_all_chunk_keys(
+		void *callback_data, void (*process_chunk_func)(void *callback_data, BlockLocation location)) {
 	ZN_PROFILE_SCOPE();
-	ZN_ASSERT(process_block_func != nullptr);
+	ZN_ASSERT(process_chunk_func != nullptr);
 
 	sqlite3 *db = _db;
-	sqlite3_stmt *load_all_block_keys_statement = _load_all_block_keys_statement;
+	sqlite3_stmt *load_all_chunk_keys_statement = _load_all_chunk_keys_statement;
 
 	int rc;
 
-	rc = sqlite3_reset(load_all_block_keys_statement);
+	rc = sqlite3_reset(load_all_chunk_keys_statement);
 	if (rc != SQLITE_OK) {
 		ERR_PRINT(sqlite3_errmsg(db));
 		return false;
 	}
 
 	while (true) {
-		rc = sqlite3_step(load_all_block_keys_statement);
+		rc = sqlite3_step(load_all_chunk_keys_statement);
 
 		if (rc == SQLITE_ROW) {
 			ZN_PROFILE_SCOPE_NAMED("Row");
 
-			const uint64_t eloc = sqlite3_column_int64(load_all_block_keys_statement, 0);
+			const uint64_t eloc = sqlite3_column_int64(load_all_chunk_keys_statement, 0);
 			const BlockLocation loc = BlockLocation::decode(eloc);
 
 			// Using a function pointer because returning a big list of a copy of all the blobs can
 			// waste a lot of temporary memory
-			process_block_func(callback_data, loc);
+			process_chunk_func(callback_data, loc);
 
 		} else if (rc == SQLITE_DONE) {
 			break;
@@ -675,7 +675,7 @@ void VoxelStreamSQLite::set_database_path(String path) {
 	for (auto it = _connection_pool.begin(); it != _connection_pool.end(); ++it) {
 		delete *it;
 	}
-	_block_keys_cache.clear();
+	_chunk_keys_cache.clear();
 	_connection_pool.clear();
 	_connection_path = path;
 	// Don't actually open anything here. We'll do it only when necessary
@@ -708,13 +708,13 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 
 		ZN_ASSERT_CONTINUE(can_convert_to_i16(pos));
 
-		if (_block_keys_cache_enabled && !_block_keys_cache.contains(to_vec3i16(pos), q.lod)) {
-			q.result = RESULT_BLOCK_NOT_FOUND;
+		if (_chunk_keys_cache_enabled && !_chunk_keys_cache.contains(to_vec3i16(pos), q.lod)) {
+			q.result = RESULT_CHUNK_NOT_FOUND;
 			continue;
 		}
 
 		if (_cache.load_voxel_chunk(pos, q.lod, q.voxel_buffer)) {
-			q.result = RESULT_BLOCK_FOUND;
+			q.result = RESULT_CHUNK_FOUND;
 
 		} else {
 			chunks_to_load.push_back(i);
@@ -748,7 +748,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 
 		const ResultCode res = con->load_chunk(loc, temp_chunk_data, VoxelStreamSQLiteInternal::VOXELS);
 
-		if (res == RESULT_BLOCK_FOUND) {
+		if (res == RESULT_CHUNK_FOUND) {
 			// TODO Not sure if we should actually expect non-null. There can be legit not found chunks.
 			ChunkSerializer::decompress_and_deserialize(to_span_const(temp_chunk_data), q.voxel_buffer);
 		}
@@ -776,8 +776,8 @@ void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 		}
 
 		_cache.save_voxel_chunk(pos, q.lod, q.voxel_buffer);
-		if (_block_keys_cache_enabled) {
-			_block_keys_cache.add(to_vec3i16(pos), q.lod);
+		if (_chunk_keys_cache_enabled) {
+			_chunk_keys_cache.add(to_vec3i16(pos), q.lod);
 		}
 	}
 
@@ -803,7 +803,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 		VoxelStream::InstancesQueryData &q = out_blocks[i];
 
 		if (_cache.load_instance_block(q.position, q.lod, q.data)) {
-			q.result = RESULT_BLOCK_FOUND;
+			q.result = RESULT_CHUNK_FOUND;
 
 		} else {
 			chunks_to_load.push_back(i);
@@ -836,7 +836,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 
 		const ResultCode res = con->load_chunk(loc, temp_compressed_chunk_data, VoxelStreamSQLiteInternal::INSTANCES);
 
-		if (res == RESULT_BLOCK_FOUND) {
+		if (res == RESULT_CHUNK_FOUND) {
 			std::vector<uint8_t> &temp_chunk_data = get_tls_temp_chunk_data();
 
 			if (!CompressedData::decompress(to_span_const(temp_compressed_chunk_data), temp_chunk_data)) {
@@ -874,8 +874,8 @@ void VoxelStreamSQLite::save_instance_blocks(Span<VoxelStream::InstancesQueryDat
 		}
 
 		_cache.save_instance_block(q.position, q.lod, std::move(q.data));
-		if (_block_keys_cache_enabled) {
-			_block_keys_cache.add(to_vec3i16(q.position), q.lod);
+		if (_chunk_keys_cache_enabled) {
+			_chunk_keys_cache.add(to_vec3i16(q.position), q.lod);
 		}
 	}
 
@@ -899,7 +899,7 @@ void VoxelStreamSQLite::load_all_chunks(FullLoadingResult &result) {
 	// Godot's clang-format does not allow to write function parameters in column,
 	// which makes the lambda break line length.
 	struct L {
-		static void process_block_func(void *callback_data, const BlockLocation location,
+		static void process_chunk_func(void *callback_data, const BlockLocation location,
 				Span<const uint8_t> voxel_data, Span<const uint8_t> instances_data) {
 			Context *ctx = reinterpret_cast<Context *>(callback_data);
 
@@ -939,7 +939,7 @@ void VoxelStreamSQLite::load_all_chunks(FullLoadingResult &result) {
 	// Had to suffix `_outer`,
 	// because otherwise GCC thinks it shadows a variable inside the local function/captureless lambda
 	Context ctx_outer{ result };
-	const bool request_result = con->load_all_chunks(&ctx_outer, L::process_block_func);
+	const bool request_result = con->load_all_chunks(&ctx_outer, L::process_chunk_func);
 	ERR_FAIL_COND(request_result == false);
 }
 
@@ -1032,9 +1032,9 @@ VoxelStreamSQLiteInternal *VoxelStreamSQLite::get_connection() {
 		delete con;
 		con = nullptr;
 	}
-	if (_block_keys_cache_enabled) {
-		RWLockWrite wlock(_block_keys_cache.rw_lock);
-		con->load_all_block_keys(&_block_keys_cache, [](void *ctx, BlockLocation loc) {
+	if (_chunk_keys_cache_enabled) {
+		RWLockWrite wlock(_chunk_keys_cache.rw_lock);
+		con->load_all_chunk_keys(&_chunk_keys_cache, [](void *ctx, BlockLocation loc) {
 			BlockKeysCache *cache = static_cast<BlockKeysCache *>(ctx);
 			cache->add_no_lock({ loc.x, loc.y, loc.z }, loc.lod);
 		});
@@ -1056,11 +1056,11 @@ void VoxelStreamSQLite::recycle_connection(VoxelStreamSQLiteInternal *con) {
 }
 
 void VoxelStreamSQLite::set_key_cache_enabled(bool enable) {
-	_block_keys_cache_enabled = enable;
+	_chunk_keys_cache_enabled = enable;
 }
 
 bool VoxelStreamSQLite::is_key_cache_enabled() const {
-	return _block_keys_cache_enabled;
+	return _chunk_keys_cache_enabled;
 }
 
 void VoxelStreamSQLite::_bind_methods() {

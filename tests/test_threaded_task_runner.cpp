@@ -440,7 +440,7 @@ void test_threaded_task_postponing() {
 
 #ifdef VOXEL_TEST_TASK_POSTPONING_DUMP_EVENTS
 	// Dump events
-	std::ofstream ofs("ddd_block_tasks_test.json", std::ios::binary);
+	std::ofstream ofs("ddd_chunk_tasks_test.json", std::ios::binary);
 	if (ofs.good()) {
 		ofs << "{\n";
 		ofs << "\t\"events\": [\n";

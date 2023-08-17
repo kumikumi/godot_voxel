@@ -577,7 +577,7 @@ Array separate_floating_chunks(VoxelTool &voxel_tool, Box3i world_box, Node *par
 	uint32_t materials_to_instance_mask = 0;
 	{
 		std::vector<GodotShaderParameterInfo> params;
-		const String u_block_local_transform = VoxelStringNames::get_singleton().u_block_local_transform;
+		const String u_chunk_local_transform = VoxelStringNames::get_singleton().u_chunk_local_transform;
 
 		ZN_ASSERT_RETURN_V_MSG(materials.size() < 32, Array(),
 				"Too many materials. If you need more, make a request or change the code.");
@@ -597,7 +597,7 @@ Array separate_floating_chunks(VoxelTool &voxel_tool, Box3i world_box, Node *par
 			get_shader_parameter_list(shader->get_rid(), params);
 
 			for (const GodotShaderParameterInfo &param_info : params) {
-				if (param_info.name == u_block_local_transform) {
+				if (param_info.name == u_chunk_local_transform) {
 					materials_to_instance_mask |= (1 << material_index);
 					break;
 				}
@@ -653,7 +653,7 @@ Array separate_floating_chunks(VoxelTool &voxel_tool, Box3i world_box, Node *par
 					// duplicate.
 					// TODO Try using per-instance parameters for scalar uniforms (Godot 4 doesn't support textures)
 					sm->set_shader_parameter(
-							VoxelStringNames::get_singleton().u_block_local_transform, local_transform);
+							VoxelStringNames::get_singleton().u_chunk_local_transform, local_transform);
 					materials[i] = sm;
 				}
 			}

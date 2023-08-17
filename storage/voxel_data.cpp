@@ -797,7 +797,7 @@ void VoxelData::get_chunks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsign
 	RWLockRead rlock(data_lod.map_lock);
 	const int bs = data_lod.map.get_chunk_size() << lod_index;
 	const Box3i box_in_blocks = box_in_voxels.downscaled(bs);
-	grid.reference_area_block_coords(data_lod.map, box_in_blocks, &data_lod.spatial_lock);
+	grid.reference_area_chunk_coords(data_lod.map, box_in_blocks, &data_lod.spatial_lock);
 }
 
 VoxelSpatialLock &VoxelData::get_spatial_lock(unsigned int lod_index) const {

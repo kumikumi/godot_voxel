@@ -84,7 +84,7 @@ inline void copy_param(ShaderMaterial &src, ShaderMaterial &dst, const StringNam
 	dst.set_shader_parameter(name, src.get_shader_parameter(name));
 }
 
-static void copy_vlt_block_params(ShaderMaterial &src, ShaderMaterial &dst) {
+static void copy_vlt_chunk_params(ShaderMaterial &src, ShaderMaterial &dst) {
 	const VoxelStringNames &sn = VoxelStringNames::get_singleton();
 
 	copy_param(src, dst, sn.u_voxel_normalmap_atlas);
@@ -236,7 +236,7 @@ void VoxelLodTerrain::set_material(Ref<Material> p_material) {
 				if (prev_material.is_valid()) {
 					ZN_ASSERT_RETURN(sm.is_valid());
 					// Each chunk can have specific shader parameters so we have to keep them
-					copy_vlt_block_params(**prev_material, **sm);
+					copy_vlt_chunk_params(**prev_material, **sm);
 				}
 				block.set_shader_material(sm);
 			});
@@ -914,11 +914,11 @@ float VoxelLodTerrain::get_collision_margin() const {
 }
 
 int VoxelLodTerrain::get_chunk_region_extent() const {
-	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_chunk_size());
+	return VoxelEngine::get_octree_lod_chunk_region_extent(_update_data->settings.lod_distance, get_chunk_size());
 }
 
 int VoxelLodTerrain::get_chunk_mesh_region_extent() const {
-	return VoxelEngine::get_octree_lod_block_region_extent(_update_data->settings.lod_distance, get_chunk_mesh_size());
+	return VoxelEngine::get_octree_lod_chunk_region_extent(_update_data->settings.lod_distance, get_chunk_mesh_size());
 }
 
 Vector3i VoxelLodTerrain::voxel_to_chunk_position(Vector3 vpos, int lod_index) const {

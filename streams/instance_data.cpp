@@ -10,9 +10,9 @@ namespace zylann::voxel {
 namespace {
 const uint32_t TRAILING_MAGIC = 0x900df00d;
 enum FormatVersion {
-	INSTANCE_BLOCK_FORMAT_VERSION_0 = 0,
+	INSTANCE_CHUNK_FORMAT_VERSION_0 = 0,
 	// Now using little-endian.
-	INSTANCE_BLOCK_FORMAT_VERSION_1 = 1
+	INSTANCE_CHUNK_FORMAT_VERSION_1 = 1
 };
 } //namespace
 
@@ -66,7 +66,7 @@ bool serialize_instance_chunk_data(const InstanceChunkData &src, std::vector<uin
 	ZN_ASSERT_RETURN_V(src.position_range >= 0.f, false);
 	const float position_range = math::max(src.position_range, InstanceChunkData::POSITION_RANGE_MINIMUM);
 
-	w.store_8(INSTANCE_BLOCK_FORMAT_VERSION_1);
+	w.store_8(INSTANCE_CHUNK_FORMAT_VERSION_1);
 	w.store_8(src.layers.size());
 	w.store_float(position_range);
 
@@ -119,13 +119,13 @@ bool serialize_instance_chunk_data(const InstanceChunkData &src, std::vector<uin
 }
 
 bool deserialize_instance_chunk_data(InstanceChunkData &dst, Span<const uint8_t> src) {
-	const uint8_t expected_version = INSTANCE_BLOCK_FORMAT_VERSION_1;
+	const uint8_t expected_version = INSTANCE_CHUNK_FORMAT_VERSION_1;
 	const uint8_t expected_instance_format = InstanceChunkData::FORMAT_SIMPLE_11B_V1;
 
 	zylann::MemoryReader r(src, zylann::ENDIANESS_LITTLE_ENDIAN);
 
 	const uint8_t version = r.get_8();
-	if (version == INSTANCE_BLOCK_FORMAT_VERSION_0) {
+	if (version == INSTANCE_CHUNK_FORMAT_VERSION_0) {
 		r.endianess = zylann::ENDIANESS_BIG_ENDIAN;
 	} else {
 		ZN_ASSERT_RETURN_V(version == expected_version, false);

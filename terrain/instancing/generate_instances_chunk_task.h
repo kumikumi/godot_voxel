@@ -1,5 +1,5 @@
-#ifndef ZN_VOXEL_GENERATE_INSTANCES_BLOCK_TASK_H
-#define ZN_VOXEL_GENERATE_INSTANCES_BLOCK_TASK_H
+#ifndef ZN_VOXEL_GENERATE_INSTANCES_CHUNK_TASK_H
+#define ZN_VOXEL_GENERATE_INSTANCES_CHUNK_TASK_H
 
 #include "../../util/tasks/threaded_task.h"
 #include "../../util/thread/mutex.h"
@@ -44,4 +44,4 @@ public:
 
 } // namespace zylann::voxel
 
-#endif // ZN_VOXEL_GENERATE_INSTANCES_BLOCK_TASK_H
+#endif // ZN_VOXEL_GENERATE_INSTANCES_CHUNK_TASK_H

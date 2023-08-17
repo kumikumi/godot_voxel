@@ -21,7 +21,7 @@ void VoxelStreamScript::load_voxel_chunk(VoxelStream::VoxelQueryData &query_data
 		// Check if the return enum is valid
 		ERR_FAIL_INDEX(res, _RESULT_COUNT);
 		// If the chunk was found, grab its data from the script-facing object to our internal buffer
-		if (res == RESULT_BLOCK_FOUND) {
+		if (res == RESULT_CHUNK_FOUND) {
 			buffer_wrapper->get_buffer().move_to(query_data.voxel_buffer);
 		}
 		query_data.result = ResultCode(res);

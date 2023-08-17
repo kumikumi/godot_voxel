@@ -34,7 +34,7 @@ public:
 	StringName pivot_mode;
 
 	StringName u_transition_mask;
-	StringName u_block_local_transform;
+	StringName u_chunk_local_transform;
 	StringName u_lod_fade;
 
 	StringName voxel_normalmap_atlas;

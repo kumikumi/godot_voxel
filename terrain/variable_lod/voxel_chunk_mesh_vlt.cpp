@@ -176,7 +176,7 @@ void VoxelChunkMeshVLT::set_shader_material(Ref<ShaderMaterial> material) {
 	if (_shader_material.is_valid()) {
 		const Transform3D local_transform(Basis(), _position_in_voxels);
 		const VoxelStringNames &sn = VoxelStringNames::get_singleton();
-		_shader_material->set_shader_parameter(sn.u_block_local_transform, local_transform);
+		_shader_material->set_shader_parameter(sn.u_chunk_local_transform, local_transform);
 		_shader_material->set_shader_parameter(sn.u_voxel_virtual_texture_offset_scale, Vector4(0, 0, 0, 1));
 	}
 }

@@ -34,9 +34,9 @@ public:
 		// Something went wrong, the request should be aborted
 		RESULT_ERROR,
 		// The block could not be found in the stream. The requester may fallback on the generator.
-		RESULT_BLOCK_NOT_FOUND,
+		RESULT_CHUNK_NOT_FOUND,
 		// The block was found, so the requester won't use the generator.
-		RESULT_BLOCK_FOUND,
+		RESULT_CHUNK_FOUND,
 
 		_RESULT_COUNT
 	};

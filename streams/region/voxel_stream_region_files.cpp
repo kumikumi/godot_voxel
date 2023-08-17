@@ -76,21 +76,21 @@ void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData>
 	// In order to minimize opening/closing files, requests are grouped according to their region.
 
 	// Had to copy input to sort it, as some areas in the module break if they get responses in different order
-	std::vector<unsigned int> sorted_block_indices;
+	std::vector<unsigned int> sorted_chunk_indices;
 	BlockQueryComparator comparator;
 	comparator.self = this;
-	get_sorted_indices(p_blocks, comparator, sorted_block_indices);
+	get_sorted_indices(p_blocks, comparator, sorted_chunk_indices);
 
-	for (unsigned int i = 0; i < sorted_block_indices.size(); ++i) {
-		const unsigned int bi = sorted_block_indices[i];
+	for (unsigned int i = 0; i < sorted_chunk_indices.size(); ++i) {
+		const unsigned int bi = sorted_chunk_indices[i];
 		VoxelStream::VoxelQueryData &q = p_blocks[bi];
 		const EmergeResult result = _load_chunk(q.voxel_buffer, q.origin_in_voxels, q.lod);
 		switch (result) {
 			case EMERGE_OK:
-				q.result = RESULT_BLOCK_FOUND;
+				q.result = RESULT_CHUNK_FOUND;
 				break;
 			case EMERGE_OK_FALLBACK:
-				q.result = RESULT_BLOCK_NOT_FOUND;
+				q.result = RESULT_CHUNK_NOT_FOUND;
 				break;
 			case EMERGE_FAILED:
 				q.result = RESULT_ERROR;
@@ -106,13 +106,13 @@ void VoxelStreamRegionFiles::save_voxel_chunks(Span<VoxelStream::VoxelQueryData>
 	ZN_PROFILE_SCOPE();
 
 	// Had to copy input to sort it, as some areas in the module break if they get responses in different order
-	std::vector<unsigned int> sorted_block_indices;
+	std::vector<unsigned int> sorted_chunk_indices;
 	BlockQueryComparator comparator;
 	comparator.self = this;
-	get_sorted_indices(p_blocks, comparator, sorted_block_indices);
+	get_sorted_indices(p_blocks, comparator, sorted_chunk_indices);
 
-	for (unsigned int i = 0; i < sorted_block_indices.size(); ++i) {
-		const unsigned int bi = sorted_block_indices[i];
+	for (unsigned int i = 0; i < sorted_chunk_indices.size(); ++i) {
+		const unsigned int bi = sorted_chunk_indices[i];
 		VoxelStream::VoxelQueryData &q = p_blocks[bi];
 		_save_chunk(q.voxel_buffer, q.origin_in_voxels, q.lod);
 	}
@@ -547,14 +547,14 @@ void VoxelStreamRegionFiles::close_oldest_region() {
 	memdelete(region);
 }
 
-static inline int convert_block_coordinate(int p_x, int old_size, int new_size) {
+static inline int convert_chunk_coordinate(int p_x, int old_size, int new_size) {
 	return math::floordiv(p_x * old_size, new_size);
 }
 
-static Vector3i convert_block_coordinates(Vector3i pos, Vector3i old_size, Vector3i new_size) {
-	return Vector3i(convert_block_coordinate(pos.x, old_size.x, new_size.x),
-			convert_block_coordinate(pos.y, old_size.y, new_size.y),
-			convert_block_coordinate(pos.z, old_size.z, new_size.z));
+static Vector3i convert_chunk_coordinates(Vector3i pos, Vector3i old_size, Vector3i new_size) {
+	return Vector3i(convert_chunk_coordinate(pos.x, old_size.x, new_size.x),
+			convert_chunk_coordinate(pos.y, old_size.y, new_size.y),
+			convert_chunk_coordinate(pos.z, old_size.z, new_size.z));
 }
 
 void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
@@ -706,7 +706,7 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 				save_voxel_chunk(old_chunk_save_query);
 
 			} else {
-				Vector3i new_chunk_pos = convert_block_coordinates(chunk_pos, old_chunk_size, new_chunk_size);
+				Vector3i new_chunk_pos = convert_chunk_coordinates(chunk_pos, old_chunk_size, new_chunk_size);
 
 				// TODO Support any size? Assuming cubic chunks here
 				if (old_chunk_size.x < new_chunk_size.x) {

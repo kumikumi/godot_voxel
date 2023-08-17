@@ -1815,7 +1815,7 @@ void VoxelGeneratorGraph::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "subdivision_size"), "set_subdivision_size", "get_subdivision_size");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_xz_caching"), "set_use_xz_caching", "is_using_xz_caching");
 	ADD_PROPERTY(
-			PropertyInfo(Variant::BOOL, "debug_block_clipping"), "set_debug_clipped_blocks", "is_debug_clipped_blocks");
+			PropertyInfo(Variant::BOOL, "debug_chunk_clipping"), "set_debug_clipped_blocks", "is_debug_clipped_blocks");
 
 	ADD_SIGNAL(MethodInfo(SIGNAL_NODE_NAME_CHANGED, PropertyInfo(Variant::INT, "node_id")));
 }

@@ -10,7 +10,7 @@
 namespace zylann::voxel {
 
 namespace {
-std::atomic_int g_debug_load_block_tasks_count = { 0 };
+std::atomic_int g_debug_load_chunk_tasks_count = { 0 };
 }
 
 LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos, uint8_t p_lod, uint8_t p_chunk_size,
@@ -29,15 +29,15 @@ LoadChunkDataTask::LoadChunkDataTask(VolumeID p_volume_id, Vector3i p_chunk_pos,
 		_stream_dependency(p_stream_dependency),
 		_voxel_data(vdata) {
 	//
-	++g_debug_load_block_tasks_count;
+	++g_debug_load_chunk_tasks_count;
 }
 
 LoadChunkDataTask::~LoadChunkDataTask() {
-	--g_debug_load_block_tasks_count;
+	--g_debug_load_chunk_tasks_count;
 }
 
 int LoadChunkDataTask::debug_get_running_count() {
-	return g_debug_load_block_tasks_count;
+	return g_debug_load_chunk_tasks_count;
 }
 
 void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
@@ -66,7 +66,7 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 	if (voxel_query_data.result == VoxelStream::RESULT_ERROR) {
 		ERR_PRINT("Error loading voxel block");
 
-	} else if (voxel_query_data.result == VoxelStream::RESULT_BLOCK_NOT_FOUND) {
+	} else if (voxel_query_data.result == VoxelStream::RESULT_CHUNK_NOT_FOUND) {
 		if (_generate_cache_data) {
 			Ref<VoxelGenerator> generator = _stream_dependency->generator;
 
@@ -107,7 +107,7 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 		if (instances_query.result == VoxelStream::RESULT_ERROR) {
 			ERR_PRINT("Error loading instance block");
 
-		} else if (voxel_query_data.result == VoxelStream::RESULT_BLOCK_FOUND) {
+		} else if (voxel_query_data.result == VoxelStream::RESULT_CHUNK_FOUND) {
 			_instances = std::move(instances_query.data);
 		}
 		// If not found, instances will return null,

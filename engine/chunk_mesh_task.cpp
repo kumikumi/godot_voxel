@@ -52,7 +52,7 @@ CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 // Takes a list of chunks and interprets it as a cube of chunks centered around the area we want to create a mesh from.
 // Voxels from central chunks are copied, and part of side chunks are also copied so we get a temporary buffer
 // which includes enough neighbors for the mesher to avoid doing bound checks.
-static void copy_block_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> blocks, VoxelBufferInternal &dst,
+static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> blocks, VoxelBufferInternal &dst,
 		int min_padding, int max_padding, int channels_mask, Ref<VoxelGenerator> generator, const VoxelData &voxel_data,
 		uint8_t lod_index, Vector3i chunk_mesh_pos, std::vector<Box3i> *out_boxes_to_generate,
 		Vector3i *out_origin_in_voxels) {
@@ -311,7 +311,7 @@ void ChunkMeshTask::gather_voxels_gpu(zylann::ThreadedTaskContext &ctx) {
 	std::vector<Box3i> boxes_to_generate;
 	Vector3i origin_in_voxels;
 
-	copy_block_and_neighbors(to_span(chunks, chunks_count), _voxels, min_padding, max_padding,
+	copy_chunk_and_neighbors(to_span(chunks, chunks_count), _voxels, min_padding, max_padding,
 			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, chunk_mesh_position,
 			&boxes_to_generate, &origin_in_voxels);
 
@@ -371,7 +371,7 @@ void ChunkMeshTask::gather_voxels_cpu() {
 	const unsigned int min_padding = mesher->get_minimum_padding();
 	const unsigned int max_padding = mesher->get_maximum_padding();
 
-	copy_block_and_neighbors(to_span(chunks, chunks_count), _voxels, min_padding, max_padding,
+	copy_chunk_and_neighbors(to_span(chunks, chunks_count), _voxels, min_padding, max_padding,
 			mesher->get_used_channels_mask(), meshing_dependency->generator, *data, lod_index, chunk_mesh_position,
 			nullptr, nullptr);
 

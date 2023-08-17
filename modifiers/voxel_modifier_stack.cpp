@@ -185,8 +185,8 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 	// modify only the area that intersects the chunk, and we re-encode only what was modified.
 	// Another option later could be to use uncompressed chunks (32-bit float) when doing on-the-fly sampling?
 
-	thread_local std::vector<float> tls_block_sdf_initial;
-	thread_local std::vector<float> tls_block_sdf;
+	thread_local std::vector<float> tls_chunk_sdf_initial;
+	thread_local std::vector<float> tls_chunk_sdf;
 
 	std::vector<float> &area_sdf = get_tls_sdf();
 	std::vector<Vector3> &area_positions = get_tls_positions();
@@ -207,10 +207,10 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 				ZN_PROFILE_SCOPE_NAMED("Read block");
 				any_intersection = true;
 
-				decompress_sdf_to_buffer(voxels, tls_block_sdf_initial);
+				decompress_sdf_to_buffer(voxels, tls_chunk_sdf_initial);
 
-				tls_block_sdf.resize(tls_block_sdf_initial.size());
-				memcpy(tls_block_sdf.data(), tls_block_sdf_initial.data(), tls_block_sdf.size() * sizeof(float));
+				tls_chunk_sdf.resize(tls_chunk_sdf_initial.size());
+				memcpy(tls_chunk_sdf.data(), tls_chunk_sdf_initial.data(), tls_chunk_sdf.size() * sizeof(float));
 			}
 
 			// Get modifier bounds in voxels
@@ -220,7 +220,7 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 
 			const int64_t volume = Vector3iUtil::get_volume(modifier_box.size);
 			area_sdf.resize(volume);
-			copy_3d_region_zxy(to_span(area_sdf), modifier_box.size, Vector3i(), to_span_const(tls_block_sdf),
+			copy_3d_region_zxy(to_span(area_sdf), modifier_box.size, Vector3i(), to_span_const(tls_chunk_sdf),
 					voxels.get_size(), local_origin_in_voxels, local_origin_in_voxels + modifier_box.size);
 
 			get_positions_buffer(
@@ -232,14 +232,14 @@ void VoxelModifierStack::apply(VoxelBufferInternal &voxels, AABB aabb) const {
 
 			// Write modifications back to the full-chunk decompressed buffer
 			// TODO Maybe use an unchecked version for a bit more speed?
-			copy_3d_region_zxy(to_span(tls_block_sdf), voxels.get_size(), local_origin_in_voxels,
+			copy_3d_region_zxy(to_span(tls_chunk_sdf), voxels.get_size(), local_origin_in_voxels,
 					Span<const float>(ctx.sdf), modifier_box.size, Vector3i(), modifier_box.size);
 		}
 	}
 
 	if (any_intersection) {
 		// scale_and_store_sdf(voxels, to_span(tls_chunk_sdf));
-		scale_and_store_sdf_if_modified(voxels, to_span(tls_block_sdf), to_span(tls_block_sdf_initial));
+		scale_and_store_sdf_if_modified(voxels, to_span(tls_chunk_sdf), to_span(tls_chunk_sdf_initial));
 		voxels.compress_uniform_channels();
 	}
 }

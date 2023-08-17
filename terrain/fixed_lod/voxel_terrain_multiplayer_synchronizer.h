@@ -47,7 +47,7 @@ private:
 		PackedByteArray data;
 	};
 
-	std::unordered_map<int, std::vector<DeferredBlockMessage>> _deferred_block_messages_per_peer;
+	std::unordered_map<int, std::vector<DeferredBlockMessage>> _deferred_chunk_messages_per_peer;
 };
 
 } // namespace zylann::voxel

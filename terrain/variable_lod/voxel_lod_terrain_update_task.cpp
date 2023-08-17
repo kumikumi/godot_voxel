@@ -64,7 +64,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 	const int chunk_size = data.get_chunk_size();
 	const int chunk_size_po2 = data.get_chunk_size_po2();
 	const int chunk_region_extent =
-			VoxelEngine::get_octree_lod_block_region_extent(settings.lod_distance, chunk_size);
+			VoxelEngine::get_octree_lod_chunk_region_extent(settings.lod_distance, chunk_size);
 	const Box3i bounds_in_voxels = data.get_bounds();
 
 	const int chunk_mesh_size = 1 << settings.chunk_mesh_size_po2;
@@ -158,7 +158,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 	const int chunk_mesh_size_po2 = settings.chunk_mesh_size_po2;
 	const int chunk_mesh_size = 1 << chunk_mesh_size_po2;
 	const int chunk_mesh_region_extent =
-			VoxelEngine::get_octree_lod_block_region_extent(settings.lod_distance, chunk_mesh_size);
+			VoxelEngine::get_octree_lod_chunk_region_extent(settings.lod_distance, chunk_mesh_size);
 	const int lod_count = data.get_lod_count();
 	const Box3i bounds_in_voxels = data.get_bounds();
 
@@ -835,18 +835,18 @@ static void init_sparse_octree_priority_dependency(PriorityDependency &dep, Vect
 	const float block_radius = (chunk_size << lod) / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);
-	const float transformed_block_radius =
+	const float transformed_chunk_radius =
 			volume_transform.basis.xform(Vector3(block_radius, block_radius, block_radius)).length();
 
 	// Distance beyond which it is safe to drop a chunk without risking to chunk LOD subdivision.
 	// This does not depend on viewer's view distance, but on LOD precision instead.
 	// TODO Should `chunk_size` be used here? Should it be chunk_mesh_size instead?
-	dep.drop_distance_squared = math::squared(2.f * transformed_block_radius *
-			VoxelEngine::get_octree_lod_block_region_extent(octree_lod_distance, chunk_size));
+	dep.drop_distance_squared = math::squared(2.f * transformed_chunk_radius *
+			VoxelEngine::get_octree_lod_chunk_region_extent(octree_lod_distance, chunk_size));
 }
 
 // This is only if we want to cache voxel data
-static void request_block_generate(VolumeID volume_id, unsigned int chunk_size,
+static void request_chunk_generate(VolumeID volume_id, unsigned int chunk_size,
 		std::shared_ptr<StreamingDependency> &stream_dependency, const std::shared_ptr<VoxelData> &data,
 		Vector3i chunk_pos, int lod, std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data,
 		const Transform3D &volume_transform, const VoxelLodTerrainUpdateData::Settings &settings,
@@ -876,7 +876,7 @@ static void request_block_generate(VolumeID volume_id, unsigned int chunk_size,
 }
 
 // Used only when streaming chunk by chunk
-static void request_block_load(VolumeID volume_id, unsigned int chunk_size,
+static void request_chunk_load(VolumeID volume_id, unsigned int chunk_size,
 		std::shared_ptr<StreamingDependency> &stream_dependency, const std::shared_ptr<VoxelData> &data,
 		Vector3i chunk_pos, int lod, bool request_instances,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, const Transform3D &volume_transform,
@@ -898,7 +898,7 @@ static void request_block_load(VolumeID volume_id, unsigned int chunk_size,
 
 	} else if (settings.cache_generated_blocks) {
 		// Directly generate the chunk without checking the stream.
-		request_block_generate(volume_id, chunk_size, stream_dependency, data, chunk_pos, lod, shared_viewers_data,
+		request_chunk_generate(volume_id, chunk_size, stream_dependency, data, chunk_pos, lod, shared_viewers_data,
 				volume_transform, settings, nullptr, true, task_scheduler);
 
 	} else {
@@ -915,7 +915,7 @@ static void send_chunk_data_requests(VolumeID volume_id,
 	//
 	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
 		const VoxelLodTerrainUpdateData::BlockLocation loc = chunks_to_load[i];
-		request_block_load(volume_id, chunk_size, stream_dependency, data, loc.position, loc.lod,
+		request_chunk_load(volume_id, chunk_size, stream_dependency, data, loc.position, loc.lod,
 				request_instances, shared_viewers_data, volume_transform, settings, task_scheduler);
 	}
 }
@@ -1122,7 +1122,7 @@ static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerra
 
 		for (unsigned int i = 0; i < todo.size(); ++i) {
 			const TaskArguments args = todo[i];
-			request_block_generate(volume_id, chunk_size, stream_dependency, data_ptr, args.chunk_pos,
+			request_chunk_generate(volume_id, chunk_size, stream_dependency, data_ptr, args.chunk_pos,
 					args.lod_index, shared_viewers_data, volume_transform, settings, tracker, false, task_scheduler);
 		}
 

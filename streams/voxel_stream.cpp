@@ -11,7 +11,7 @@ VoxelStream::~VoxelStream() {}
 
 void VoxelStream::load_voxel_chunk(VoxelQueryData &query_data) {
 	// Can be implemented in subclasses
-	query_data.result = RESULT_BLOCK_NOT_FOUND;
+	query_data.result = RESULT_CHUNK_NOT_FOUND;
 }
 
 void VoxelStream::save_voxel_chunk(VoxelQueryData &query_data) {
@@ -39,7 +39,7 @@ bool VoxelStream::supports_instance_blocks() const {
 void VoxelStream::load_instance_blocks(Span<InstancesQueryData> out_blocks) {
 	// Can be implemented in subclasses
 	for (size_t i = 0; i < out_blocks.size(); ++i) {
-		out_blocks[i].result = RESULT_BLOCK_NOT_FOUND;
+		out_blocks[i].result = RESULT_CHUNK_NOT_FOUND;
 	}
 }
 
@@ -132,6 +132,6 @@ void VoxelStream::_bind_methods() {
 			"get_save_generator_output");
 
 	BIND_ENUM_CONSTANT(RESULT_ERROR);
-	BIND_ENUM_CONSTANT(RESULT_BLOCK_FOUND);
-	BIND_ENUM_CONSTANT(RESULT_BLOCK_NOT_FOUND);
+	BIND_ENUM_CONSTANT(RESULT_CHUNK_FOUND);
+	BIND_ENUM_CONSTANT(RESULT_CHUNK_NOT_FOUND);
 }

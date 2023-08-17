@@ -186,7 +186,7 @@ public:
 		return _file_locker;
 	}
 
-	static inline int get_octree_lod_block_region_extent(float lod_distance, float chunk_size) {
+	static inline int get_octree_lod_chunk_region_extent(float lod_distance, float chunk_size) {
 		// This is a bounding radius of chunks around a viewer within which we may load them.
 		// `lod_distance` is the distance under which a chunk should subdivide into a smaller one.
 		// Each LOD is fractal so that value is the same for each of them, multiplied by 2^lod.

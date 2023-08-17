@@ -61,10 +61,10 @@
 		<constant name="RESULT_ERROR" value="0" enum="ResultCode">
 			An error occurred when loading the block. The request will be aborted.
 		</constant>
-		<constant name="RESULT_BLOCK_FOUND" value="2" enum="ResultCode">
+		<constant name="RESULT_CHUNK_FOUND" value="2" enum="ResultCode">
 			The block was found.
 		</constant>
-		<constant name="RESULT_BLOCK_NOT_FOUND" value="1" enum="ResultCode">
+		<constant name="RESULT_CHUNK_NOT_FOUND" value="1" enum="ResultCode">
 			The block was not found. The requester may fallback on using the generator, if any.
 		</constant>
 	</constants>

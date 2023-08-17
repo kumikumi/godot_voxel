@@ -64,7 +64,7 @@ void VoxelTerrainMultiplayerSynchronizer::send_block(
 	// rpc_id(viewer_peer_id, VoxelStringNames::get_singleton().receive_chunk, data);
 	// Instead of sending it right away, defer it until the terrain finished processing. Sending individual chunks with
 	// the RPC system is too slow.
-	_deferred_block_messages_per_peer[viewer_peer_id].push_back(DeferredBlockMessage{ message_data });
+	_deferred_chunk_messages_per_peer[viewer_peer_id].push_back(DeferredBlockMessage{ message_data });
 }
 
 // TODO Have a way to implement ghost edits?
@@ -137,7 +137,7 @@ void VoxelTerrainMultiplayerSynchronizer::_notification(int p_what) {
 void VoxelTerrainMultiplayerSynchronizer::process() {
 	ZN_PROFILE_SCOPE();
 
-	for (auto it = _deferred_block_messages_per_peer.begin(); it != _deferred_block_messages_per_peer.end(); ++it) {
+	for (auto it = _deferred_chunk_messages_per_peer.begin(); it != _deferred_chunk_messages_per_peer.end(); ++it) {
 		std::vector<DeferredBlockMessage> &messages = it->second;
 
 		if (messages.size() == 0) {

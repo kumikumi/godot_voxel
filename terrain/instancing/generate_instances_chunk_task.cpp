@@ -1,4 +1,4 @@
-#include "generate_instances_block_task.h"
+#include "generate_instances_chunk_task.h"
 #include "../../util/godot/classes/array_mesh.h"
 #include "../../util/profiling.h"
 

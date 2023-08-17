@@ -8,7 +8,7 @@
 #include "../../util/godot/direct_multimesh_instance.h"
 #include "../../util/math/box3i.h"
 #include "../../util/memory.h"
-#include "generate_instances_block_task.h"
+#include "generate_instances_chunk_task.h"
 #include "voxel_instance_generator.h"
 #include "voxel_instance_library.h"
 #include "voxel_instance_library_multimesh_item.h"

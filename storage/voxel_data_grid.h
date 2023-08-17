@@ -16,10 +16,10 @@ public:
 	// box if you expect LOD0 coordinates.
 	inline void reference_area(const VoxelDataMap &map, Box3i voxel_box, VoxelSpatialLock *sl) {
 		const Box3i blocks_box = voxel_box.downscaled(map.get_chunk_size());
-		reference_area_block_coords(map, blocks_box, sl);
+		reference_area_chunk_coords(map, blocks_box, sl);
 	}
 
-	inline void reference_area_block_coords(const VoxelDataMap &map, Box3i blocks_box, VoxelSpatialLock *sl) {
+	inline void reference_area_chunk_coords(const VoxelDataMap &map, Box3i blocks_box, VoxelSpatialLock *sl) {
 		ZN_PROFILE_SCOPE();
 		create(blocks_box.size, map.get_chunk_size());
 		_offset_in_blocks = blocks_box.pos;
