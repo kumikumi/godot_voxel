@@ -2034,7 +2034,7 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 	}
 
 	// And flush immediately
-	VoxelLodTerrainUpdateTask::send_block_save_requests(
+	VoxelLodTerrainUpdateTask::send_chunk_save_requests(
 			_volume_id, to_span(chunks_to_save), _streaming_dependency, get_chunk_size(), task_scheduler);
 	task_scheduler.flush();
 }

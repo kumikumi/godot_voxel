@@ -936,7 +936,7 @@ static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateD
 	}
 }
 
-static void request_voxel_block_save(VolumeID volume_id, std::shared_ptr<VoxelBufferInternal> &voxels,
+static void request_voxel_chunk_save(VolumeID volume_id, std::shared_ptr<VoxelBufferInternal> &voxels,
 		Vector3i chunk_pos, int lod, std::shared_ptr<StreamingDependency> &stream_dependency,
 		unsigned int chunk_size, BufferedTaskScheduler &task_scheduler) {
 	//
@@ -951,13 +951,13 @@ static void request_voxel_block_save(VolumeID volume_id, std::shared_ptr<VoxelBu
 	task_scheduler.push_io_task(task);
 }
 
-void VoxelLodTerrainUpdateTask::send_block_save_requests(VolumeID volume_id,
+void VoxelLodTerrainUpdateTask::send_chunk_save_requests(VolumeID volume_id,
 		Span<VoxelData::BlockToSave> chunks_to_save, std::shared_ptr<StreamingDependency> &stream_dependency,
 		unsigned int chunk_size, BufferedTaskScheduler &task_scheduler) {
 	for (unsigned int i = 0; i < chunks_to_save.size(); ++i) {
 		VoxelData::BlockToSave &b = chunks_to_save[i];
 		ZN_PRINT_VERBOSE(format("Requesting save of block {} lod {}", b.position, b.lod_index));
-		request_voxel_block_save(
+		request_voxel_chunk_save(
 				volume_id, b.voxels, b.position, b.lod_index, stream_dependency, chunk_size, task_scheduler);
 	}
 }
@@ -1314,7 +1314,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 						task_scheduler);
 			}
 
-			send_block_save_requests(
+			send_chunk_save_requests(
 					_volume_id, to_span(chunks_to_save), _streaming_dependency, chunk_size, task_scheduler);
 		}
 		chunks_to_load.clear();

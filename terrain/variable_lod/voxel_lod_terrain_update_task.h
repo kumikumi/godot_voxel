@@ -67,7 +67,7 @@ public:
 		}
 	}
 
-	static void send_block_save_requests(VolumeID volume_id, Span<VoxelData::BlockToSave> chunks_to_save,
+	static void send_chunk_save_requests(VolumeID volume_id, Span<VoxelData::BlockToSave> chunks_to_save,
 			std::shared_ptr<StreamingDependency> &stream_dependency, unsigned int chunk_size,
 			BufferedTaskScheduler &task_scheduler);
 

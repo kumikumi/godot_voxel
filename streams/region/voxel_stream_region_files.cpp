@@ -697,13 +697,13 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 
 			// Save it in the new one
 			if (old_chunk_size == new_chunk_size) {
-				VoxelStream::VoxelQueryData old_block_save_query{
+				VoxelStream::VoxelQueryData old_chunk_save_query{
 					old_block, //
 					chunk_pos * new_chunk_size << region_info.lod, //
 					region_info.lod,
 					RESULT_ERROR //
 				};
-				save_voxel_chunk(old_block_save_query);
+				save_voxel_chunk(old_chunk_save_query);
 
 			} else {
 				Vector3i new_chunk_pos = convert_block_coordinates(chunk_pos, old_chunk_size, new_chunk_size);
@@ -730,13 +730,13 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 					}
 
 					new_block.compress_uniform_channels();
-					VoxelStream::VoxelQueryData new_block_save_query{ //
+					VoxelStream::VoxelQueryData new_chunk_save_query{ //
 						new_block, //
 						new_chunk_pos * new_chunk_size << region_info.lod, //
 						region_info.lod, //
 						RESULT_ERROR
 					};
-					save_voxel_chunk(new_block_save_query);
+					save_voxel_chunk(new_chunk_save_query);
 
 				} else {
 					// Copy to multiple chunks
@@ -754,13 +754,13 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 									new_block.copy_from(old_block, src_min, src_max, Vector3i(), channel_index);
 								}
 
-								VoxelStream::VoxelQueryData new_block_save_query{ //
+								VoxelStream::VoxelQueryData new_chunk_save_query{ //
 									new_block, //
 									(new_chunk_pos + rpos) * new_chunk_size << region_info.lod, //
 									region_info.lod, //
 									RESULT_ERROR
 								};
-								save_voxel_chunk(new_block_save_query);
+								save_voxel_chunk(new_chunk_save_query);
 							}
 						}
 					}
