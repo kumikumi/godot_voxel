@@ -531,7 +531,7 @@ void RegionFile::remove_sectors_from_block(Vector3i chunk_pos, unsigned int p_se
 	if (chunk_info.get_sector_count() > p_sector_count) {
 		chunk_info.set_sector_count(chunk_info.get_sector_count() - p_sector_count);
 	} else {
-		// Block removed
+		// Chunk removed
 		chunk_info.data = 0;
 	}
 

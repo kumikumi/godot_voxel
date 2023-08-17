@@ -1245,7 +1245,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 			debug_removed_blocks.insert(bpos);
 #endif
 			*/
-			// Blocks in the update queue will be cancelled in _process,
+			// Chunks in the update queue will be cancelled in _process,
 			// because it's too expensive to linear-search all chunks for each chunk
 		}
 
@@ -1405,7 +1405,7 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
 		// Voxel chunk size is incorrect, drop it
-		ZN_PRINT_ERROR("Block is different from expected size");
+		ZN_PRINT_ERROR("Chunk is different from expected size");
 		++_stats.dropped_chunk_loads;
 		return;
 	}
@@ -1801,7 +1801,7 @@ void VoxelLodTerrain::process_deferred_collision_updates(uint32_t timeout_msec) 
 			VoxelChunkMeshVLT *block = mesh_map.get_chunk(chunk_pos);
 
 			if (block == nullptr || block->deferred_collider_data == nullptr) {
-				// Block was unloaded or no longer needs a collision update
+				// Chunk was unloaded or no longer needs a collision update
 				unordered_remove(deferred_collision_updates, i);
 				--i;
 				continue;

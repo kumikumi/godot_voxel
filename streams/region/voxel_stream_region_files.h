@@ -84,7 +84,7 @@ private:
 		uint8_t chunk_size_po2 = 0; // How many voxels in a cubic chunk
 		uint8_t region_size_po2 = 0; // How many chunks in one cubic region
 		FixedArray<VoxelBufferInternal::Depth, VoxelBufferInternal::MAX_CHANNELS> channel_depths;
-		uint32_t sector_size = 0; // Blocks are stored at offsets multiple of that size
+		uint32_t sector_size = 0; // Chunks are stored at offsets multiple of that size
 	};
 
 	static bool check_meta(const Meta &meta);

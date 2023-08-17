@@ -124,7 +124,7 @@ void test_octree_update() {
 
 		const int time_stay = profiling_clock.restart();
 
-		// Block count should not change
+		// Chunk count should not change
 		ZN_TEST_ASSERT(created_chunk_count == 0);
 		ZN_TEST_ASSERT(destroyed_chunk_count == 0);
 		print_line(String("Stay time: {0} us").format(varray(time_stay)));

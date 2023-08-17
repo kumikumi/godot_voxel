@@ -322,7 +322,7 @@ private:
 	Ref<Material> _material;
 
 	// The main reason this pool even exists is because of this: https://github.com/godotengine/godot/issues/34741
-	// Blocks need individual shader parameters for several features,
+	// Chunks need individual shader parameters for several features,
 	// so a lot of ShaderMaterial copies using the same shader are created.
 	// The terrain must be able to run in editor, but in that context, Godot connects a signal of Shader to
 	// every ShaderMaterial using it. Godot does that in order to update properties in THE inspector if the shader

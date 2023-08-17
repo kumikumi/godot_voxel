@@ -409,7 +409,7 @@ VoxelGenerator::Result VoxelGeneratorGraph::generate_chunk(VoxelGenerator::Voxel
 	// Clip threshold must be higher for higher lod indexes because distances for one sampled voxel are also larger
 	const float clip_threshold = sdf_scale * _sdf_clip_threshold * stride;
 
-	// Block size must be a multiple of section size, as all sections must have the same size
+	// Chunk size must be a multiple of section size, as all sections must have the same size
 	const bool can_use_subdivision =
 			(bs.x % _subdivision_size == 0) && (bs.y % _subdivision_size == 0) && (bs.z % _subdivision_size == 0);
 

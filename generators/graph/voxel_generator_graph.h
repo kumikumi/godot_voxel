@@ -153,7 +153,7 @@ private:
 	float _sdf_clip_threshold = 1.5f;
 	// Sometimes chunk size can be larger, but it makes range analysis less precise. So it is possible to subdivide
 	// generation within areas of the chunk instead of doing it whole.
-	// Blocks size must be a multiple of the subdivision size.
+	// Chunks size must be a multiple of the subdivision size.
 	bool _use_subdivision = true;
 	int _subdivision_size = 16;
 	// When enabled, the generator will attempt to optimize out nodes that don't need to run in specific areas,

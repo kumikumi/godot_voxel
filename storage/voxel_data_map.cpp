@@ -174,7 +174,7 @@ bool VoxelDataMap::has_chunk(Vector3i pos) const {
 }
 
 bool VoxelDataMap::is_chunk_surrounded(Vector3i pos) const {
-	// TODO If that check proves to be too expensive with all chunks we deal with, cache it in VoxelBlocks
+	// TODO If that check proves to be too expensive with all chunks we deal with, cache it in VoxelChunks
 	for (unsigned int i = 0; i < Cube::MOORE_NEIGHBORING_3D_COUNT; ++i) {
 		Vector3i bpos = pos + Cube::g_moore_neighboring_3d[i];
 		if (!has_chunk(bpos)) {

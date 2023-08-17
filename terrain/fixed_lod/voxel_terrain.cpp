@@ -891,7 +891,7 @@ void VoxelTerrain::send_data_load_requests() {
 
 		BufferedTaskScheduler &scheduler = BufferedTaskScheduler::get_for_current_thread();
 
-		// Blocks to load
+		// Chunks to load
 		for (size_t i = 0; i < _chunks_pending_load.size(); ++i) {
 			const Vector3i chunk_pos = _chunks_pending_load[i];
 			request_chunk_load(_volume_id, _streaming_dependency, chunk_pos, shared_viewers_data, volume_transform,
@@ -906,7 +906,7 @@ void VoxelTerrain::consume_chunk_data_save_requests(
 		BufferedTaskScheduler &task_scheduler, std::shared_ptr<AsyncDependencyTracker> saving_tracker) {
 	ZN_PROFILE_SCOPE();
 
-	// Blocks to save
+	// Chunks to save
 	if (get_stream().is_valid()) {
 		const uint8_t chunk_size = get_chunk_size();
 		for (const VoxelData::ChunkToSave &b : _chunks_to_save) {
@@ -1188,7 +1188,7 @@ void VoxelTerrain::process_viewers() {
 					});
 				}
 
-				// Blocks that remained within range of the viewer may need some changes too if viewer flags were
+				// Chunks that remained within range of the viewer may need some changes too if viewer flags were
 				// modified. This operates on a DISTINCT set of chunks than the one above.
 
 				if (viewer.state.requires_collisions != viewer.prev_state.requires_collisions) {
@@ -1426,7 +1426,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
 		// Voxel chunk size is incorrect, drop it
-		ZN_PRINT_ERROR("Block is different from expected size");
+		ZN_PRINT_ERROR("Chunk is different from expected size");
 		++_stats.dropped_chunk_loads;
 		return;
 	}
@@ -1468,7 +1468,7 @@ bool VoxelTerrain::try_set_chunk_data(Vector3i position, std::shared_ptr<VoxelBu
 
 	const Vector3i expected_chunk_size = Vector3iUtil::create(_data->get_chunk_size());
 	ERR_FAIL_COND_V_MSG(voxel_data->get_size() != expected_chunk_size, false,
-			String("Block size is different from expected size. "
+			String("Chunk size is different from expected size. "
 				   "Expected {0}, got {1}")
 					.format(varray(expected_chunk_size, voxel_data->get_size())));
 
@@ -1532,7 +1532,7 @@ void VoxelTerrain::process_meshing() {
 	BufferedTaskScheduler &scheduler = BufferedTaskScheduler::get_for_current_thread();
 
 	for (size_t bi = 0; bi < _chunks_pending_update.size(); ++bi) {
-		ZN_PROFILE_SCOPE_NAMED("Block");
+		ZN_PROFILE_SCOPE_NAMED("Chunk");
 		const Vector3i chunk_mesh_pos = _chunks_pending_update[bi];
 
 		VoxelChunkMeshVT *chunk_mesh = _mesh_map.get_chunk(chunk_mesh_pos);
@@ -1575,7 +1575,7 @@ void VoxelTerrain::process_meshing() {
 					++count;
 				}
 			}
-			// Blocks that were in the list must have been scheduled because we have data for them!
+			// Chunks that were in the list must have been scheduled because we have data for them!
 			if (count == 0) {
 				ZN_PRINT_ERROR("Unexpected empty block list in meshing block task");
 				ZN_DELETE(task);

@@ -470,7 +470,7 @@ void test_voxel_graph_generator_texturing() {
 		}
 	}
 
-	// Block tests
+	// Chunk tests
 	{
 		// packed U16 format decoding has a slightly lower maximum due to a compromise
 		const uint8_t WEIGHT_MAX = 240;

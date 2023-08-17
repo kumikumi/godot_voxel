@@ -189,9 +189,9 @@ private:
 	}
 
 private:
-	// Blocks stored with a spatial hash in all 3D directions.
+	// Chunks stored with a spatial hash in all 3D directions.
 	std::unordered_map<Vector3i, MapItem> _chunks_map;
-	// Blocks are stored in a vector to allow faster iteration over all of them.
+	// Chunks are stored in a vector to allow faster iteration over all of them.
 	// Use cases for this include updating the transform of the meshes
 	std::vector<ChunkMesh_T *> _chunks;
 

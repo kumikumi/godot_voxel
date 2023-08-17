@@ -72,7 +72,7 @@ public:
 		uint8_t lod_index;
 		bool dropped;
 		bool max_lod_hint;
-		// Blocks with this flag set should not be ignored.
+		// Chunks with this flag set should not be ignored.
 		// This is used when data streaming is off, all chunks are loaded at once.
 		bool initial_load;
 	};

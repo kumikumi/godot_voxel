@@ -201,7 +201,7 @@ private:
 
 	struct Layer {
 		unsigned int lod_index;
-		// Blocks indexed by grid position.
+		// Chunks indexed by grid position.
 		// Keys follow the mesh chunk coordinate system.
 		std::unordered_map<Vector3i, unsigned int> chunks;
 	};
@@ -224,7 +224,7 @@ private:
 		// Unordered list of layer IDs using this LOD level.
 		std::vector<int> layers;
 
-		// Blocks that have have unsaved changes.
+		// Chunks that have have unsaved changes.
 		// Keys follows the data chunk coordinate system.
 		std::unordered_set<Vector3i> modified_blocks;
 

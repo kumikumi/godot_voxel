@@ -24,7 +24,7 @@ struct RegionFormat {
 	// How many chunks across all dimensions (stored as 3 bytes)
 	Vector3i region_size;
 	FixedArray<VoxelBufferInternal::Depth, CHANNEL_COUNT> channel_depths;
-	// Blocks are stored at offsets multiple of that size
+	// Chunks are stored at offsets multiple of that size
 	uint32_t sector_size = 0;
 	FixedArray<Color8, 256> palette;
 	bool has_palette = false;
