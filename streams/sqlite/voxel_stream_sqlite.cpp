@@ -63,7 +63,7 @@ public:
 		FixedArray<Channel, VoxelBufferInternal::MAX_CHANNELS> channels;
 	};
 
-	enum BlockType { //
+	enum ChunkType { //
 		VOXELS,
 		INSTANCES
 	};
@@ -90,8 +90,8 @@ public:
 	bool begin_transaction();
 	bool end_transaction();
 
-	bool save_chunk(ChunkLocation loc, const std::vector<uint8_t> &chunk_data, BlockType type);
-	VoxelStream::ResultCode load_chunk(ChunkLocation loc, std::vector<uint8_t> &out_chunk_data, BlockType type);
+	bool save_chunk(ChunkLocation loc, const std::vector<uint8_t> &chunk_data, ChunkType type);
+	VoxelStream::ResultCode load_chunk(ChunkLocation loc, std::vector<uint8_t> &out_chunk_data, ChunkType type);
 
 	bool load_all_chunks(void *callback_data,
 			void (*process_chunk_func)(void *callback_data, ChunkLocation location, Span<const uint8_t> voxel_data,
@@ -299,7 +299,7 @@ bool VoxelStreamSQLiteInternal::end_transaction() {
 	return true;
 }
 
-bool VoxelStreamSQLiteInternal::save_chunk(ChunkLocation loc, const std::vector<uint8_t> &chunk_data, BlockType type) {
+bool VoxelStreamSQLiteInternal::save_chunk(ChunkLocation loc, const std::vector<uint8_t> &chunk_data, ChunkType type) {
 	ZN_PROFILE_SCOPE();
 
 	sqlite3 *db = _db;
@@ -351,7 +351,7 @@ bool VoxelStreamSQLiteInternal::save_chunk(ChunkLocation loc, const std::vector<
 }
 
 VoxelStream::ResultCode VoxelStreamSQLiteInternal::load_chunk(
-		ChunkLocation loc, std::vector<uint8_t> &out_chunk_data, BlockType type) {
+		ChunkLocation loc, std::vector<uint8_t> &out_chunk_data, ChunkType type) {
 	sqlite3 *db = _db;
 
 	sqlite3_stmt *get_chunk_statement;
