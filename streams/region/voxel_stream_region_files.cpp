@@ -678,27 +678,27 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 				continue;
 			}
 
-			VoxelBufferInternal old_block;
-			old_block.create(old_chunk_size.x, old_chunk_size.y, old_chunk_size.z);
+			VoxelBufferInternal old_chunk;
+			old_chunk.create(old_chunk_size.x, old_chunk_size.y, old_chunk_size.z);
 
-			VoxelBufferInternal new_block;
-			new_block.create(new_chunk_size.x, new_chunk_size.y, new_chunk_size.z);
+			VoxelBufferInternal new_chunk;
+			new_chunk.create(new_chunk_size.x, new_chunk_size.y, new_chunk_size.z);
 
 			// Load chunk from old stream
 			Vector3i block_rpos = old_region->region.get_chunk_position_from_index(j);
 			Vector3i chunk_pos = block_rpos + region_info.position * old_region_size;
-			VoxelStream::VoxelQueryData old_block_load_query{
-				old_block, //
+			VoxelStream::VoxelQueryData old_chunk_load_query{
+				old_chunk, //
 				chunk_pos * old_chunk_size << region_info.lod, //
 				region_info.lod, //
 				RESULT_ERROR //
 			};
-			old_stream->load_voxel_chunk(old_block_load_query);
+			old_stream->load_voxel_chunk(old_chunk_load_query);
 
 			// Save it in the new one
 			if (old_chunk_size == new_chunk_size) {
 				VoxelStream::VoxelQueryData old_chunk_save_query{
-					old_block, //
+					old_chunk, //
 					chunk_pos * new_chunk_size << region_info.lod, //
 					region_info.lod,
 					RESULT_ERROR //
@@ -714,24 +714,24 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 					Vector3i rel = chunk_pos % ratio;
 
 					// Copy to a sub-area of one chunk
-					VoxelStream::VoxelQueryData new_block_load_query{ //
-						new_block, //
+					VoxelStream::VoxelQueryData new_chunk_load_query{ //
+						new_chunk, //
 						new_chunk_pos * new_chunk_size << region_info.lod, //
 						region_info.lod, //
 						RESULT_ERROR
 					};
-					load_voxel_chunk(new_block_load_query);
+					load_voxel_chunk(new_chunk_load_query);
 
-					Vector3i dst_pos = rel * old_block.get_size();
+					Vector3i dst_pos = rel * old_chunk.get_size();
 
 					for (unsigned int channel_index = 0; channel_index < VoxelBufferInternal::MAX_CHANNELS;
 							++channel_index) {
-						new_block.copy_from(old_block, Vector3i(), old_block.get_size(), dst_pos, channel_index);
+						new_chunk.copy_from(old_chunk, Vector3i(), old_chunk.get_size(), dst_pos, channel_index);
 					}
 
-					new_block.compress_uniform_channels();
+					new_chunk.compress_uniform_channels();
 					VoxelStream::VoxelQueryData new_chunk_save_query{ //
-						new_block, //
+						new_chunk, //
 						new_chunk_pos * new_chunk_size << region_info.lod, //
 						region_info.lod, //
 						RESULT_ERROR
@@ -746,16 +746,16 @@ void VoxelStreamRegionFiles::_convert_files(Meta new_meta) {
 					for (rpos.z = 0; rpos.z < area.z; ++rpos.z) {
 						for (rpos.x = 0; rpos.x < area.x; ++rpos.x) {
 							for (rpos.y = 0; rpos.y < area.y; ++rpos.y) {
-								Vector3i src_min = rpos * new_block.get_size();
-								Vector3i src_max = src_min + new_block.get_size();
+								Vector3i src_min = rpos * new_chunk.get_size();
+								Vector3i src_max = src_min + new_chunk.get_size();
 
 								for (unsigned int channel_index = 0; channel_index < VoxelBufferInternal::MAX_CHANNELS;
 										++channel_index) {
-									new_block.copy_from(old_block, src_min, src_max, Vector3i(), channel_index);
+									new_chunk.copy_from(old_chunk, src_min, src_max, Vector3i(), channel_index);
 								}
 
 								VoxelStream::VoxelQueryData new_chunk_save_query{ //
-									new_block, //
+									new_chunk, //
 									(new_chunk_pos + rpos) * new_chunk_size << region_info.lod, //
 									region_info.lod, //
 									RESULT_ERROR

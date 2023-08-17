@@ -464,14 +464,14 @@ void VoxelData::clear_cached_blocks_in_voxel_area(Box3i p_voxel_box) {
 }
 
 void VoxelData::mark_area_modified(
-		Box3i p_voxel_box, std::vector<Vector3i> *lod0_new_blocks_to_lod, bool require_lod_updates) {
+		Box3i p_voxel_box, std::vector<Vector3i> *lod0_new_chunks_to_lod, bool require_lod_updates) {
 	const Box3i bbox = p_voxel_box.downscaled(get_chunk_size());
 
 	Lod &data_lod0 = _lods[0];
 	{
 		RWLockRead rlock(data_lod0.map_lock);
 
-		bbox.for_each_cell([&data_lod0, lod0_new_blocks_to_lod, require_lod_updates](Vector3i chunk_pos_lod0) {
+		bbox.for_each_cell([&data_lod0, lod0_new_chunks_to_lod, require_lod_updates](Vector3i chunk_pos_lod0) {
 			VoxelChunkData *block = data_lod0.map.get_chunk(chunk_pos_lod0);
 			// We can get null chunks due to the added padding...
 			// ERR_FAIL_COND(chunk == nullptr);
@@ -492,8 +492,8 @@ void VoxelData::mark_area_modified(
 				block->set_needs_lodding(true);
 
 				// This is what indirectly causes remeshing
-				if (lod0_new_blocks_to_lod != nullptr) {
-					lod0_new_blocks_to_lod->push_back(chunk_pos_lod0);
+				if (lod0_new_chunks_to_lod != nullptr) {
+					lod0_new_chunks_to_lod->push_back(chunk_pos_lod0);
 				}
 			}
 		});
