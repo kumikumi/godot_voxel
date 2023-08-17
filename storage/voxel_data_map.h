@@ -105,7 +105,7 @@ public:
 	const VoxelChunkData *get_chunk(Vector3i bpos) const;
 
 	bool has_chunk(Vector3i pos) const;
-	bool is_block_surrounded(Vector3i pos) const;
+	bool is_chunk_surrounded(Vector3i pos) const;
 
 	void clear();
 
