@@ -48,7 +48,7 @@
 					"remaining_main_thread_blocks": int,
 					"dropped_chunk_loads": int,
 					"dropped_chunk_meshes": int,
-					"updated_blocks": int
+					"updated_chunks": int
 				}
 				[/codeblock]
 			</description>

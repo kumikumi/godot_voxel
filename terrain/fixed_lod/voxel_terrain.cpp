@@ -581,7 +581,7 @@ Dictionary VoxelTerrain::_b_get_statistics() const {
 
 	d["dropped_chunk_loads"] = _stats.dropped_chunk_loads;
 	d["dropped_chunk_meshes"] = _stats.dropped_chunk_meshes;
-	d["updated_blocks"] = _stats.updated_blocks;
+	d["updated_chunks"] = _stats.updated_chunks;
 
 	return d;
 }

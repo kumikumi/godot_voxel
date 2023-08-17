@@ -537,7 +537,7 @@ unsigned int VoxelData::get_chunk_count() const {
 	return sum;
 }
 
-void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vector<BlockLocation> *out_updated_blocks) {
+void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vector<BlockLocation> *out_updated_chunks) {
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
 	// Propagates edits performed so far to other LODs.
@@ -572,8 +572,8 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 			ERR_CONTINUE(chunk == nullptr);
 			chunk->set_needs_lodding(false);
 
-			if (out_updated_blocks != nullptr) {
-				out_updated_blocks->push_back(BlockLocation{ chunk_pos, 0 });
+			if (out_updated_chunks != nullptr) {
+				out_updated_chunks->push_back(BlockLocation{ chunk_pos, 0 });
 			}
 		}
 	}
@@ -646,8 +646,8 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 			// The chunk should have voxels if it has been edited or mipped.
 			ZN_ASSERT(src_block->has_voxels());
 
-			if (out_updated_blocks != nullptr) {
-				out_updated_blocks->push_back(BlockLocation{ dst_bpos, dst_lod_index });
+			if (out_updated_chunks != nullptr) {
+				out_updated_chunks->push_back(BlockLocation{ dst_bpos, dst_lod_index });
 			}
 
 			dst_block->set_modified(true);

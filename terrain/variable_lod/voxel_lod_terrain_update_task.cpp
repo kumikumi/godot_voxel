@@ -22,7 +22,7 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	ZN_PROFILE_SCOPE();
 
 	static thread_local std::vector<Vector3i> tls_modified_lod0_blocks;
-	static thread_local std::vector<VoxelData::BlockLocation> tls_updated_block_locations;
+	static thread_local std::vector<VoxelData::BlockLocation> tls_updated_chunk_locations;
 
 	const int chunk_size = data.get_chunk_size();
 	const int data_to_mesh_factor = chunk_mesh_size / chunk_size;
@@ -37,11 +37,11 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 		state.chunks_pending_lodding_lod0.clear();
 	}
 
-	tls_updated_block_locations.clear();
-	data.update_lods(to_span(tls_modified_lod0_blocks), &tls_updated_block_locations);
+	tls_updated_chunk_locations.clear();
+	data.update_lods(to_span(tls_modified_lod0_blocks), &tls_updated_chunk_locations);
 
 	// Schedule mesh updates at every affected LOD
-	for (const VoxelData::BlockLocation loc : tls_updated_block_locations) {
+	for (const VoxelData::BlockLocation loc : tls_updated_chunk_locations) {
 		const Vector3i chunk_mesh_pos = math::floordiv(loc.position, data_to_mesh_factor);
 		VoxelLodTerrainUpdateData::Lod &dst_lod = state.lods[loc.lod_index];
 

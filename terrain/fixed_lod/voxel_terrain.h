@@ -123,7 +123,7 @@ public:
 	void generate_chunk_async(Vector3i chunk_position);
 
 	struct Stats {
-		int updated_blocks = 0;
+		int updated_chunks = 0;
 		int dropped_chunk_loads = 0;
 		int dropped_chunk_meshes = 0;
 		uint32_t time_detect_required_blocks = 0;
