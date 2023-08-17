@@ -31,7 +31,7 @@ struct VoxelLodTerrainUpdateData {
 		uint8_t transition_mask;
 	};
 
-	struct BlockLocation {
+	struct ChunkLocation {
 		Vector3i position;
 		uint8_t lod;
 	};

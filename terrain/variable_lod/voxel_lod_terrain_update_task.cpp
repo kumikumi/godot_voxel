@@ -22,7 +22,7 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	ZN_PROFILE_SCOPE();
 
 	static thread_local std::vector<Vector3i> tls_modified_lod0_chunks;
-	static thread_local std::vector<VoxelData::BlockLocation> tls_updated_chunk_locations;
+	static thread_local std::vector<VoxelData::ChunkLocation> tls_updated_chunk_locations;
 
 	const int chunk_size = data.get_chunk_size();
 	const int data_to_mesh_factor = chunk_mesh_size / chunk_size;
@@ -41,7 +41,7 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	data.update_lods(to_span(tls_modified_lod0_chunks), &tls_updated_chunk_locations);
 
 	// Schedule mesh updates at every affected LOD
-	for (const VoxelData::BlockLocation loc : tls_updated_chunk_locations) {
+	for (const VoxelData::ChunkLocation loc : tls_updated_chunk_locations) {
 		const Vector3i chunk_mesh_pos = math::floordiv(loc.position, data_to_mesh_factor);
 		VoxelLodTerrainUpdateData::Lod &dst_lod = state.lods[loc.lod_index];
 
@@ -335,7 +335,7 @@ inline bool check_chunk_sizes(int chunk_size, int chunk_mesh_size) {
 
 bool check_chunk_mesh_updated(VoxelLodTerrainUpdateData::State &state, const VoxelData &data,
 		VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh, Vector3i chunk_mesh_pos, uint8_t lod_index,
-		std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load,
+		std::vector<VoxelLodTerrainUpdateData::ChunkLocation> &chunks_to_load,
 		const VoxelLodTerrainUpdateData::Settings &settings) {
 	// ZN_PROFILE_SCOPE();
 
@@ -437,7 +437,7 @@ VoxelLodTerrainUpdateData::ChunkMeshState &insert_new(
 
 static bool check_chunk_loaded_and_meshed(VoxelLodTerrainUpdateData::State &state,
 		const VoxelLodTerrainUpdateData::Settings &settings, const VoxelData &data, const Vector3i &p_chunk_mesh_pos,
-		uint8_t lod_index, std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load) {
+		uint8_t lod_index, std::vector<VoxelLodTerrainUpdateData::ChunkLocation> &chunks_to_load) {
 	//
 
 	if (data.is_streaming_enabled()) {
@@ -580,7 +580,7 @@ uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpda
 
 static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 		const VoxelLodTerrainUpdateData::Settings &settings, VoxelData &data, Vector3 p_viewer_pos,
-		std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load) {
+		std::vector<VoxelLodTerrainUpdateData::ChunkLocation> &chunks_to_load) {
 	//
 	ZN_PROFILE_SCOPE();
 
@@ -615,7 +615,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 			VoxelLodTerrainUpdateData::State &state;
 			const VoxelLodTerrainUpdateData::Settings &settings;
 			VoxelData &data;
-			std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load;
+			std::vector<VoxelLodTerrainUpdateData::ChunkLocation> &chunks_to_load;
 			Vector3i chunk_offset_lod0;
 			unsigned int blocked_count = 0;
 			float lod_distance_octree_space;
@@ -907,23 +907,23 @@ static void request_chunk_load(VolumeID volume_id, unsigned int chunk_size,
 }
 
 static void send_chunk_data_requests(VolumeID volume_id,
-		Span<const VoxelLodTerrainUpdateData::BlockLocation> chunks_to_load,
+		Span<const VoxelLodTerrainUpdateData::ChunkLocation> chunks_to_load,
 		std::shared_ptr<StreamingDependency> &stream_dependency, const std::shared_ptr<VoxelData> &data,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, unsigned int chunk_size,
 		bool request_instances, const Transform3D &volume_transform,
 		const VoxelLodTerrainUpdateData::Settings &settings, BufferedTaskScheduler &task_scheduler) {
 	//
 	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
-		const VoxelLodTerrainUpdateData::BlockLocation loc = chunks_to_load[i];
+		const VoxelLodTerrainUpdateData::ChunkLocation loc = chunks_to_load[i];
 		request_chunk_load(volume_id, chunk_size, stream_dependency, data, loc.position, loc.lod,
 				request_instances, shared_viewers_data, volume_transform, settings, task_scheduler);
 	}
 }
 
-static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateData::BlockLocation> chunks_to_load,
+static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateData::ChunkLocation> chunks_to_load,
 		VoxelData &data, VoxelLodTerrainUpdateData::State &state) {
 	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
-		const VoxelLodTerrainUpdateData::BlockLocation loc = chunks_to_load[i];
+		const VoxelLodTerrainUpdateData::ChunkLocation loc = chunks_to_load[i];
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[loc.lod];
 		{
 			MutexLock mlock(lod.loading_chunks_mutex);
@@ -1263,7 +1263,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 	process_changed_generated_areas(state, settings, lod_count);
 
 	static thread_local std::vector<VoxelData::BlockToSave> chunks_to_save;
-	static thread_local std::vector<VoxelLodTerrainUpdateData::BlockLocation> chunks_to_load;
+	static thread_local std::vector<VoxelLodTerrainUpdateData::ChunkLocation> chunks_to_load;
 	chunks_to_load.clear();
 
 	profiling_clock.restart();

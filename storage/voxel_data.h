@@ -190,14 +190,14 @@ public:
 	// Gets the total amount of allocated chunks. This includes chunks having no voxel data.
 	unsigned int get_chunk_count() const;
 
-	struct BlockLocation {
+	struct ChunkLocation {
 		Vector3i position;
 		uint32_t lod_index;
 	};
 
 	// Updates the LODs of all chunks at given positions, and resets their flags telling that they need LOD updates.
 	// Optionally, returns a list of affected chunk positions.
-	void update_lods(Span<const Vector3i> modified_lod0_chunks, std::vector<BlockLocation> *out_updated_chunks);
+	void update_lods(Span<const Vector3i> modified_lod0_chunks, std::vector<ChunkLocation> *out_updated_chunks);
 
 	struct BlockToSave {
 		std::shared_ptr<VoxelBufferInternal> voxels;

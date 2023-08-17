@@ -537,7 +537,7 @@ unsigned int VoxelData::get_chunk_count() const {
 	return sum;
 }
 
-void VoxelData::update_lods(Span<const Vector3i> modified_lod0_chunks, std::vector<BlockLocation> *out_updated_chunks) {
+void VoxelData::update_lods(Span<const Vector3i> modified_lod0_chunks, std::vector<ChunkLocation> *out_updated_chunks) {
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
 	// Propagates edits performed so far to other LODs.
@@ -573,7 +573,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_chunks, std::vect
 			chunk->set_needs_lodding(false);
 
 			if (out_updated_chunks != nullptr) {
-				out_updated_chunks->push_back(BlockLocation{ chunk_pos, 0 });
+				out_updated_chunks->push_back(ChunkLocation{ chunk_pos, 0 });
 			}
 		}
 	}
@@ -647,7 +647,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_chunks, std::vect
 			ZN_ASSERT(src_chunk->has_voxels());
 
 			if (out_updated_chunks != nullptr) {
-				out_updated_chunks->push_back(BlockLocation{ dst_bpos, dst_lod_index });
+				out_updated_chunks->push_back(ChunkLocation{ dst_bpos, dst_lod_index });
 			}
 
 			dst_chunk->set_modified(true);
