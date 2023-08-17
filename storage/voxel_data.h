@@ -153,9 +153,9 @@ public:
 		}
 #endif
 		RWLockWrite wlock(lod.map_lock);
-		VoxelChunkData *existing_block = lod.map.get_chunk(chunk_position);
-		if (existing_block != nullptr) {
-			action_when_exists(*existing_block, block);
+		VoxelChunkData *existing_chunk = lod.map.get_chunk(chunk_position);
+		if (existing_chunk != nullptr) {
+			action_when_exists(*existing_chunk, block);
 		} else {
 			lod.map.set_chunk(chunk_position, block);
 		}

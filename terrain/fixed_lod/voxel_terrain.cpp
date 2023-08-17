@@ -1431,9 +1431,9 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		return;
 	}
 
-	_data->try_set_chunk(chunk_pos, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
-		existing_block.set_voxels(incoming_block.get_voxels_shared());
-		existing_block.set_edited(incoming_block.is_edited());
+	_data->try_set_chunk(chunk_pos, block, [](VoxelChunkData &existing_chunk, const VoxelChunkData &incoming_chunk) {
+		existing_chunk.set_voxels(incoming_chunk.get_voxels_shared());
+		existing_chunk.set_edited(incoming_chunk.is_edited());
 	});
 
 	emit_chunk_data_loaded(chunk_pos);
@@ -1498,9 +1498,9 @@ bool VoxelTerrain::try_set_chunk_data(Vector3i position, std::shared_ptr<VoxelBu
 	block.viewers = refcount;
 
 	// Create or update chunk data
-	_data->try_set_chunk(position, block, [](VoxelChunkData &existing_block, const VoxelChunkData &incoming_block) {
-		existing_block.set_voxels(incoming_block.get_voxels_shared());
-		existing_block.set_edited(incoming_block.is_edited());
+	_data->try_set_chunk(position, block, [](VoxelChunkData &existing_chunk, const VoxelChunkData &incoming_chunk) {
+		existing_chunk.set_voxels(incoming_chunk.get_voxels_shared());
+		existing_chunk.set_edited(incoming_chunk.is_edited());
 	});
 
 	// The chunk itself might not be suitable for meshing yet, but chunks surrounding it might be now
