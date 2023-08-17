@@ -839,8 +839,8 @@ bool VoxelData::has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	return true;
 }
 
-void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
-		std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks) {
+void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_chunks,
+		std::vector<Vector3i> &found_chunks_positions, std::vector<VoxelChunkData> &found_chunks) {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
 	chunks_box = chunks_box.clipped(bounds_in_chunks);
@@ -848,20 +848,20 @@ void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_block
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 
-	chunks_box.for_each_cell_zxy([&lod, &found_blocks_positions, &found_blocks, &missing_blocks](Vector3i bpos) {
+	chunks_box.for_each_cell_zxy([&lod, &found_chunks_positions, &found_chunks, &missing_chunks](Vector3i bpos) {
 		VoxelChunkData *block = lod.map.get_chunk(bpos);
 		if (block != nullptr) {
 			block->viewers.add();
-			found_blocks.push_back(*block);
-			found_blocks_positions.push_back(bpos);
+			found_chunks.push_back(*block);
+			found_chunks_positions.push_back(bpos);
 		} else {
-			missing_blocks.push_back(bpos);
+			missing_chunks.push_back(bpos);
 		}
 	});
 }
 
-void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
-		std::vector<Vector3i> &found_blocks, std::vector<ChunkToSave> *to_save) {
+void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_chunks,
+		std::vector<Vector3i> &found_chunks, std::vector<ChunkToSave> *to_save) {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
 	chunks_box = chunks_box.clipped(bounds_in_chunks);
@@ -869,7 +869,7 @@ void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blo
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 
-	chunks_box.for_each_cell_zxy([&lod, &missing_blocks, &found_blocks, to_save](Vector3i bpos) {
+	chunks_box.for_each_cell_zxy([&lod, &missing_chunks, &found_chunks, to_save](Vector3i bpos) {
 		VoxelChunkData *block = lod.map.get_chunk(bpos);
 		if (block != nullptr) {
 			block->viewers.remove();
@@ -880,9 +880,9 @@ void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blo
 					lod.map.remove_chunk(bpos, BeforeUnloadSaveAction{ to_save, bpos, 0 });
 				}
 			}
-			found_blocks.push_back(bpos);
+			found_chunks.push_back(bpos);
 		} else {
-			missing_blocks.push_back(bpos);
+			missing_chunks.push_back(bpos);
 		}
 	});
 }

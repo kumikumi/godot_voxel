@@ -262,13 +262,13 @@ public:
 	// Increases the reference count of loaded chunks in the area.
 	// Returns positions where chunks were loaded, and where they were missing.
 	// Shallow copies of found chunks are returned (voxel data is referenced).
-	void view_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
-			std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks);
+	void view_area(Box3i chunks_box, std::vector<Vector3i> &missing_chunks,
+			std::vector<Vector3i> &found_chunks_positions, std::vector<VoxelChunkData> &found_chunks);
 
 	// Decreases the reference count of loaded chunks in the area. Chunks reaching zero will be unloaded.
 	// Returns positions where chunks were found, and where they were missing.
 	// If `to_save` is not null and some unloaded chunks contained modifications, their data will be returned too.
-	void unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks, std::vector<Vector3i> &found_blocks,
+	void unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_chunks, std::vector<Vector3i> &found_chunks,
 			std::vector<ChunkToSave> *to_save);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
