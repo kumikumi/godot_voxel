@@ -149,7 +149,7 @@ void VoxelDataMap::set_chunk(Vector3i bpos, const VoxelChunkData &block) {
 	_chunks_map[bpos] = block;
 }
 
-VoxelChunkData *VoxelDataMap::set_empty_block(Vector3i bpos, bool overwrite) {
+VoxelChunkData *VoxelDataMap::set_empty_chunk(Vector3i bpos, bool overwrite) {
 	VoxelChunkData *block = get_chunk(bpos);
 
 	if (block == nullptr) {

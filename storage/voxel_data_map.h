@@ -85,7 +85,7 @@ public:
 
 	// Moves the given buffer into a chunk of the map. The buffer is referenced, no copy is made.
 	VoxelChunkData *set_chunk_buffer(Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite);
-	VoxelChunkData *set_empty_block(Vector3i bpos, bool overwrite);
+	VoxelChunkData *set_empty_chunk(Vector3i bpos, bool overwrite);
 	void set_chunk(Vector3i bpos, const VoxelChunkData &block);
 
 	struct NoAction {
