@@ -73,8 +73,8 @@ bool check_graph_results_are_equal(VoxelGeneratorGraph &generator1, VoxelGenerat
 	const math::Interval range1 = get_sdf_range(block1);
 	const math::Interval range2 = get_sdf_range(block2);
 	ZN_PRINT_ERROR(format("When testing box ", Box3i(origin, chunk_size)));
-	ZN_PRINT_ERROR(format("Block1 range: ", range1));
-	ZN_PRINT_ERROR(format("Block2 range: ", range2));
+	ZN_PRINT_ERROR(format("Chunk1 range: ", range1));
+	ZN_PRINT_ERROR(format("Chunk2 range: ", range2));
 	return false;
 }
 

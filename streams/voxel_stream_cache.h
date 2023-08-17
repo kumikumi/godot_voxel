@@ -12,7 +12,7 @@ namespace zylann::voxel {
 // It allows to cache chunks so we can save to the filesystem later less frequently, or quickly reload recent chunks.
 class VoxelStreamCache {
 public:
-	struct Block {
+	struct Chunk {
 		Vector3i position;
 		int lod;
 
@@ -47,7 +47,7 @@ public:
 			Lod &lod = _cache[lod_index];
 			RWLockWrite wlock(lod.rw_lock);
 			for (auto it = lod.blocks.begin(); it != lod.blocks.end(); ++it) {
-				Block &block = it->second;
+				Chunk &block = it->second;
 				save_func(block);
 			}
 			lod.blocks.clear();
@@ -57,7 +57,7 @@ public:
 private:
 	struct Lod {
 		// Not using pointers for values, since unordered_map does not invalidate pointers to values
-		std::unordered_map<Vector3i, Block> blocks;
+		std::unordered_map<Vector3i, Chunk> blocks;
 		RWLock rw_lock;
 	};
 

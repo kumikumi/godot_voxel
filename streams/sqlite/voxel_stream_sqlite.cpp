@@ -771,7 +771,7 @@ void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 		const Vector3i pos = q.origin_in_voxels >> (bs_po2 + q.lod);
 
 		if (!ChunkLocation::validate(pos, q.lod)) {
-			ERR_PRINT(String("Block position {0} is outside of supported range").format(varray(pos)));
+			ERR_PRINT(String("Chunk position {0} is outside of supported range").format(varray(pos)));
 			continue;
 		}
 
@@ -909,7 +909,7 @@ void VoxelStreamSQLite::load_all_chunks(FullLoadingResult &result) {
 				return;
 			}
 
-			FullLoadingResult::Block result_block;
+			FullLoadingResult::Chunk result_block;
 			result_block.position = Vector3i(location.x, location.y, location.z);
 			result_block.lod = location.lod;
 
@@ -967,7 +967,7 @@ void VoxelStreamSQLite::flush_cache_to_connection(VoxelStreamSQLiteInternal *p_c
 	std::vector<uint8_t> &temp_compressed_data = get_tls_temp_compressed_chunk_data();
 
 	// TODO Needs better error rollback handling
-	_cache.flush([p_connection, &temp_data, &temp_compressed_data](VoxelStreamCache::Block &block) {
+	_cache.flush([p_connection, &temp_data, &temp_compressed_data](VoxelStreamCache::Chunk &block) {
 		ERR_FAIL_COND(!ChunkLocation::validate(block.position, block.lod));
 
 		ChunkLocation loc;

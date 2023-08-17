@@ -79,13 +79,13 @@ public:
 	virtual void save_instance_blocks(Span<InstancesQueryData> p_blocks);
 
 	struct FullLoadingResult {
-		struct Block {
+		struct Chunk {
 			std::shared_ptr<VoxelBufferInternal> voxels;
 			UniquePtr<InstanceChunkData> instances_data;
 			Vector3i position;
 			unsigned int lod;
 		};
-		std::vector<Block> blocks;
+		std::vector<Chunk> blocks;
 	};
 
 	virtual bool supports_loading_all_blocks() const {

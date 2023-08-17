@@ -33,7 +33,7 @@ void VoxelStreamCache::save_voxel_chunk(Vector3i position, uint8_t lod_index, Vo
 
 	if (it == lod.blocks.end()) {
 		// Not cached yet, create an entry
-		Block b;
+		Chunk b;
 		b.position = position;
 		b.lod = lod_index;
 		// TODO Optimization: if we know the buffer is not shared, we could use move instead
@@ -85,7 +85,7 @@ void VoxelStreamCache::save_instance_block(
 
 	if (it == lod.blocks.end()) {
 		// Not cached yet, create an entry
-		Block b;
+		Chunk b;
 		b.position = position;
 		b.lod = lod_index;
 		b.instances = std::move(instances);

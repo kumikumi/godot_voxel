@@ -168,20 +168,20 @@ private:
 
 	void on_library_item_changed(int item_id, VoxelInstanceLibraryItem::ChangeType change) override;
 
-	struct Block;
+	struct Chunk;
 
-	static void remove_floating_multimesh_instances(Block &block, const Transform3D &parent_transform,
+	static void remove_floating_multimesh_instances(Chunk &block, const Transform3D &parent_transform,
 			Box3i p_voxel_box, const VoxelTool &voxel_tool, int chunk_size_po2);
 
-	static void remove_floating_scene_instances(Block &block, const Transform3D &parent_transform, Box3i p_voxel_box,
+	static void remove_floating_scene_instances(Chunk &block, const Transform3D &parent_transform, Box3i p_voxel_box,
 			const VoxelTool &voxel_tool, int chunk_size_po2);
 
 	Dictionary _b_debug_get_instance_counts() const;
 
 	static void _bind_methods();
 
-	// TODO Rename RenderBlock?
-	struct Block {
+	// TODO Rename RenderChunk?
+	struct Chunk {
 		uint16_t layer_id;
 		uint8_t current_mesh_lod = 0;
 		uint8_t lod_index;
@@ -243,7 +243,7 @@ private:
 	FixedArray<Lod, MAX_LOD> _lods;
 
 	// Does not have nulls. Indices matter.
-	std::vector<UniquePtr<Block>> _chunks;
+	std::vector<UniquePtr<Chunk>> _chunks;
 
 	// Each layer corresponds to a library item. Addresses of values in the map are expected to be stable.
 	std::unordered_map<int, Layer> _layers;

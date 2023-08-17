@@ -26,8 +26,8 @@ void VoxelDataMap::create(unsigned int lod_index) {
 }
 
 // void VoxelDataMap::set_chunk_size_pow2(unsigned int p) {
-// 	ZN_ASSERT_RETURN_MSG(p >= 1, "Block size is too small");
-// 	ZN_ASSERT_RETURN_MSG(p <= 8, "Block size is too big");
+// 	ZN_ASSERT_RETURN_MSG(p >= 1, "Chunk size is too small");
+// 	ZN_ASSERT_RETURN_MSG(p <= 8, "Chunk size is too big");
 
 // 	_chunk_size_pow2 = p;
 // 	_chunk_size = 1 << _chunk_size_pow2;
@@ -98,7 +98,7 @@ void VoxelDataMap::set_voxel_f(real_t value, Vector3i pos, unsigned int c) {
 	VoxelChunkData *block = get_or_create_chunk_at_voxel_pos(pos);
 	Vector3i lpos = to_local(pos);
 	// TODO In this situation, the generator must be invoked to fill the chunk
-	ZN_ASSERT_RETURN_MSG(block->has_voxels(), "Block not cached");
+	ZN_ASSERT_RETURN_MSG(block->has_voxels(), "Chunk not cached");
 	VoxelBufferInternal &voxels = block->get_voxels();
 	voxels.set_voxel_f(value, lpos.x, lpos.y, lpos.z, c);
 }

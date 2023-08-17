@@ -37,7 +37,7 @@ void LoadAllChunksDataTask::apply_result() {
 			ERR_FAIL_COND(callbacks.data_output_callback == nullptr);
 
 			for (auto it = _result.blocks.begin(); it != _result.blocks.end(); ++it) {
-				VoxelStream::FullLoadingResult::Block &rb = *it;
+				VoxelStream::FullLoadingResult::Chunk &rb = *it;
 
 				VoxelEngine::ChunkDataOutput o;
 				o.voxels = rb.voxels;

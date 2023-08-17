@@ -280,13 +280,13 @@ void test_threaded_task_postponing() {
 
 	//#define VOXEL_TEST_TASK_POSTPONING_DUMP_EVENTS
 
-	struct Block {
+	struct Chunk {
 		std::atomic_bool is_locked;
 	};
 
 	struct Map {
 		// Doesn't have to be a map but I chose it anyways since that's how the actual voxel map is stored
-		std::unordered_map<Vector3i, Block> blocks;
+		std::unordered_map<Vector3i, Chunk> blocks;
 	};
 
 	struct Event {
@@ -318,7 +318,7 @@ void test_threaded_task_postponing() {
 		Task1(int p_sleep_amount_usec, Map &p_map, Vector3i p_bpos, EventList &p_events) :
 				sleep_amount_usec(p_sleep_amount_usec), map(p_map), bpos0(p_bpos), events(p_events) {}
 
-		bool try_lock_area(std::vector<Block *> &locked_chunks) {
+		bool try_lock_area(std::vector<Chunk *> &locked_chunks) {
 			Vector3i delta;
 			for (delta.z = -1; delta.z < 2; ++delta.z) {
 				for (delta.x = -1; delta.x < 2; ++delta.x) {
@@ -328,11 +328,11 @@ void test_threaded_task_postponing() {
 						if (it == map.blocks.end()) {
 							continue;
 						}
-						Block &block = it->second;
+						Chunk &block = it->second;
 						bool expected = false;
 						if (block.is_locked.compare_exchange_strong(expected, true) == false) {
 							// Could not lock, will have to cancel
-							for (Block *b : locked_chunks) {
+							for (Chunk *b : locked_chunks) {
 								b->is_locked = false;
 							}
 							locked_chunks.clear();
@@ -350,7 +350,7 @@ void test_threaded_task_postponing() {
 		void run(ThreadedTaskContext &ctx) override {
 			ZN_PROFILE_SCOPE();
 
-			static thread_local std::vector<Block *> locked_chunks;
+			static thread_local std::vector<Chunk *> locked_chunks;
 
 			if (!try_lock_area(locked_chunks)) {
 				ctx.status = ThreadedTaskContext::STATUS_POSTPONED;
@@ -370,7 +370,7 @@ void test_threaded_task_postponing() {
 			events.push(Event{ Event::CHUNK_END, bpos0 });
 #endif
 
-			for (Block *block : locked_chunks) {
+			for (Chunk *block : locked_chunks) {
 				block->is_locked = false;
 			}
 			locked_chunks.clear();
@@ -413,7 +413,7 @@ void test_threaded_task_postponing() {
 	for (bpos.z = 0; bpos.z < map_size; ++bpos.z) {
 		for (bpos.x = 0; bpos.x < map_size; ++bpos.x) {
 			for (bpos.y = 0; bpos.y < map_size; ++bpos.y) {
-				Block &block = map.blocks[bpos];
+				Chunk &block = map.blocks[bpos];
 				block.is_locked = false;
 			}
 		}

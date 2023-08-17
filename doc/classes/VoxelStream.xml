@@ -32,7 +32,7 @@
 			<param index="1" name="origin_in_voxels" type="Vector3" />
 			<param index="2" name="lod" type="int" />
 			<description>
-				[code]buffer[/code]: Block of voxels to save. It is strongly recommended to not keep a reference to that data afterward, because streams are allowed to cache it, and saved data must represent either snapshots (copies) or last references to the data after the volume they belonged to is destroyed.
+				[code]buffer[/code]: Chunk of voxels to save. It is strongly recommended to not keep a reference to that data afterward, because streams are allowed to cache it, and saved data must represent either snapshots (copies) or last references to the data after the volume they belonged to is destroyed.
 			</description>
 		</method>
 		<method name="load_voxel_chunk">

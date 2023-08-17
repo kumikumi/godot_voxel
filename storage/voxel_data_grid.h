@@ -235,7 +235,7 @@ private:
 	std::vector<std::shared_ptr<VoxelBufferInternal>> _chunks;
 	// Size of the grid in chunks
 	Vector3i _size_in_chunks;
-	// Block coordinates offset. This is used for when we cache a sub-region of a map, we need to keep the origin
+	// Chunk coordinates offset. This is used for when we cache a sub-region of a map, we need to keep the origin
 	// of the area in memory so we can keep using the same coordinate space
 	Vector3i _offset_in_chunks;
 	// Size of a chunk in voxels
