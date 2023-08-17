@@ -36,7 +36,7 @@ public:
 	std::shared_ptr<VoxelInstancerGeneratorTaskOutputQueue> output_queue;
 
 	const char *get_debug_name() const override {
-		return "GenerateInstancesBlock";
+		return "GenerateInstancesChunk";
 	}
 
 	void run(ThreadedTaskContext &ctx) override;
