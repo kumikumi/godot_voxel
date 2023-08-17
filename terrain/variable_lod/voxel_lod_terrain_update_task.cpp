@@ -21,7 +21,7 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
 
-	static thread_local std::vector<Vector3i> tls_modified_lod0_blocks;
+	static thread_local std::vector<Vector3i> tls_modified_lod0_chunks;
 	static thread_local std::vector<VoxelData::BlockLocation> tls_updated_chunk_locations;
 
 	const int chunk_size = data.get_chunk_size();
@@ -30,15 +30,15 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	{
 		MutexLock lock(state.chunks_pending_lodding_lod0_mutex);
 		// Not sure if could just use `=`? What would std::vector do with capacity?
-		tls_modified_lod0_blocks.resize(state.chunks_pending_lodding_lod0.size());
-		memcpy(tls_modified_lod0_blocks.data(), state.chunks_pending_lodding_lod0.data(),
+		tls_modified_lod0_chunks.resize(state.chunks_pending_lodding_lod0.size());
+		memcpy(tls_modified_lod0_chunks.data(), state.chunks_pending_lodding_lod0.data(),
 				state.chunks_pending_lodding_lod0.size() * sizeof(Vector3i));
 
 		state.chunks_pending_lodding_lod0.clear();
 	}
 
 	tls_updated_chunk_locations.clear();
-	data.update_lods(to_span(tls_modified_lod0_blocks), &tls_updated_chunk_locations);
+	data.update_lods(to_span(tls_modified_lod0_chunks), &tls_updated_chunk_locations);
 
 	// Schedule mesh updates at every affected LOD
 	for (const VoxelData::BlockLocation loc : tls_updated_chunk_locations) {

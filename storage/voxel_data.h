@@ -197,7 +197,7 @@ public:
 
 	// Updates the LODs of all chunks at given positions, and resets their flags telling that they need LOD updates.
 	// Optionally, returns a list of affected chunk positions.
-	void update_lods(Span<const Vector3i> modified_lod0_blocks, std::vector<BlockLocation> *out_updated_chunks);
+	void update_lods(Span<const Vector3i> modified_lod0_chunks, std::vector<BlockLocation> *out_updated_chunks);
 
 	struct BlockToSave {
 		std::shared_ptr<VoxelBufferInternal> voxels;
