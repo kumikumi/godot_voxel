@@ -1138,7 +1138,7 @@ void VoxelTerrain::process_viewers() {
 		VoxelEngine::get_singleton().for_each_viewer(u);
 	}
 
-	const bool can_load_blocks =
+	const bool can_load_chunks =
 			((_automatic_loading_enabled &&
 					 (_multiplayer_synchronizer == nullptr || _multiplayer_synchronizer->is_server())) &&
 					(get_stream().is_valid() || get_generator().is_valid())) &&
@@ -1156,7 +1156,7 @@ void VoxelTerrain::process_viewers() {
 				const Box3i &prev_data_box = viewer.prev_state.data_box;
 
 				if (prev_data_box != new_data_box) {
-					process_viewer_data_box_change(viewer.id, prev_data_box, new_data_box, can_load_blocks);
+					process_viewer_data_box_change(viewer.id, prev_data_box, new_data_box, can_load_chunks);
 				}
 			}
 
@@ -1235,7 +1235,7 @@ void VoxelTerrain::process_viewers() {
 	}
 
 	// It's possible the user didn't set a stream yet, or it is turned off
-	if (can_load_blocks) {
+	if (can_load_chunks) {
 		send_data_load_requests();
 		BufferedTaskScheduler &task_scheduler = BufferedTaskScheduler::get_for_current_thread();
 		consume_chunk_data_save_requests(task_scheduler, nullptr);
@@ -1246,7 +1246,7 @@ void VoxelTerrain::process_viewers() {
 }
 
 void VoxelTerrain::process_viewer_data_box_change(
-		ViewerID viewer_id, Box3i prev_data_box, Box3i new_data_box, bool can_load_blocks) {
+		ViewerID viewer_id, Box3i prev_data_box, Box3i new_data_box, bool can_load_chunks) {
 	ZN_PROFILE_SCOPE();
 	ZN_ASSERT_RETURN(prev_data_box != new_data_box);
 
@@ -1306,7 +1306,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 	}
 
 	// View chunks coming into range
-	if (can_load_blocks) {
+	if (can_load_chunks) {
 		const bool require_notifications =
 				(_chunk_enter_notification_enabled ||
 						(_multiplayer_synchronizer != nullptr && _multiplayer_synchronizer->is_server())) &&
