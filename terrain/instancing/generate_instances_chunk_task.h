@@ -21,7 +21,7 @@ struct VoxelInstancerGeneratorTaskOutputQueue {
 };
 
 // TODO Optimize: eventually this should be moved closer to the meshing task, including edited instances
-class GenerateInstancesBlockTask : public IThreadedTask {
+class GenerateInstancesChunkTask : public IThreadedTask {
 public:
 	Vector3i chunk_mesh_grid_position;
 	uint16_t layer_id;

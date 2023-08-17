@@ -43,11 +43,11 @@ private:
 	VoxelTerrain *_terrain = nullptr;
 	int _rpc_channel = 0;
 
-	struct DeferredBlockMessage {
+	struct DeferredChunkMessage {
 		PackedByteArray data;
 	};
 
-	std::unordered_map<int, std::vector<DeferredBlockMessage>> _deferred_chunk_messages_per_peer;
+	std::unordered_map<int, std::vector<DeferredChunkMessage>> _deferred_chunk_messages_per_peer;
 };
 
 } // namespace zylann::voxel

@@ -1257,7 +1257,7 @@ void VoxelInstancer::create_render_blocks(Vector3i render_grid_position, int lod
 			PackedVector3Array vertices = surface_arrays[ArrayMesh::ARRAY_VERTEX];
 
 			if (vertices.size() != 0) {
-				GenerateInstancesBlockTask *task = ZN_NEW(GenerateInstancesBlockTask);
+				GenerateInstancesChunkTask *task = ZN_NEW(GenerateInstancesChunkTask);
 				task->chunk_mesh_grid_position = render_grid_position;
 				task->layer_id = layer_id;
 				task->chunk_mesh_size = chunk_mesh_size;
