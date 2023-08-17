@@ -253,9 +253,9 @@ void query_sdf_with_edits(VoxelGenerator &generator, const VoxelModifierStack &m
 
 // Maximum grid size in which edited chunks can be fetched inside a tile.
 // Beyond this size, there are too many cells to query so the algorithm will fallback to generator.
-static const unsigned int MAX_EDITED_BLOCKS_ACROSS = 8;
+static const unsigned int MAX_EDITED_CHUNKS_ACROSS = 8;
 
-bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, Vector3f query_min_pos,
+bool try_query_edited_chunks(VoxelDataGrid &grid, const VoxelData &voxel_data, Vector3f query_min_pos,
 		Vector3f query_max_pos, uint32_t &skipped_count_due_to_high_volume) {
 	ZN_PROFILE_SCOPE();
 
@@ -269,7 +269,7 @@ bool try_query_edited_blocks(VoxelDataGrid &grid, const VoxelData &voxel_data, V
 		const Vector3i chunk_box_size = voxel_box.size >> constants::DEFAULT_CHUNK_SIZE_PO2;
 		const int64_t chunk_volume = Vector3iUtil::get_volume(chunk_box_size);
 		// TODO Don't hardcode chunk size (even though for now I have no plan to make it configurable)
-		if (chunk_volume > math::cubed(MAX_EDITED_BLOCKS_ACROSS)) {
+		if (chunk_volume > math::cubed(MAX_EDITED_CHUNKS_ACROSS)) {
 			// Box too big for quick sparse readings, won't handle edits. Fallback on generator.
 			// One way to speed this up would be to have an octree storing where edited data is.
 			// Or we would have to use the slowest query model, going through data structures for every voxel.
@@ -377,7 +377,7 @@ void compute_detail_texture_data(ICellIterator &cell_iterator, Span<const Vector
 
 		// In cases we only want tiles with edited voxels, check this early so we can skip the tile.
 		const bool cell_has_edits = voxel_data != nullptr &&
-				try_query_edited_blocks(tls_voxel_data_grid, *voxel_data, cell_origin_world,
+				try_query_edited_chunks(tls_voxel_data_grid, *voxel_data, cell_origin_world,
 						cell_origin_world + Vector3f(cell_size), skipped_count_due_to_high_volume);
 		if (!cell_has_edits && edited_tiles_only) {
 			continue;

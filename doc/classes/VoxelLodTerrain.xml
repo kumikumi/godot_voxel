@@ -278,7 +278,7 @@
 		</constant>
 		<constant name="DEBUG_DRAW_VOLUME_BOUNDS" value="4" enum="DebugDrawFlag">
 		</constant>
-		<constant name="DEBUG_DRAW_EDITED_BLOCKS" value="5" enum="DebugDrawFlag">
+		<constant name="DEBUG_DRAW_EDITED_CHUNKS" value="5" enum="DebugDrawFlag">
 		</constant>
 		<constant name="DEBUG_DRAW_MODIFIER_BOUNDS" value="6" enum="DebugDrawFlag">
 		</constant>

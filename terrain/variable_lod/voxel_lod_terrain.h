@@ -204,7 +204,7 @@ public:
 		DEBUG_DRAW_MESH_UPDATES = 2,
 		DEBUG_DRAW_EDIT_BOXES = 3,
 		DEBUG_DRAW_VOLUME_BOUNDS = 4,
-		DEBUG_DRAW_EDITED_BLOCKS = 5,
+		DEBUG_DRAW_EDITED_CHUNKS = 5,
 		DEBUG_DRAW_MODIFIER_BOUNDS = 6,
 
 		DEBUG_DRAW_FLAGS_COUNT = 7
@@ -394,7 +394,7 @@ private:
 #ifdef TOOLS_ENABLED
 	bool _debug_draw_enabled = false;
 	uint8_t _debug_draw_flags = 0;
-	uint8_t _edited_blocks_gizmos_lod_index = 0;
+	uint8_t _edited_chunks_gizmos_lod_index = 0;
 
 	DebugRenderer _debug_renderer;
 

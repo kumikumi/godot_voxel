@@ -65,7 +65,7 @@
 		</constant>
 		<constant name="DEBUG_DRAW_ALL_BLOCKS" value="0" enum="DebugDrawFlag">
 		</constant>
-		<constant name="DEBUG_DRAW_EDITED_BLOCKS" value="1" enum="DebugDrawFlag">
+		<constant name="DEBUG_DRAW_EDITED_CHUNKS" value="1" enum="DebugDrawFlag">
 		</constant>
 		<constant name="DEBUG_DRAW_FLAGS_COUNT" value="2" enum="DebugDrawFlag">
 		</constant>

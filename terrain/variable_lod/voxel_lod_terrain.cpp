@@ -2694,8 +2694,8 @@ void VoxelLodTerrain::update_gizmos() {
 	}
 
 	// Edited chunks
-	if (debug_get_draw_flag(DEBUG_DRAW_EDITED_BLOCKS) && _edited_blocks_gizmos_lod_index < lod_count) {
-		const int chunk_size = get_chunk_size() << _edited_blocks_gizmos_lod_index;
+	if (debug_get_draw_flag(DEBUG_DRAW_EDITED_CHUNKS) && _edited_chunks_gizmos_lod_index < lod_count) {
+		const int chunk_size = get_chunk_size() << _edited_chunks_gizmos_lod_index;
 		const Basis basis(Basis().scaled(Vector3(chunk_size, chunk_size, chunk_size)));
 
 		_data->for_each_chunk_at_lod(
@@ -2707,7 +2707,7 @@ void VoxelLodTerrain::update_gizmos() {
 						dr.draw_box_mm(t, c);
 					}
 				},
-				_edited_blocks_gizmos_lod_index);
+				_edited_chunks_gizmos_lod_index);
 	}
 
 	// Debug updates
@@ -3030,7 +3030,7 @@ void VoxelLodTerrain::_bind_methods() {
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_MESH_UPDATES);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_EDIT_BOXES);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_VOLUME_BOUNDS);
-	BIND_ENUM_CONSTANT(DEBUG_DRAW_EDITED_BLOCKS);
+	BIND_ENUM_CONSTANT(DEBUG_DRAW_EDITED_CHUNKS);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_MODIFIER_BOUNDS);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_FLAGS_COUNT);
 
