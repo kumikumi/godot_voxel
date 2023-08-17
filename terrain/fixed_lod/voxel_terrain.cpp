@@ -909,7 +909,7 @@ void VoxelTerrain::consume_chunk_data_save_requests(
 	// Blocks to save
 	if (get_stream().is_valid()) {
 		const uint8_t chunk_size = get_chunk_size();
-		for (const VoxelData::BlockToSave &b : _chunks_to_save) {
+		for (const VoxelData::ChunkToSave &b : _chunks_to_save) {
 			ZN_PRINT_VERBOSE(format("Requesting save of block {}", b.position));
 
 			SaveChunkDataTask *task = ZN_NEW(SaveChunkDataTask(
@@ -1804,7 +1804,7 @@ Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_blocks() {
 
 // Explicitly ask to save a chunk if it was modified
 void VoxelTerrain::_b_save_chunk(Vector3i p_chunk_pos) {
-	VoxelData::BlockToSave to_save;
+	VoxelData::ChunkToSave to_save;
 	if (_data->consume_chunk_modifications(p_chunk_pos, to_save)) {
 		_chunks_to_save.push_back(to_save);
 	}

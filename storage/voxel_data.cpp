@@ -10,14 +10,14 @@ namespace zylann::voxel {
 
 namespace {
 struct BeforeUnloadSaveAction {
-	std::vector<VoxelData::BlockToSave> *to_save;
+	std::vector<VoxelData::ChunkToSave> *to_save;
 	Vector3i position;
 	unsigned int lod_index;
 
 	inline void operator()(VoxelChunkData &block) {
 		if (block.is_modified()) {
 			// If a modified chunk has no voxels, it is equivalent to removing the chunk from the stream
-			VoxelData::BlockToSave b;
+			VoxelData::ChunkToSave b;
 			b.position = position;
 			b.lod_index = lod_index;
 			if (block.has_voxels()) {
@@ -30,14 +30,14 @@ struct BeforeUnloadSaveAction {
 };
 
 struct ScheduleSaveAction {
-	std::vector<VoxelData::BlockToSave> &chunks_to_save;
+	std::vector<VoxelData::ChunkToSave> &chunks_to_save;
 	uint8_t lod_index;
 	bool with_copy;
 
 	void operator()(const Vector3i &bpos, VoxelChunkData &block) {
 		if (block.is_modified()) {
 			// print_line(String("Scheduling save for chunk {0}").format(varray(chunk->position.to_vec3())));
-			VoxelData::BlockToSave b;
+			VoxelData::ChunkToSave b;
 			// If a modified chunk has no voxels, it is equivalent to removing the chunk from the stream
 			if (block.has_voxels()) {
 				if (with_copy) {
@@ -683,7 +683,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_chunks, std::vect
 	//	}
 }
 
-void VoxelData::unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save) {
+void VoxelData::unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<ChunkToSave> *to_save) {
 	Lod &lod = _lods[lod_index];
 	RWLockWrite wlock(lod.map_lock);
 	if (to_save == nullptr) {
@@ -697,7 +697,7 @@ void VoxelData::unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<Bl
 	}
 }
 
-void VoxelData::unload_chunks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save) {
+void VoxelData::unload_chunks(Span<const Vector3i> positions, std::vector<ChunkToSave> *to_save) {
 	Lod &lod = _lods[0];
 	RWLockWrite wlock(lod.map_lock);
 	if (to_save == nullptr) {
@@ -711,7 +711,7 @@ void VoxelData::unload_chunks(Span<const Vector3i> positions, std::vector<BlockT
 	}
 }
 
-bool VoxelData::consume_chunk_modifications(Vector3i bpos, VoxelData::BlockToSave &out_to_save) {
+bool VoxelData::consume_chunk_modifications(Vector3i bpos, VoxelData::ChunkToSave &out_to_save) {
 	Lod &lod = _lods[0];
 	VoxelSpatialLockRead srlock(lod.spatial_lock, BoxBounds3i::from_position(bpos));
 	RWLockRead rlock(lod.map_lock);
@@ -732,7 +732,7 @@ bool VoxelData::consume_chunk_modifications(Vector3i bpos, VoxelData::BlockToSav
 	return false;
 }
 
-void VoxelData::consume_all_modifications(std::vector<BlockToSave> &to_save, bool with_copy) {
+void VoxelData::consume_all_modifications(std::vector<ChunkToSave> &to_save, bool with_copy) {
 	const unsigned int lod_count = get_lod_count();
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		Lod &lod = _lods[lod_index];
@@ -861,7 +861,7 @@ void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_block
 }
 
 void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
-		std::vector<Vector3i> &found_blocks, std::vector<BlockToSave> *to_save) {
+		std::vector<Vector3i> &found_blocks, std::vector<ChunkToSave> *to_save) {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
 	chunks_box = chunks_box.clipped(bounds_in_chunks);

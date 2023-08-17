@@ -55,7 +55,7 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 }
 
 static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &state, VoxelData &data,
-		Vector3 p_viewer_pos, std::vector<VoxelData::BlockToSave> &chunks_to_save, bool can_save,
+		Vector3 p_viewer_pos, std::vector<VoxelData::ChunkToSave> &chunks_to_save, bool can_save,
 		const VoxelLodTerrainUpdateData::Settings &settings) {
 	ZN_PROFILE_SCOPE_NAMED("Sliding box data unload");
 	// TODO Could it actually be enough to have a rolling update on all chunks?
@@ -952,10 +952,10 @@ static void request_voxel_chunk_save(VolumeID volume_id, std::shared_ptr<VoxelBu
 }
 
 void VoxelLodTerrainUpdateTask::send_chunk_save_requests(VolumeID volume_id,
-		Span<VoxelData::BlockToSave> chunks_to_save, std::shared_ptr<StreamingDependency> &stream_dependency,
+		Span<VoxelData::ChunkToSave> chunks_to_save, std::shared_ptr<StreamingDependency> &stream_dependency,
 		unsigned int chunk_size, BufferedTaskScheduler &task_scheduler) {
 	for (unsigned int i = 0; i < chunks_to_save.size(); ++i) {
-		VoxelData::BlockToSave &b = chunks_to_save[i];
+		VoxelData::ChunkToSave &b = chunks_to_save[i];
 		ZN_PRINT_VERBOSE(format("Requesting save of block {} lod {}", b.position, b.lod_index));
 		request_voxel_chunk_save(
 				volume_id, b.voxels, b.position, b.lod_index, stream_dependency, chunk_size, task_scheduler);
@@ -1262,7 +1262,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 	// Other mesh updates
 	process_changed_generated_areas(state, settings, lod_count);
 
-	static thread_local std::vector<VoxelData::BlockToSave> chunks_to_save;
+	static thread_local std::vector<VoxelData::ChunkToSave> chunks_to_save;
 	static thread_local std::vector<VoxelLodTerrainUpdateData::ChunkLocation> chunks_to_load;
 	chunks_to_load.clear();
 

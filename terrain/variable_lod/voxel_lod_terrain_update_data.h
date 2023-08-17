@@ -36,7 +36,7 @@ struct VoxelLodTerrainUpdateData {
 		uint8_t lod;
 	};
 
-	// struct BlockToSave {
+	// struct ChunkToSave {
 	// 	std::shared_ptr<VoxelBufferInternal> voxels;
 	// 	Vector3i position;
 	// 	uint8_t lod;

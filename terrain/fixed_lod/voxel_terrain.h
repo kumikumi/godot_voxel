@@ -134,7 +134,7 @@ public:
 
 	const Stats &get_stats() const;
 
-	// struct BlockToSave {
+	// struct ChunkToSave {
 	// 	std::shared_ptr<VoxelBufferInternal> voxels;
 	// 	Vector3i position;
 	// };
@@ -291,7 +291,7 @@ private:
 	std::vector<Vector3i> _chunks_pending_update;
 	// Blocks that should be saved on the next process call.
 	// The order in that list does not matter.
-	std::vector<VoxelData::BlockToSave> _chunks_to_save;
+	std::vector<VoxelData::ChunkToSave> _chunks_to_save;
 
 	Ref<VoxelMesher> _mesher;
 

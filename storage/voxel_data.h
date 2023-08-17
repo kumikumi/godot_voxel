@@ -199,7 +199,7 @@ public:
 	// Optionally, returns a list of affected chunk positions.
 	void update_lods(Span<const Vector3i> modified_lod0_chunks, std::vector<ChunkLocation> *out_updated_chunks);
 
-	struct BlockToSave {
+	struct ChunkToSave {
 		std::shared_ptr<VoxelBufferInternal> voxels;
 		Vector3i position;
 		uint32_t lod_index;
@@ -207,19 +207,19 @@ public:
 
 	// Unloads data chunks in the specified area. If some of them were modified and `to_save` is not null, their data
 	// will be returned for the caller to save.
-	void unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save);
+	void unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<ChunkToSave> *to_save);
 
 	// Unloads data chunks at specified positions of LOD0. If some of them were modified and `to_save` is not null,
 	// their data will be returned for the caller to save.
-	void unload_chunks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save);
+	void unload_chunks(Span<const Vector3i> positions, std::vector<ChunkToSave> *to_save);
 
 	// If the chunk at the specified LOD0 position exists and is modified, marks it as non-modified and returns a copy
 	// of its data to save. Returns true if there is something to save.
-	bool consume_chunk_modifications(Vector3i bpos, BlockToSave &out_to_save);
+	bool consume_chunk_modifications(Vector3i bpos, ChunkToSave &out_to_save);
 
 	// Marks all modified chunks as unmodified and returns their data to save. if `with_copy` is true, the returned data
 	// will be a copy, otherwise it will reference voxel data. Prefer using references when about to quit for example.
-	void consume_all_modifications(std::vector<BlockToSave> &to_save, bool with_copy);
+	void consume_all_modifications(std::vector<ChunkToSave> &to_save, bool with_copy);
 
 	// Gets missing chunks out of the given chunk positions.
 	// WARNING: positions outside bounds will be considered missing too.
@@ -269,7 +269,7 @@ public:
 	// Returns positions where chunks were found, and where they were missing.
 	// If `to_save` is not null and some unloaded chunks contained modifications, their data will be returned too.
 	void unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks, std::vector<Vector3i> &found_blocks,
-			std::vector<BlockToSave> *to_save);
+			std::vector<ChunkToSave> *to_save);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Metadata queries.

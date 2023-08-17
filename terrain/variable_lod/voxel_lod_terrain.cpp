@@ -2021,7 +2021,7 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 	VoxelLodTerrainUpdateTask::flush_pending_lod_edits(_update_data->state, *_data, get_chunk_mesh_size());
 
 	BufferedTaskScheduler &task_scheduler = BufferedTaskScheduler::get_for_current_thread();
-	std::vector<VoxelData::BlockToSave> chunks_to_save;
+	std::vector<VoxelData::ChunkToSave> chunks_to_save;
 
 	Ref<VoxelStream> stream = get_stream();
 	if (stream.is_valid()) {
