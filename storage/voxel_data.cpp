@@ -263,8 +263,8 @@ void VoxelData::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsigned
 
 	Ref<VoxelGenerator> generator = get_generator();
 
-	const Box3i blocks_box = Box3i(min_pos, dst_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
-	VoxelSpatialLockRead srlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
+	const Box3i chunks_box = Box3i(min_pos, dst_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
+	VoxelSpatialLockRead srlock(data_lod0.spatial_lock, BoxBounds3i(chunks_box));
 
 	if (is_streaming_enabled() || generator.is_null()) {
 		RWLockRead rlock(data_lod0.map_lock);
@@ -299,8 +299,8 @@ void VoxelData::paste(
 
 	Lod &data_lod0 = _lods[0];
 
-	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
-	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
+	const Box3i chunks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
+	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(chunks_box));
 
 	if (create_new_chunks) {
 		RWLockWrite wlock(data_lod0.map_lock);
@@ -317,8 +317,8 @@ void VoxelData::paste_masked(Vector3i min_pos, const VoxelBufferInternal &src_bu
 
 	Lod &data_lod0 = _lods[0];
 
-	const Box3i blocks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
-	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(blocks_box));
+	const Box3i chunks_box = Box3i(min_pos, src_buffer.get_size()).downscaled(data_lod0.map.get_chunk_size());
+	VoxelSpatialLockWrite swlock(data_lod0.spatial_lock, BoxBounds3i(chunks_box));
 
 	if (create_new_chunks) {
 		RWLockWrite wlock(data_lod0.map_lock);
@@ -452,8 +452,8 @@ void VoxelData::clear_cached_blocks_in_voxel_area(Box3i p_voxel_box) {
 		Lod &lod = _lods[lod_index];
 		RWLockRead rlock(lod.map_lock);
 
-		const Box3i blocks_box = p_voxel_box.downscaled(lod.map.get_chunk_size() << lod_index);
-		blocks_box.for_each_cell_zxy([&lod](const Vector3i bpos) {
+		const Box3i chunks_box = p_voxel_box.downscaled(lod.map.get_chunk_size() << lod_index);
+		chunks_box.for_each_cell_zxy([&lod](const Vector3i bpos) {
 			VoxelChunkData *block = lod.map.get_chunk(bpos);
 			if (block == nullptr || block->is_edited() || block->is_modified()) {
 				return;
@@ -758,11 +758,11 @@ void VoxelData::get_missing_chunks(
 	const Lod &data_lod = _lods[lod_index];
 
 	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	const Box3i blocks_box = p_chunks_box.clipped(bounds_in_blocks);
+	const Box3i chunks_box = p_chunks_box.clipped(bounds_in_blocks);
 
 	RWLockRead rlock(data_lod.map_lock);
 
-	blocks_box.for_each_cell_zxy([&data_lod, &out_missing](Vector3i bpos) {
+	chunks_box.for_each_cell_zxy([&data_lod, &out_missing](Vector3i bpos) {
 		if (!data_lod.map.has_chunk(bpos)) {
 			out_missing.push_back(bpos);
 		}
@@ -819,12 +819,12 @@ bool VoxelData::has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	const Lod &mip_data_lod = _lods[top_lod_index];
 	{
 		// Ideally this box shouldn't intersect more than 8 chunks if the box is cubic.
-		const Box3i mip_blocks_box = box_in_voxels.downscaled(mip_data_lod.map.get_chunk_size() << top_lod_index);
+		const Box3i mip_chunks_box = box_in_voxels.downscaled(mip_data_lod.map.get_chunk_size() << top_lod_index);
 
 		RWLockRead rlock(mip_data_lod.map_lock);
 
 		const VoxelDataMap &map = mip_data_lod.map;
-		const bool no_blocks_found = mip_blocks_box.all_cells_match([&map](const Vector3i pos) {
+		const bool no_blocks_found = mip_chunks_box.all_cells_match([&map](const Vector3i pos) {
 			const VoxelChunkData *block = map.get_chunk(pos);
 			return block == nullptr || block->has_voxels() == false;
 		});
@@ -839,16 +839,16 @@ bool VoxelData::has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	return true;
 }
 
-void VoxelData::view_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
+void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
 		std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks) {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	blocks_box = blocks_box.clipped(bounds_in_blocks);
+	chunks_box = chunks_box.clipped(bounds_in_blocks);
 
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 
-	blocks_box.for_each_cell_zxy([&lod, &found_blocks_positions, &found_blocks, &missing_blocks](Vector3i bpos) {
+	chunks_box.for_each_cell_zxy([&lod, &found_blocks_positions, &found_blocks, &missing_blocks](Vector3i bpos) {
 		VoxelChunkData *block = lod.map.get_chunk(bpos);
 		if (block != nullptr) {
 			block->viewers.add();
@@ -860,16 +860,16 @@ void VoxelData::view_area(Box3i blocks_box, std::vector<Vector3i> &missing_block
 	});
 }
 
-void VoxelData::unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
+void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
 		std::vector<Vector3i> &found_blocks, std::vector<BlockToSave> *to_save) {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	blocks_box = blocks_box.clipped(bounds_in_blocks);
+	chunks_box = chunks_box.clipped(bounds_in_blocks);
 
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
 
-	blocks_box.for_each_cell_zxy([&lod, &missing_blocks, &found_blocks, to_save](Vector3i bpos) {
+	chunks_box.for_each_cell_zxy([&lod, &missing_blocks, &found_blocks, to_save](Vector3i bpos) {
 		VoxelChunkData *block = lod.map.get_chunk(bpos);
 		if (block != nullptr) {
 			block->viewers.remove();

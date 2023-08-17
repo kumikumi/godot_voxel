@@ -238,7 +238,7 @@ public:
 	// Blocks found will be placed at an index computed as if the array was a flat grid (ZXY).
 	// Entries without voxel data will be left to null.
 	void get_chunks_with_voxel_data(
-			Box3i p_blocks_box, unsigned int lod_index, Span<std::shared_ptr<VoxelBufferInternal>> out_blocks) const;
+			Box3i p_chunks_box, unsigned int lod_index, Span<std::shared_ptr<VoxelBufferInternal>> out_blocks) const;
 
 	// Gets chunks with voxels at the given LOD and indexes them in a grid. This will query every location
 	// intersecting the box at the specified LOD, so if the area is large, you may want to do a broad check first.
@@ -262,13 +262,13 @@ public:
 	// Increases the reference count of loaded chunks in the area.
 	// Returns positions where chunks were loaded, and where they were missing.
 	// Shallow copies of found chunks are returned (voxel data is referenced).
-	void view_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks,
+	void view_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
 			std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks);
 
 	// Decreases the reference count of loaded chunks in the area. Blocks reaching zero will be unloaded.
 	// Returns positions where chunks were found, and where they were missing.
 	// If `to_save` is not null and some unloaded chunks contained modifications, their data will be returned too.
-	void unview_area(Box3i blocks_box, std::vector<Vector3i> &missing_blocks, std::vector<Vector3i> &found_blocks,
+	void unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks, std::vector<Vector3i> &found_blocks,
 			std::vector<BlockToSave> *to_save);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

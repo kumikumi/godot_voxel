@@ -1617,7 +1617,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 			continue;
 		}
 
-		const Box3i render_blocks_box = p_voxel_box.downscaled(render_chunk_size << lod_index);
+		const Box3i render_chunks_box = p_voxel_box.downscaled(render_chunk_size << lod_index);
 		const Box3i chunks_box = p_voxel_box.downscaled(chunk_size << lod_index);
 
 		for (auto layer_it = lod.layers.begin(); layer_it != lod.layers.end(); ++layer_it) {
@@ -1625,7 +1625,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 			const std::vector<UniquePtr<Block>> &blocks = _chunks;
 			const int chunk_size_po2 = base_chunk_size_po2 + layer.lod_index;
 
-			render_blocks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
+			render_chunks_box.for_each_cell([layer, &blocks, &voxel_tool, p_voxel_box, parent_transform, chunk_size_po2,
 													&lod, chunks_box](Vector3i chunk_pos) {
 				const auto chunk_it = layer.chunks.find(chunk_pos);
 				if (chunk_it == layer.chunks.end()) {

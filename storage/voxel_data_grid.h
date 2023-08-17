@@ -15,18 +15,18 @@ public:
 	// WARNING: the given box is in voxels RELATIVE to the passed map. It that map is not LOD0, you may downscale the
 	// box if you expect LOD0 coordinates.
 	inline void reference_area(const VoxelDataMap &map, Box3i voxel_box, VoxelSpatialLock *sl) {
-		const Box3i blocks_box = voxel_box.downscaled(map.get_chunk_size());
-		reference_area_chunk_coords(map, blocks_box, sl);
+		const Box3i chunks_box = voxel_box.downscaled(map.get_chunk_size());
+		reference_area_chunk_coords(map, chunks_box, sl);
 	}
 
-	inline void reference_area_chunk_coords(const VoxelDataMap &map, Box3i blocks_box, VoxelSpatialLock *sl) {
+	inline void reference_area_chunk_coords(const VoxelDataMap &map, Box3i chunks_box, VoxelSpatialLock *sl) {
 		ZN_PROFILE_SCOPE();
-		create(blocks_box.size, map.get_chunk_size());
-		_offset_in_blocks = blocks_box.pos;
+		create(chunks_box.size, map.get_chunk_size());
+		_offset_in_blocks = chunks_box.pos;
 		if (sl != nullptr) {
-			sl->lock_read(blocks_box);
+			sl->lock_read(chunks_box);
 		}
-		blocks_box.for_each_cell_zxy([&map, this](const Vector3i pos) {
+		chunks_box.for_each_cell_zxy([&map, this](const Vector3i pos) {
 			const VoxelChunkData *block = map.get_chunk(pos);
 			// TODO Might need to invoke the generator at some level for present chunks without voxels,
 			// or make sure all chunks contain voxel data
@@ -37,7 +37,7 @@ public:
 			}
 		});
 		if (sl != nullptr) {
-			sl->unlock_read(blocks_box);
+			sl->unlock_read(chunks_box);
 		}
 		_spatial_lock = sl;
 	}
