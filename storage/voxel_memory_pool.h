@@ -21,7 +21,7 @@ namespace zylann::voxel {
 class VoxelMemoryPool {
 private:
 #ifdef DEBUG_ENABLED
-	struct DebugUsedBlocks {
+	struct DebugUsedChunks {
 		Mutex mutex;
 		std::unordered_map<void *, dstack::Info> blocks;
 
@@ -48,7 +48,7 @@ private:
 		// Would a linked list be better?
 		std::vector<uint8_t *> blocks;
 #ifdef DEBUG_ENABLED
-		DebugUsedBlocks debug_used_chunks;
+		DebugUsedChunks debug_used_chunks;
 #endif
 	};
 
@@ -99,7 +99,7 @@ private:
 	// that contain 2^index bytes in them.
 	FixedArray<Pool, 21> _pot_pools;
 #ifdef DEBUG_ENABLED
-	DebugUsedBlocks _debug_nonpooled_used_chunks;
+	DebugUsedChunks _debug_nonpooled_used_chunks;
 #endif
 
 	std::atomic_uint32_t _used_chunks = { 0 };

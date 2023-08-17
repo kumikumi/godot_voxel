@@ -35,7 +35,7 @@ void VoxelMemoryPool::destroy_singleton() {
 #ifdef DEBUG_ENABLED
 void VoxelMemoryPool::debug_print_used_chunks(unsigned int max_count) {
 	struct L {
-		static void debug_print_used_chunks(const VoxelMemoryPool::DebugUsedBlocks &debug_used_chunks,
+		static void debug_print_used_chunks(const VoxelMemoryPool::DebugUsedChunks &debug_used_chunks,
 				unsigned int &count, unsigned int max_count, size_t mem_size) {
 			if (count > max_count) {
 				count += debug_used_chunks.blocks.size();
