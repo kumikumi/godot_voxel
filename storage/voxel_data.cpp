@@ -515,8 +515,8 @@ bool VoxelData::has_chunk(Vector3i bpos, unsigned int lod_index) const {
 
 bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
 	ZN_PROFILE_SCOPE();
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	chunks_box = chunks_box.clipped(bounds_in_blocks);
+	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
+	chunks_box = chunks_box.clipped(bounds_in_chunks);
 
 	const Lod &data_lod = _lods[0];
 	RWLockRead rlock(data_lod.map_lock);
@@ -757,8 +757,8 @@ void VoxelData::get_missing_chunks(
 		Box3i p_chunks_box, unsigned int lod_index, std::vector<Vector3i> &out_missing) const {
 	const Lod &data_lod = _lods[lod_index];
 
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	const Box3i chunks_box = p_chunks_box.clipped(bounds_in_blocks);
+	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
+	const Box3i chunks_box = p_chunks_box.clipped(bounds_in_chunks);
 
 	RWLockRead rlock(data_lod.map_lock);
 
@@ -796,8 +796,8 @@ void VoxelData::get_chunks_grid(VoxelDataGrid &grid, Box3i box_in_voxels, unsign
 	const Lod &data_lod = _lods[lod_index];
 	RWLockRead rlock(data_lod.map_lock);
 	const int bs = data_lod.map.get_chunk_size() << lod_index;
-	const Box3i box_in_blocks = box_in_voxels.downscaled(bs);
-	grid.reference_area_chunk_coords(data_lod.map, box_in_blocks, &data_lod.spatial_lock);
+	const Box3i box_in_chunks = box_in_voxels.downscaled(bs);
+	grid.reference_area_chunk_coords(data_lod.map, box_in_chunks, &data_lod.spatial_lock);
 }
 
 VoxelSpatialLock &VoxelData::get_spatial_lock(unsigned int lod_index) const {
@@ -809,11 +809,11 @@ bool VoxelData::has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 	ZN_PROFILE_SCOPE();
 
 	// Find the highest LOD level to query first
-	const Vector3i box_size_in_blocks = box_in_voxels.size >> get_chunk_size_po2();
-	const int box_size_in_blocks_longest_axis =
-			math::max(box_size_in_blocks.x, math::max(box_size_in_blocks.y, box_size_in_blocks.z));
+	const Vector3i box_size_in_chunks = box_in_voxels.size >> get_chunk_size_po2();
+	const int box_size_in_chunks_longest_axis =
+			math::max(box_size_in_chunks.x, math::max(box_size_in_chunks.y, box_size_in_chunks.z));
 	const int top_lod_index =
-			math::min(math::get_next_power_of_two_32_shift(box_size_in_blocks_longest_axis), get_lod_count());
+			math::min(math::get_next_power_of_two_32_shift(box_size_in_chunks_longest_axis), get_lod_count());
 
 	// Find if edited mips exist
 	const Lod &mip_data_lod = _lods[top_lod_index];
@@ -842,8 +842,8 @@ bool VoxelData::has_chunks_with_voxels_in_area_broad_mip_test(Box3i box_in_voxel
 void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
 		std::vector<Vector3i> &found_blocks_positions, std::vector<VoxelChunkData> &found_blocks) {
 	ZN_PROFILE_SCOPE();
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	chunks_box = chunks_box.clipped(bounds_in_blocks);
+	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
+	chunks_box = chunks_box.clipped(bounds_in_chunks);
 
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);
@@ -863,8 +863,8 @@ void VoxelData::view_area(Box3i chunks_box, std::vector<Vector3i> &missing_block
 void VoxelData::unview_area(Box3i chunks_box, std::vector<Vector3i> &missing_blocks,
 		std::vector<Vector3i> &found_blocks, std::vector<BlockToSave> *to_save) {
 	ZN_PROFILE_SCOPE();
-	const Box3i bounds_in_blocks = get_bounds().downscaled(get_chunk_size());
-	chunks_box = chunks_box.clipped(bounds_in_blocks);
+	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
+	chunks_box = chunks_box.clipped(bounds_in_chunks);
 
 	Lod &lod = _lods[0];
 	RWLockRead rlock(lod.map_lock);

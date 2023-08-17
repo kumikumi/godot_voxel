@@ -22,7 +22,7 @@ public:
 	inline void reference_area_chunk_coords(const VoxelDataMap &map, Box3i chunks_box, VoxelSpatialLock *sl) {
 		ZN_PROFILE_SCOPE();
 		create(chunks_box.size, map.get_chunk_size());
-		_offset_in_blocks = chunks_box.pos;
+		_offset_in_chunks = chunks_box.pos;
 		if (sl != nullptr) {
 			sl->lock_read(chunks_box);
 		}
@@ -76,28 +76,28 @@ public:
 	inline void lock_read() const {
 		ZN_ASSERT(_spatial_lock != nullptr);
 		ZN_ASSERT(!_locked);
-		_spatial_lock->lock_read(BoxBounds3i::from_position_size(_offset_in_blocks, _size_in_blocks));
+		_spatial_lock->lock_read(BoxBounds3i::from_position_size(_offset_in_chunks, _size_in_chunks));
 		_locked = true;
 	}
 
 	inline void unlock_read() const {
 		ZN_ASSERT(_spatial_lock != nullptr);
 		ZN_ASSERT(_locked);
-		_spatial_lock->unlock_read(BoxBounds3i::from_position_size(_offset_in_blocks, _size_in_blocks));
+		_spatial_lock->unlock_read(BoxBounds3i::from_position_size(_offset_in_chunks, _size_in_chunks));
 		_locked = false;
 	}
 
 	inline void lock_write() {
 		ZN_ASSERT(_spatial_lock != nullptr);
 		ZN_ASSERT(!_locked);
-		_spatial_lock->lock_write(BoxBounds3i::from_position_size(_offset_in_blocks, _size_in_blocks));
+		_spatial_lock->lock_write(BoxBounds3i::from_position_size(_offset_in_chunks, _size_in_chunks));
 		_locked = true;
 	}
 
 	inline void unlock_write() {
 		ZN_ASSERT(_spatial_lock != nullptr);
 		ZN_ASSERT(_locked);
-		_spatial_lock->unlock_write(BoxBounds3i::from_position_size(_offset_in_blocks, _size_in_blocks));
+		_spatial_lock->unlock_write(BoxBounds3i::from_position_size(_offset_in_chunks, _size_in_chunks));
 		_locked = false;
 	}
 
@@ -105,11 +105,11 @@ public:
 #ifdef DEBUG_ENABLED
 		ZN_ASSERT(_locked);
 #endif
-		const Vector3i bpos = (pos >> _chunk_size_po2) - _offset_in_blocks;
+		const Vector3i bpos = (pos >> _chunk_size_po2) - _offset_in_chunks;
 		if (!is_valid_relative_chunk_position(bpos)) {
 			return false;
 		}
-		const unsigned int loc = Vector3iUtil::get_zxy_index(bpos, _size_in_blocks);
+		const unsigned int loc = Vector3iUtil::get_zxy_index(bpos, _size_in_chunks);
 		const VoxelBufferInternal *voxels = _chunks[loc].get();
 		if (voxels == nullptr) {
 			return false;
@@ -161,7 +161,7 @@ public:
 	inline void clear() {
 		ZN_ASSERT(!_locked);
 		_chunks.clear();
-		_size_in_blocks = Vector3i();
+		_size_in_chunks = Vector3i();
 		_spatial_lock = nullptr;
 	}
 
@@ -173,11 +173,11 @@ private:
 	template <typename Block_F>
 	inline void _box_loop(Box3i voxel_box, Block_F block_action) {
 		Vector3i block_rpos;
-		const Vector3i area_origin_in_voxels = _offset_in_blocks * _chunk_size;
+		const Vector3i area_origin_in_voxels = _offset_in_chunks * _chunk_size;
 		unsigned int index = 0;
-		for (block_rpos.z = 0; block_rpos.z < _size_in_blocks.z; ++block_rpos.z) {
-			for (block_rpos.x = 0; block_rpos.x < _size_in_blocks.x; ++block_rpos.x) {
-				for (block_rpos.y = 0; block_rpos.y < _size_in_blocks.y; ++block_rpos.y) {
+		for (block_rpos.z = 0; block_rpos.z < _size_in_chunks.z; ++block_rpos.z) {
+			for (block_rpos.x = 0; block_rpos.x < _size_in_chunks.x; ++block_rpos.x) {
+				for (block_rpos.y = 0; block_rpos.y < _size_in_chunks.y; ++block_rpos.y) {
 					VoxelBufferInternal *block = _chunks[index].get();
 					// Flat grid and iteration order allows us to just increment the index since we iterate them all
 					++index;
@@ -197,7 +197,7 @@ private:
 		ZN_PROFILE_SCOPE();
 		_chunks.clear();
 		_chunks.resize(Vector3iUtil::get_volume(size));
-		_size_in_blocks = size;
+		_size_in_chunks = size;
 		_chunk_size = chunk_size;
 	}
 
@@ -205,27 +205,27 @@ private:
 		return pos.x >= 0 && //
 				pos.y >= 0 && //
 				pos.z >= 0 && //
-				pos.x < _size_in_blocks.x && //
-				pos.y < _size_in_blocks.y && //
-				pos.z < _size_in_blocks.z;
+				pos.x < _size_in_chunks.x && //
+				pos.y < _size_in_chunks.y && //
+				pos.z < _size_in_chunks.z;
 	}
 
 	inline bool is_valid_chunk_position(Vector3i pos) const {
-		return is_valid_relative_chunk_position(pos - _offset_in_blocks);
+		return is_valid_relative_chunk_position(pos - _offset_in_chunks);
 	}
 
 	inline void set_chunk(Vector3i position, std::shared_ptr<VoxelBufferInternal> block) {
 		ZN_ASSERT_RETURN(is_valid_chunk_position(position));
-		position -= _offset_in_blocks;
-		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
+		position -= _offset_in_chunks;
+		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_chunks);
 		ZN_ASSERT(index < _chunks.size());
 		_chunks[index] = block;
 	}
 
 	inline VoxelBufferInternal *get_chunk(Vector3i position) {
 		ZN_ASSERT_RETURN_V(is_valid_chunk_position(position), nullptr);
-		position -= _offset_in_blocks;
-		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_blocks);
+		position -= _offset_in_chunks;
+		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_chunks);
 		ZN_ASSERT(index < _chunks.size());
 		return _chunks[index].get();
 	}
@@ -234,10 +234,10 @@ private:
 	// TODO Ability to use thread-local/stack pool allocator? Such grids are often temporary
 	std::vector<std::shared_ptr<VoxelBufferInternal>> _chunks;
 	// Size of the grid in chunks
-	Vector3i _size_in_blocks;
+	Vector3i _size_in_chunks;
 	// Block coordinates offset. This is used for when we cache a sub-region of a map, we need to keep the origin
 	// of the area in memory so we can keep using the same coordinate space
-	Vector3i _offset_in_blocks;
+	Vector3i _offset_in_chunks;
 	// Size of a chunk in voxels
 	unsigned int _chunk_size_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 	unsigned int _chunk_size = 1 << constants::DEFAULT_CHUNK_SIZE_PO2;

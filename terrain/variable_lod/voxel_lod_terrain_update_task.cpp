@@ -88,7 +88,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 		const Vector3i viewer_chunk_pos_within_lod =
 				VoxelDataMap::voxel_to_chunk_b(math::floor_to_int(p_viewer_pos), chunk_size_po2_lod);
 
-		const Box3i bounds_in_blocks = Box3i( //
+		const Box3i bounds_in_chunks = Box3i( //
 				bounds_in_voxels.pos >> chunk_size_po2_lod, //
 				bounds_in_voxels.size >> chunk_size_po2_lod);
 
@@ -97,7 +97,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 		const Box3i prev_box = Box3i::from_center_extents(
 				lod.last_viewer_chunk_pos, Vector3iUtil::create(lod.last_view_distance_chunks));
 
-		if (!new_box.intersects(bounds_in_blocks) && !prev_box.intersects(bounds_in_blocks)) {
+		if (!new_box.intersects(bounds_in_chunks) && !prev_box.intersects(bounds_in_chunks)) {
 			// If this box doesn't intersect either now or before, there is no chance a smaller one will
 			break;
 		}
@@ -172,7 +172,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 		unsigned int chunk_size_po2 = chunk_mesh_size_po2 + lod_index;
 		const Vector3i viewer_chunk_pos_within_lod = math::floor_to_int(p_viewer_pos) >> chunk_size_po2;
 
-		const Box3i bounds_in_blocks = Box3i( //
+		const Box3i bounds_in_chunks = Box3i( //
 				bounds_in_voxels.pos >> chunk_size_po2, //
 				bounds_in_voxels.size >> chunk_size_po2);
 
@@ -181,7 +181,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 		const Box3i prev_box = Box3i::from_center_extents(
 				lod.last_viewer_chunk_mesh_pos, Vector3iUtil::create(lod.last_view_distance_chunk_meshes));
 
-		if (!new_box.intersects(bounds_in_blocks) && !prev_box.intersects(bounds_in_blocks)) {
+		if (!new_box.intersects(bounds_in_chunks) && !prev_box.intersects(bounds_in_chunks)) {
 			// If this box doesn't intersect either now or before, there is no chance a smaller one will
 			break;
 		}

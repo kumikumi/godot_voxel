@@ -2109,13 +2109,13 @@ void VoxelLodTerrain::remesh_all_blocks() {
 }
 
 bool VoxelLodTerrain::is_area_meshed(const Box3i &box_in_voxels, unsigned int lod_index) const {
-	const Box3i box_in_blocks = box_in_voxels.downscaled(1 << (get_chunk_mesh_size_pow2() + lod_index));
+	const Box3i box_in_chunks = box_in_voxels.downscaled(1 << (get_chunk_mesh_size_pow2() + lod_index));
 	// We have to check this separate map instead of the mesh map, because the mesh map will not contain chunks in areas
 	// that have no mesh (one reason is so it reduces the time it takes to update all mesh positions when the terrain is
 	// moved)
 	VoxelLodTerrainUpdateData::MeshMapState &mms = _update_data->state.lods[lod_index].mesh_map_state;
 	RWLockRead rlock(mms.map_lock);
-	return box_in_blocks.all_cells_match([&mms](Vector3i bpos) {
+	return box_in_chunks.all_cells_match([&mms](Vector3i bpos) {
 		auto it = mms.map.find(bpos);
 		if (it == mms.map.end()) {
 			return false;
