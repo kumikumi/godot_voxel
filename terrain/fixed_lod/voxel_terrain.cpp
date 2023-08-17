@@ -577,7 +577,7 @@ Dictionary VoxelTerrain::_b_get_statistics() const {
 	d["time_detect_required_blocks"] = _stats.time_detect_required_blocks;
 	d["time_request_blocks_to_load"] = _stats.time_request_blocks_to_load;
 	d["time_process_load_responses"] = _stats.time_process_load_responses;
-	d["time_request_blocks_to_update"] = _stats.time_request_blocks_to_update;
+	d["time_request_chunks_to_update"] = _stats.time_request_chunks_to_update;
 
 	d["dropped_chunk_loads"] = _stats.dropped_chunk_loads;
 	d["dropped_chunk_meshes"] = _stats.dropped_chunk_meshes;
@@ -1596,7 +1596,7 @@ void VoxelTerrain::process_meshing() {
 
 	_chunks_pending_update.clear();
 
-	_stats.time_request_blocks_to_update = profiling_clock.restart();
+	_stats.time_request_chunks_to_update = profiling_clock.restart();
 
 	// print_line(String("d:") + String::num(_dirty_chunks.size()) + String(", q:") +
 	// String::num(_chunk_update_queue.size()));

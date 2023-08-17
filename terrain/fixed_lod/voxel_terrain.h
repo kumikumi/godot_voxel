@@ -129,7 +129,7 @@ public:
 		uint32_t time_detect_required_blocks = 0;
 		uint32_t time_request_blocks_to_load = 0;
 		uint32_t time_process_load_responses = 0;
-		uint32_t time_request_blocks_to_update = 0;
+		uint32_t time_request_chunks_to_update = 0;
 	};
 
 	const Stats &get_stats() const;
