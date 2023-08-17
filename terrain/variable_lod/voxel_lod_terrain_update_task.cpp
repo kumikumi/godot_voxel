@@ -892,11 +892,11 @@ static void request_chunk_load(VolumeID volume_id, unsigned int chunk_size,
 
 		LoadChunkDataTask *task = memnew(
 				LoadChunkDataTask(volume_id, chunk_pos, lod, chunk_size, request_instances, stream_dependency,
-						priority_dependency, settings.cache_generated_blocks, settings.generator_use_gpu, data));
+						priority_dependency, settings.cache_generated_chunks, settings.generator_use_gpu, data));
 
 		task_scheduler.push_io_task(task);
 
-	} else if (settings.cache_generated_blocks) {
+	} else if (settings.cache_generated_chunks) {
 		// Directly generate the chunk without checking the stream.
 		request_chunk_generate(volume_id, chunk_size, stream_dependency, data, chunk_pos, lod, shared_viewers_data,
 				volume_transform, settings, nullptr, true, task_scheduler);
@@ -1302,7 +1302,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 		if (stream_enabled) {
 			const unsigned int chunk_size = data.get_chunk_size();
 
-			if (stream.is_null() && !settings.cache_generated_blocks) {
+			if (stream.is_null() && !settings.cache_generated_chunks) {
 				// TODO Optimization: not ideal because a bit delayed. It requires a second update cycle for meshes to
 				// get requested. We could instead set those empty chunks right away instead of putting them in that
 				// list, but it's simpler code for now.

@@ -376,7 +376,7 @@ void ChunkMeshTask::gather_voxels_cpu() {
 			nullptr, nullptr);
 
 	// Could cache generator data from here if it was safe to write into the map
-	/*if (data != nullptr && cache_generated_blocks) {
+	/*if (data != nullptr && cache_generated_chunks) {
 		const CubicAreaInfo area_info = get_cubic_area_info_from_size(blocks.size());
 		ERR_FAIL_COND(!area_info.is_valid());
 

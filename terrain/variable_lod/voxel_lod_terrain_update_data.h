@@ -58,7 +58,7 @@ struct VoxelLodTerrainUpdateData {
 		// If true, try to generate chunks and store them in the data map before posting mesh requests.
 		// If false, everything will generate non-edited voxels on the fly instead.
 		// Not really exposed for now, will wait for it to be really needed. It might never be.
-		bool cache_generated_blocks = false;
+		bool cache_generated_chunks = false;
 		bool collision_enabled = true;
 		bool detail_textures_use_gpu = false;
 		bool generator_use_gpu = false;
