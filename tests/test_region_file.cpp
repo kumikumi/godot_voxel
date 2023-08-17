@@ -14,7 +14,7 @@ void test_region_file() {
 	ZN_TEST_ASSERT(test_dir.is_valid());
 	String region_file_path = test_dir.get_path().path_join(region_file_name);
 
-	struct RandomBlockGenerator {
+	struct RandomChunkGenerator {
 		RandomPCG rng;
 
 		void generate(VoxelBufferInternal &buffer) {
@@ -32,7 +32,7 @@ void test_region_file() {
 		}
 	};
 
-	RandomBlockGenerator generator;
+	RandomChunkGenerator generator;
 
 	// Create a chunk of voxels
 	VoxelBufferInternal voxel_buffer;
