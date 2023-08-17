@@ -173,7 +173,7 @@ public:
 		// How many chunk meshes were rejected this frame (due to loading too late for example).
 		uint32_t dropped_chunk_meshes = 0;
 		// Time spent in the last update unloading unused chunks and detecting required ones, in microseconds
-		uint32_t time_detect_required_blocks = 0;
+		uint32_t time_detect_required_chunks = 0;
 		// Time spent in the last update requesting data chunks, in microseconds
 		uint32_t time_io_requests = 0;
 		// Time spent in the last update requesting meshes, in microseconds

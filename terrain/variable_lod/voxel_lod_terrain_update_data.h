@@ -151,7 +151,7 @@ struct VoxelLodTerrainUpdateData {
 
 	struct Stats {
 		uint32_t blocked_lods = 0;
-		uint32_t time_detect_required_blocks = 0;
+		uint32_t time_detect_required_chunks = 0;
 		uint32_t time_io_requests = 0;
 		uint32_t time_mesh_requests = 0;
 		uint32_t time_total = 0;

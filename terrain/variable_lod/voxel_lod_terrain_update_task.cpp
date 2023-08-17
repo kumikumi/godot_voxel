@@ -1288,7 +1288,7 @@ void VoxelLodTerrainUpdateTask::run(ThreadedTaskContext &ctx) {
 			process_octrees_fitting(state, settings, data, _viewer_pos, chunks_to_load);
 		}
 	}
-	state.stats.time_detect_required_blocks = profiling_clock.restart();
+	state.stats.time_detect_required_chunks = profiling_clock.restart();
 
 	BufferedTaskScheduler &task_scheduler = BufferedTaskScheduler::get_for_current_thread();
 

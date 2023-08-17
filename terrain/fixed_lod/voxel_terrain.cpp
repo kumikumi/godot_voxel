@@ -574,7 +574,7 @@ Dictionary VoxelTerrain::_b_get_statistics() const {
 	Dictionary d;
 
 	// Breakdown of time spent in _process
-	d["time_detect_required_blocks"] = _stats.time_detect_required_blocks;
+	d["time_detect_required_chunks"] = _stats.time_detect_required_chunks;
 	d["time_request_chunks_to_load"] = _stats.time_request_chunks_to_load;
 	d["time_process_load_responses"] = _stats.time_process_load_responses;
 	d["time_request_chunks_to_update"] = _stats.time_request_chunks_to_update;
@@ -1222,7 +1222,7 @@ void VoxelTerrain::process_viewers() {
 		}
 	}
 
-	_stats.time_detect_required_blocks = profiling_clock.restart();
+	_stats.time_detect_required_chunks = profiling_clock.restart();
 
 	// We no longer need unpaired viewers.
 	for (size_t i = 0; i < unpaired_viewer_indexes.size(); ++i) {

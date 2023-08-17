@@ -117,7 +117,7 @@
 				The returned dictionary has the following structure:
 				[codeblock]
 				{
-					"time_detect_required_blocks": int,
+					"time_detect_required_chunks": int,
 					"time_request_chunks_to_load": int,
 					"time_process_load_responses": int,
 					"time_request_chunks_to_update": int,

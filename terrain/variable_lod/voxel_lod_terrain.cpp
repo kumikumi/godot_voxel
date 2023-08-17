@@ -1343,7 +1343,7 @@ void VoxelLodTerrain::apply_main_thread_update_tasks() {
 	});
 
 	_stats.blocked_lods = state.stats.blocked_lods;
-	_stats.time_detect_required_blocks = state.stats.time_detect_required_blocks;
+	_stats.time_detect_required_chunks = state.stats.time_detect_required_chunks;
 	_stats.time_io_requests = state.stats.time_io_requests;
 	_stats.time_mesh_requests = state.stats.time_mesh_requests;
 	_stats.time_update_task = state.stats.time_total;
@@ -2056,7 +2056,7 @@ Dictionary VoxelLodTerrain::_b_get_statistics() const {
 	// Breakdown of information and time spent in _process and the update task.
 
 	// Update task
-	d["time_detect_required_blocks"] = _stats.time_detect_required_blocks;
+	d["time_detect_required_chunks"] = _stats.time_detect_required_chunks;
 	d["time_io_requests"] = _stats.time_io_requests;
 	d["time_mesh_requests"] = _stats.time_mesh_requests;
 	d["time_update_task"] = _stats.time_update_task;
