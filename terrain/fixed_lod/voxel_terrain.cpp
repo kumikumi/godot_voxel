@@ -380,7 +380,7 @@ void VoxelTerrain::set_chunk_enter_notification_enabled(bool enable) {
 
 	if (enable == false) {
 		for (auto it = _loading_chunks.begin(); it != _loading_chunks.end(); ++it) {
-			LoadingBlock &lb = it->second;
+			LoadingChunk &lb = it->second;
 			lb.viewers_to_notify.clear();
 		}
 	}
@@ -640,7 +640,7 @@ void VoxelTerrain::generate_chunk_async(Vector3i chunk_position) {
 	// 	new_loading_chunk.viewers_to_notify.push_back(viewer_id);
 	// }
 
-	LoadingBlock new_loading_chunk;
+	LoadingChunk new_loading_chunk;
 	const Box3i chunk_box(_data->chunk_to_voxel(chunk_position), Vector3iUtil::create(_data->get_chunk_size()));
 	for (size_t i = 0; i < _paired_viewers.size(); ++i) {
 		const PairedViewer &viewer = _paired_viewers[i];
@@ -1286,7 +1286,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 				return;
 			}
 
-			LoadingBlock &loading_chunk = loading_chunk_it->second;
+			LoadingChunk &loading_chunk = loading_chunk_it->second;
 			loading_chunk.viewers.remove();
 
 			if (loading_chunk.viewers.get() == 0) {
@@ -1330,7 +1330,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 
 			if (loading_chunk_it == _loading_chunks.end()) {
 				// First viewer to request it
-				LoadingBlock new_loading_chunk;
+				LoadingChunk new_loading_chunk;
 				new_loading_chunk.viewers.add();
 
 				if (require_notifications) {
@@ -1343,7 +1343,7 @@ void VoxelTerrain::process_viewer_data_box_change(
 
 			} else {
 				// More viewers
-				LoadingBlock &loading_chunk = loading_chunk_it->second;
+				LoadingChunk &loading_chunk = loading_chunk_it->second;
 				loading_chunk.viewers.add();
 
 				if (require_notifications) {
@@ -1400,7 +1400,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 		return;
 	}
 
-	LoadingBlock loading_chunk;
+	LoadingChunk loading_chunk;
 	{
 		auto loading_chunk_it = _loading_chunks.find(chunk_pos);
 

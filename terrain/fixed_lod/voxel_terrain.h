@@ -275,14 +275,14 @@ private:
 	// TODO Terrains only need to handle the visible portion of voxels, which reduces the bounds chunks to handle.
 	// Therefore, could a simple grid be better to use than a hashmap?
 
-	struct LoadingBlock {
+	struct LoadingChunk {
 		RefCount viewers;
 		// TODO Optimize allocations here
 		std::vector<ViewerID> viewers_to_notify;
 	};
 
 	// Chunks currently being loaded.
-	std::unordered_map<Vector3i, LoadingBlock> _loading_chunks;
+	std::unordered_map<Vector3i, LoadingChunk> _loading_chunks;
 	// Chunks that should be loaded on the next process call.
 	// The order in that list does not matter.
 	std::vector<Vector3i> _chunks_pending_load;
