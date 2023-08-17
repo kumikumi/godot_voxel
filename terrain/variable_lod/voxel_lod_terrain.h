@@ -169,9 +169,9 @@ public:
 		// Amount of octree nodes waiting for data. It should reach zero when everything is loaded.
 		uint32_t blocked_lods = 0;
 		// How many data chunks were rejected this frame (due to loading too late for example).
-		uint32_t dropped_block_loads = 0;
+		uint32_t dropped_chunk_loads = 0;
 		// How many chunk meshes were rejected this frame (due to loading too late for example).
-		uint32_t dropped_block_meshes = 0;
+		uint32_t dropped_chunk_meshes = 0;
 		// Time spent in the last update unloading unused chunks and detecting required ones, in microseconds
 		uint32_t time_detect_required_blocks = 0;
 		// Time spent in the last update requesting data chunks, in microseconds

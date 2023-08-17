@@ -124,8 +124,8 @@ public:
 
 	struct Stats {
 		int updated_blocks = 0;
-		int dropped_block_loads = 0;
-		int dropped_block_meshes = 0;
+		int dropped_chunk_loads = 0;
+		int dropped_chunk_meshes = 0;
 		uint32_t time_detect_required_blocks = 0;
 		uint32_t time_request_blocks_to_load = 0;
 		uint32_t time_process_load_responses = 0;

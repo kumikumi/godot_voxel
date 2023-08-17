@@ -579,8 +579,8 @@ Dictionary VoxelTerrain::_b_get_statistics() const {
 	d["time_process_load_responses"] = _stats.time_process_load_responses;
 	d["time_request_blocks_to_update"] = _stats.time_request_blocks_to_update;
 
-	d["dropped_block_loads"] = _stats.dropped_block_loads;
-	d["dropped_block_meshes"] = _stats.dropped_block_meshes;
+	d["dropped_chunk_loads"] = _stats.dropped_chunk_loads;
+	d["dropped_chunk_meshes"] = _stats.dropped_chunk_meshes;
 	d["updated_blocks"] = _stats.updated_blocks;
 
 	return d;
@@ -1394,7 +1394,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 								"lod{} ({}, {}, {}), re-requesting it",
 				ob.lod_index, ob.position.x, ob.position.y, ob.position.z));
 
-		++_stats.dropped_block_loads;
+		++_stats.dropped_chunk_loads;
 
 		_chunks_pending_load.push_back(ob.position);
 		return;
@@ -1406,7 +1406,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 
 		if (loading_chunk_it == _loading_chunks.end()) {
 			// That chunk was not requested or is no longer needed, drop it.
-			++_stats.dropped_block_loads;
+			++_stats.dropped_chunk_loads;
 			return;
 		}
 
@@ -1427,7 +1427,7 @@ void VoxelTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	if (block.has_voxels() && block.get_voxels_const().get_size() != Vector3iUtil::create(_data->get_chunk_size())) {
 		// Voxel chunk size is incorrect, drop it
 		ZN_PRINT_ERROR("Block is different from expected size");
-		++_stats.dropped_block_loads;
+		++_stats.dropped_chunk_loads;
 		return;
 	}
 
@@ -1518,7 +1518,7 @@ void VoxelTerrain::process_meshing() {
 	ZN_PROFILE_SCOPE();
 	ProfilingClock profiling_clock;
 
-	_stats.dropped_block_meshes = 0;
+	_stats.dropped_chunk_meshes = 0;
 
 	// Send mesh updates
 
@@ -1610,7 +1610,7 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 	if (block == nullptr) {
 		// print_line("- no longer loaded");
 		// That chunk is no longer loaded, drop the result
-		++_stats.dropped_block_meshes;
+		++_stats.dropped_chunk_meshes;
 		return;
 	}
 
@@ -1618,13 +1618,13 @@ void VoxelTerrain::apply_mesh_update(const VoxelEngine::ChunkMeshOutput &ob) {
 		// That chunk is loaded, but its meshing request was dropped.
 		// TODO Not sure what to do in this case, the code sending update queries has to be tweaked
 		ZN_PRINT_VERBOSE("Received a block mesh drop while we were still expecting it");
-		++_stats.dropped_block_meshes;
+		++_stats.dropped_chunk_meshes;
 		return;
 	}
 
 	// There is a slim chance for some updates to come up just after setting the mesher to null. Avoids a crash.
 	if (_mesher.is_null()) {
-		++_stats.dropped_block_meshes;
+		++_stats.dropped_chunk_meshes;
 		return;
 	}
 
