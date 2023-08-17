@@ -581,8 +581,8 @@ void VoxelLodTerrain::post_edit_area(Box3i p_box, bool update_mesh) {
 	// But it might mip more lods than necessary when editing on borders.
 	const Box3i box = p_box.padded(1);
 	{
-		MutexLock lock(_update_data->state.blocks_pending_lodding_lod0_mutex);
-		_data->mark_area_modified(box, &_update_data->state.blocks_pending_lodding_lod0, update_mesh);
+		MutexLock lock(_update_data->state.chunks_pending_lodding_lod0_mutex);
+		_data->mark_area_modified(box, &_update_data->state.chunks_pending_lodding_lod0, update_mesh);
 	}
 
 #ifdef TOOLS_ENABLED
@@ -671,7 +671,7 @@ void VoxelLodTerrain::stop_updater() {
 
 	for (unsigned int i = 0; i < _update_data->state.lods.size(); ++i) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[i];
-		lod.blocks_pending_update.clear();
+		lod.chunks_pending_update.clear();
 
 		for (auto it = lod.mesh_map_state.map.begin(); it != lod.mesh_map_state.map.end(); ++it) {
 			VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh = it->second;
@@ -711,7 +711,7 @@ void VoxelLodTerrain::stop_streamer() {
 
 	for (unsigned int i = 0; i < _update_data->state.lods.size(); ++i) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[i];
-		lod.loading_blocks.clear();
+		lod.loading_chunks.clear();
 	}
 
 	//_reception_buffers.data_output.clear();
@@ -1378,7 +1378,7 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	// so we wouldn't know which ones to expect. This is the case of full load mode.
 	VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[ob.lod_index];
 	if (!ob.initial_load) {
-		if (!thread_safe_contains(lod.loading_blocks, ob.position, lod.loading_blocks_mutex)) {
+		if (!thread_safe_contains(lod.loading_chunks, ob.position, lod.loading_chunks_mutex)) {
 			// That chunk was not requested, or is no longer needed. drop it...
 			ZN_PRINT_VERBOSE(
 					format("Ignoring block {} lod {}, it was not in loading blocks", ob.position, ob.lod_index));
@@ -1420,8 +1420,8 @@ void VoxelLodTerrain::apply_chunk_response(VoxelEngine::ChunkDataOutput &ob) {
 	{
 		// We have to do this after adding the chunk to the map, otherwise there would be a small period of time where
 		// the threaded update task could request the chunk again needlessly
-		MutexLock lock(lod.loading_blocks_mutex);
-		lod.loading_blocks.erase(ob.position);
+		MutexLock lock(lod.loading_chunks_mutex);
+		lod.loading_chunks.erase(ob.position);
 	}
 
 	if (_instancer != nullptr && ob.instances != nullptr) {
@@ -2021,12 +2021,12 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 	VoxelLodTerrainUpdateTask::flush_pending_lod_edits(_update_data->state, *_data, get_chunk_mesh_size());
 
 	BufferedTaskScheduler &task_scheduler = BufferedTaskScheduler::get_for_current_thread();
-	std::vector<VoxelData::BlockToSave> blocks_to_save;
+	std::vector<VoxelData::BlockToSave> chunks_to_save;
 
 	Ref<VoxelStream> stream = get_stream();
 	if (stream.is_valid()) {
 		// That may cause a stutter, so should be used when the player won't notice
-		_data->consume_all_modifications(blocks_to_save, with_copy);
+		_data->consume_all_modifications(chunks_to_save, with_copy);
 
 		if (_instancer != nullptr && stream->supports_instance_blocks()) {
 			_instancer->save_all_modified_blocks(task_scheduler, nullptr);
@@ -2035,7 +2035,7 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 
 	// And flush immediately
 	VoxelLodTerrainUpdateTask::send_block_save_requests(
-			_volume_id, to_span(blocks_to_save), _streaming_dependency, get_chunk_size(), task_scheduler);
+			_volume_id, to_span(chunks_to_save), _streaming_dependency, get_chunk_size(), task_scheduler);
 	task_scheduler.flush();
 }
 
@@ -2103,7 +2103,7 @@ void VoxelLodTerrain::remesh_all_blocks() {
 	for (unsigned int lod_index = 0; lod_index < lod_count; ++lod_index) {
 		VoxelLodTerrainUpdateData::Lod &lod = _update_data->state.lods[lod_index];
 		for (auto it = lod.mesh_map_state.map.begin(); it != lod.mesh_map_state.map.end(); ++it) {
-			VoxelLodTerrainUpdateTask::schedule_mesh_update(it->second, it->first, lod.blocks_pending_update);
+			VoxelLodTerrainUpdateTask::schedule_mesh_update(it->second, it->first, lod.chunks_pending_update);
 		}
 	}
 }
@@ -2437,8 +2437,8 @@ Dictionary VoxelLodTerrain::debug_get_chunk_info(Vector3 fbpos, int lod_index) c
 	if (has_chunk) {
 		loading_state = 2;
 	} else {
-		MutexLock lock(lod.loading_blocks_mutex);
-		if (lod.has_loading_block(bpos)) {
+		MutexLock lock(lod.loading_chunks_mutex);
+		if (lod.has_loading_chunk(bpos)) {
 			loading_state = 1;
 		}
 	}

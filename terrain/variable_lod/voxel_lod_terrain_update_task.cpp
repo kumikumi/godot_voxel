@@ -28,13 +28,13 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 	const int data_to_mesh_factor = chunk_mesh_size / chunk_size;
 
 	{
-		MutexLock lock(state.blocks_pending_lodding_lod0_mutex);
+		MutexLock lock(state.chunks_pending_lodding_lod0_mutex);
 		// Not sure if could just use `=`? What would std::vector do with capacity?
-		tls_modified_lod0_blocks.resize(state.blocks_pending_lodding_lod0.size());
-		memcpy(tls_modified_lod0_blocks.data(), state.blocks_pending_lodding_lod0.data(),
-				state.blocks_pending_lodding_lod0.size() * sizeof(Vector3i));
+		tls_modified_lod0_blocks.resize(state.chunks_pending_lodding_lod0.size());
+		memcpy(tls_modified_lod0_blocks.data(), state.chunks_pending_lodding_lod0.data(),
+				state.chunks_pending_lodding_lod0.size() * sizeof(Vector3i));
 
-		state.blocks_pending_lodding_lod0.clear();
+		state.chunks_pending_lodding_lod0.clear();
 	}
 
 	tls_updated_block_locations.clear();
@@ -49,13 +49,13 @@ void VoxelLodTerrainUpdateTask::flush_pending_lod_edits(
 		if (chunk_mesh_it != dst_lod.mesh_map_state.map.end()) {
 			// If a mesh exists here, it will need an update.
 			// If there is no mesh, it will probably get created later when we come closer to it
-			schedule_mesh_update(chunk_mesh_it->second, chunk_mesh_pos, dst_lod.blocks_pending_update);
+			schedule_mesh_update(chunk_mesh_it->second, chunk_mesh_pos, dst_lod.chunks_pending_update);
 		}
 	}
 }
 
 static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &state, VoxelData &data,
-		Vector3 p_viewer_pos, std::vector<VoxelData::BlockToSave> &blocks_to_save, bool can_save,
+		Vector3 p_viewer_pos, std::vector<VoxelData::BlockToSave> &chunks_to_save, bool can_save,
 		const VoxelLodTerrainUpdateData::Settings &settings) {
 	ZN_PROFILE_SCOPE_NAMED("Sliding box data unload");
 	// TODO Could it actually be enough to have a rolling update on all chunks?
@@ -113,7 +113,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 			prev_box.difference_to_vec(new_box, tls_to_remove);
 
 			for (const Box3i bbox : tls_to_remove) {
-				data.unload_blocks(bbox, lod_index, &blocks_to_save);
+				data.unload_blocks(bbox, lod_index, &chunks_to_save);
 			}
 		}
 
@@ -131,7 +131,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 				mesh_box = padded_new_box;
 			}
 
-			unordered_remove_if(lod.blocks_pending_update, [&lod, mesh_box](Vector3i bpos) {
+			unordered_remove_if(lod.chunks_pending_update, [&lod, mesh_box](Vector3i bpos) {
 				if (mesh_box.contains(bpos)) {
 					return false;
 				} else {
@@ -204,7 +204,7 @@ static void process_unload_chunk_meshes_sliding_box(VoxelLodTerrainUpdateData::S
 		{
 			ZN_PROFILE_SCOPE_NAMED("Cancel updates");
 			// Cancel chunk updates that are not within the new region
-			unordered_remove_if(lod.blocks_pending_update, [new_box](Vector3i bpos) { //
+			unordered_remove_if(lod.chunks_pending_update, [new_box](Vector3i bpos) { //
 				return !new_box.contains(bpos);
 			});
 		}
@@ -381,17 +381,17 @@ bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const Vox
 				surrounded = tls_missing.size() == 0;
 
 				// Schedule loading for missing neighbors
-				MutexLock lock(lod.loading_blocks_mutex);
+				MutexLock lock(lod.loading_chunks_mutex);
 				for (const Vector3i &missing_pos : tls_missing) {
-					if (!lod.has_loading_block(missing_pos)) {
+					if (!lod.has_loading_chunk(missing_pos)) {
 						blocks_to_load.push_back({ missing_pos, lod_index });
-						lod.loading_blocks.insert(missing_pos);
+						lod.loading_chunks.insert(missing_pos);
 					}
 				}
 			}
 
 			if (surrounded) {
-				lod.blocks_pending_update.push_back(chunk_mesh_pos);
+				lod.chunks_pending_update.push_back(chunk_mesh_pos);
 				chunk_mesh.state = VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT;
 			}
 
@@ -461,11 +461,11 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 
 		if (tls_missing.size() > 0) {
 			VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
-			MutexLock mlock(lod.loading_blocks_mutex);
+			MutexLock mlock(lod.loading_chunks_mutex);
 			for (const Vector3i &missing_bpos : tls_missing) {
-				if (!lod.has_loading_block(missing_bpos)) {
+				if (!lod.has_loading_chunk(missing_bpos)) {
 					blocks_to_load.push_back({ missing_bpos, lod_index });
-					lod.loading_blocks.insert(missing_bpos);
+					lod.loading_chunks.insert(missing_bpos);
 				}
 			}
 			return false;
@@ -926,8 +926,8 @@ static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateD
 		const VoxelLodTerrainUpdateData::BlockLocation loc = blocks_to_load[i];
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[loc.lod];
 		{
-			MutexLock mlock(lod.loading_blocks_mutex);
-			lod.loading_blocks.erase(loc.position);
+			MutexLock mlock(lod.loading_chunks_mutex);
+			lod.loading_chunks.erase(loc.position);
 		}
 		{
 			VoxelChunkData empty_block(loc.lod);
@@ -952,10 +952,10 @@ static void request_voxel_block_save(VolumeID volume_id, std::shared_ptr<VoxelBu
 }
 
 void VoxelLodTerrainUpdateTask::send_block_save_requests(VolumeID volume_id,
-		Span<VoxelData::BlockToSave> blocks_to_save, std::shared_ptr<StreamingDependency> &stream_dependency,
+		Span<VoxelData::BlockToSave> chunks_to_save, std::shared_ptr<StreamingDependency> &stream_dependency,
 		unsigned int chunk_size, BufferedTaskScheduler &task_scheduler) {
-	for (unsigned int i = 0; i < blocks_to_save.size(); ++i) {
-		VoxelData::BlockToSave &b = blocks_to_save[i];
+	for (unsigned int i = 0; i < chunks_to_save.size(); ++i) {
+		VoxelData::BlockToSave &b = chunks_to_save[i];
 		ZN_PRINT_VERBOSE(format("Requesting save of block {} lod {}", b.position, b.lod_index));
 		request_voxel_block_save(
 				volume_id, b.voxels, b.position, b.lod_index, stream_dependency, chunk_size, task_scheduler);
@@ -982,9 +982,9 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 		ZN_PROFILE_SCOPE();
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[lod_index];
 
-		for (unsigned int bi = 0; bi < lod.blocks_pending_update.size(); ++bi) {
+		for (unsigned int bi = 0; bi < lod.chunks_pending_update.size(); ++bi) {
 			ZN_PROFILE_SCOPE();
-			const Vector3i chunk_mesh_pos = lod.blocks_pending_update[bi];
+			const Vector3i chunk_mesh_pos = lod.chunks_pending_update[bi];
 
 			auto chunk_mesh_it = lod.mesh_map_state.map.find(chunk_mesh_pos);
 			// A chunk must have been allocated before we ask for a mesh update
@@ -1043,7 +1043,7 @@ static void send_mesh_requests(VolumeID volume_id, VoxelLodTerrainUpdateData::St
 			chunk_mesh.state = VoxelLodTerrainUpdateData::MESH_UPDATE_SENT;
 		}
 
-		lod.blocks_pending_update.clear();
+		lod.chunks_pending_update.clear();
 	}
 }
 
@@ -1090,11 +1090,11 @@ static std::shared_ptr<AsyncDependencyTracker> preload_boxes_async(VoxelLodTerra
 			data.get_missing_chunks(chunk_box, lod_index, tls_missing);
 
 			if (tls_missing.size() > 0) {
-				MutexLock mlock(lod.loading_blocks_mutex);
+				MutexLock mlock(lod.loading_chunks_mutex);
 				for (const Vector3i &missing_bpos : tls_missing) {
-					if (!lod.has_loading_block(missing_bpos)) {
+					if (!lod.has_loading_chunk(missing_bpos)) {
 						todo.push_back(TaskArguments{ missing_bpos, lod_index });
-						lod.loading_blocks.insert(missing_bpos);
+						lod.loading_chunks.insert(missing_bpos);
 					}
 				}
 			}
@@ -1198,7 +1198,7 @@ static void process_changed_generated_areas(VoxelLodTerrainUpdateData::State &st
 			bbox.for_each_cell_zxy([&lod](const Vector3i bpos) {
 				auto chunk_it = lod.mesh_map_state.map.find(bpos);
 				if (chunk_it != lod.mesh_map_state.map.end()) {
-					VoxelLodTerrainUpdateTask::schedule_mesh_update(chunk_it->second, bpos, lod.blocks_pending_update);
+					VoxelLodTerrainUpdateTask::schedule_mesh_update(chunk_it->second, bpos, lod.chunks_pending_update);
 				}
 			});
 		}

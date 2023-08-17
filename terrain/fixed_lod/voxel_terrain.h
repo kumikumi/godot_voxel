@@ -282,16 +282,16 @@ private:
 	};
 
 	// Blocks currently being loaded.
-	std::unordered_map<Vector3i, LoadingBlock> _loading_blocks;
+	std::unordered_map<Vector3i, LoadingBlock> _loading_chunks;
 	// Blocks that should be loaded on the next process call.
 	// The order in that list does not matter.
-	std::vector<Vector3i> _blocks_pending_load;
+	std::vector<Vector3i> _chunks_pending_load;
 	// Block meshes that should be updated on the next process call.
 	// The order in that list does not matter.
-	std::vector<Vector3i> _blocks_pending_update;
+	std::vector<Vector3i> _chunks_pending_update;
 	// Blocks that should be saved on the next process call.
 	// The order in that list does not matter.
-	std::vector<VoxelData::BlockToSave> _blocks_to_save;
+	std::vector<VoxelData::BlockToSave> _chunks_to_save;
 
 	Ref<VoxelMesher> _mesher;
 

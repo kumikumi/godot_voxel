@@ -30,7 +30,7 @@ struct BeforeUnloadSaveAction {
 };
 
 struct ScheduleSaveAction {
-	std::vector<VoxelData::BlockToSave> &blocks_to_save;
+	std::vector<VoxelData::BlockToSave> &chunks_to_save;
 	uint8_t lod_index;
 	bool with_copy;
 
@@ -49,7 +49,7 @@ struct ScheduleSaveAction {
 			}
 			b.position = bpos;
 			b.lod_index = lod_index;
-			blocks_to_save.push_back(b);
+			chunks_to_save.push_back(b);
 			block.set_modified(false);
 		}
 	}
@@ -564,10 +564,10 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_blocks, std::vect
 		Lod &data_lod0 = _lods[0];
 		RWLockRead rlock(data_lod0.map_lock);
 
-		std::vector<Vector3i> &blocks_pending_lodding_lod0 = tls_blocks_to_process_per_lod[0];
+		std::vector<Vector3i> &chunks_pending_lodding_lod0 = tls_blocks_to_process_per_lod[0];
 
-		for (unsigned int i = 0; i < blocks_pending_lodding_lod0.size(); ++i) {
-			const Vector3i chunk_pos = blocks_pending_lodding_lod0[i];
+		for (unsigned int i = 0; i < chunks_pending_lodding_lod0.size(); ++i) {
+			const Vector3i chunk_pos = chunks_pending_lodding_lod0[i];
 			VoxelChunkData *chunk = data_lod0.map.get_chunk(chunk_pos);
 			ERR_CONTINUE(chunk == nullptr);
 			chunk->set_needs_lodding(false);

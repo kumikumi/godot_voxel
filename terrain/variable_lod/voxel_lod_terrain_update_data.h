@@ -114,8 +114,8 @@ struct VoxelLodTerrainUpdateData {
 	// Each LOD works in a set of coordinates spanning 2x more voxels the higher their index is
 	struct Lod {
 		// Keeping track of asynchronously loading chunks so we don't try to redundantly load them
-		std::unordered_set<Vector3i> loading_blocks;
-		BinaryMutex loading_blocks_mutex;
+		std::unordered_set<Vector3i> loading_chunks;
+		BinaryMutex loading_chunks_mutex;
 
 		// These are relative to this LOD, in chunk coordinates
 		Vector3i last_viewer_chunk_pos;
@@ -123,7 +123,7 @@ struct VoxelLodTerrainUpdateData {
 
 		MeshMapState mesh_map_state;
 
-		std::vector<Vector3i> blocks_pending_update;
+		std::vector<Vector3i> chunks_pending_update;
 		Vector3i last_viewer_chunk_mesh_pos;
 		int last_view_distance_chunk_meshes = 0;
 
@@ -133,8 +133,8 @@ struct VoxelLodTerrainUpdateData {
 		std::vector<Vector3i> chunk_meshes_to_activate;
 		std::vector<Vector3i> chunk_meshes_to_deactivate;
 
-		inline bool has_loading_block(const Vector3i &pos) const {
-			return loading_blocks.find(pos) != loading_blocks.end();
+		inline bool has_loading_chunk(const Vector3i &pos) const {
+			return loading_chunks.find(pos) != loading_chunks.end();
 		}
 	};
 
@@ -174,8 +174,8 @@ struct VoxelLodTerrainUpdateData {
 		// This is the entry point for notifying data changes, which will cause mesh updates.
 		// Contains chunks that were edited and need their LOD counterparts to be updated.
 		// Scheduling is only done at LOD0 because it is the only editable LOD.
-		std::vector<Vector3i> blocks_pending_lodding_lod0;
-		BinaryMutex blocks_pending_lodding_lod0_mutex;
+		std::vector<Vector3i> chunks_pending_lodding_lod0;
+		BinaryMutex chunks_pending_lodding_lod0_mutex;
 
 		std::vector<AsyncEdit> pending_async_edits;
 		BinaryMutex pending_async_edits_mutex;

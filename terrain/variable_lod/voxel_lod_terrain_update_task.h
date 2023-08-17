@@ -54,12 +54,12 @@ public:
 
 	// To use on loaded chunks
 	static inline void schedule_mesh_update(VoxelLodTerrainUpdateData::ChunkMeshState &block, Vector3i bpos,
-			std::vector<Vector3i> &blocks_pending_update) {
+			std::vector<Vector3i> &chunks_pending_update) {
 		if (block.state != VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT) {
 			if (block.active) {
 				// Schedule an update
 				block.state = VoxelLodTerrainUpdateData::MESH_UPDATE_NOT_SENT;
-				blocks_pending_update.push_back(bpos);
+				chunks_pending_update.push_back(bpos);
 			} else {
 				// Just mark it as needing update, so the visibility system will schedule its update when needed
 				block.state = VoxelLodTerrainUpdateData::MESH_NEED_UPDATE;
@@ -67,7 +67,7 @@ public:
 		}
 	}
 
-	static void send_block_save_requests(VolumeID volume_id, Span<VoxelData::BlockToSave> blocks_to_save,
+	static void send_block_save_requests(VolumeID volume_id, Span<VoxelData::BlockToSave> chunks_to_save,
 			std::shared_ptr<StreamingDependency> &stream_dependency, unsigned int chunk_size,
 			BufferedTaskScheduler &task_scheduler);
 
