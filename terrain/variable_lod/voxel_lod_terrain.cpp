@@ -167,7 +167,7 @@ VoxelLodTerrain::VoxelLodTerrain() {
 		VoxelLodTerrain *self = reinterpret_cast<VoxelLodTerrain *>(cb_data);
 		self->apply_chunk_response(ob);
 	};
-	callbacks.detail_texture_output_callback = [](void *cb_data, VoxelEngine::BlockDetailTextureOutput &ob) {
+	callbacks.detail_texture_output_callback = [](void *cb_data, VoxelEngine::ChunkDetailTextureOutput &ob) {
 		VoxelLodTerrain *self = reinterpret_cast<VoxelLodTerrain *>(cb_data);
 		self->apply_detail_texture_update(ob);
 	};
@@ -1636,7 +1636,7 @@ void VoxelLodTerrain::apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob) {
 #endif
 }
 
-void VoxelLodTerrain::apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob) {
+void VoxelLodTerrain::apply_detail_texture_update(VoxelEngine::ChunkDetailTextureOutput &ob) {
 	VoxelMeshMap<VoxelChunkMeshVLT> &mesh_map = _mesh_maps_per_lod[ob.lod_index];
 	VoxelChunkMeshVLT *block = mesh_map.get_chunk(ob.position);
 

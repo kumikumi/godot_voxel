@@ -261,7 +261,7 @@ private:
 
 	void apply_mesh_update(VoxelEngine::ChunkMeshOutput &ob);
 	void apply_chunk_response(VoxelEngine::ChunkDataOutput &ob);
-	void apply_detail_texture_update(VoxelEngine::BlockDetailTextureOutput &ob);
+	void apply_detail_texture_update(VoxelEngine::ChunkDetailTextureOutput &ob);
 	void apply_detail_texture_update_to_block(
 			VoxelChunkMeshVLT &block, DetailTextureOutput &ob, unsigned int lod_index);
 	void try_apply_parent_detail_texture_to_block(VoxelChunkMeshVLT &block, Vector3i bpos);

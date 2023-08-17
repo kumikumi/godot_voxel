@@ -77,7 +77,7 @@ public:
 		bool initial_load;
 	};
 
-	struct BlockDetailTextureOutput {
+	struct ChunkDetailTextureOutput {
 		std::shared_ptr<DetailTextureOutput> detail_textures;
 		Vector3i position;
 		uint32_t lod_index;
@@ -86,7 +86,7 @@ public:
 	struct VolumeCallbacks {
 		void (*mesh_output_callback)(void *, ChunkMeshOutput &) = nullptr;
 		void (*data_output_callback)(void *, ChunkDataOutput &) = nullptr;
-		void (*detail_texture_output_callback)(void *, BlockDetailTextureOutput &) = nullptr;
+		void (*detail_texture_output_callback)(void *, ChunkDetailTextureOutput &) = nullptr;
 		void *data = nullptr;
 
 		inline bool check_callbacks() const {

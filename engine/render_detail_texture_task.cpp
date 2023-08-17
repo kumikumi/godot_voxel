@@ -111,7 +111,7 @@ void RenderDetailTextureTask::apply_result() {
 		return;
 	}
 
-	VoxelEngine::BlockDetailTextureOutput o;
+	VoxelEngine::ChunkDetailTextureOutput o;
 	// TODO Check for invalidation due to property changes
 
 	o.position = chunk_mesh_position;
@@ -355,7 +355,7 @@ void RenderDetailTexturePass2Task::apply_result() {
 		return;
 	}
 
-	VoxelEngine::BlockDetailTextureOutput o;
+	VoxelEngine::ChunkDetailTextureOutput o;
 	// TODO Check for invalidation due to property changes
 
 	o.position = chunk_mesh_position;
