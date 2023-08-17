@@ -504,10 +504,10 @@ void test_voxel_graph_generator_texturing() {
 				}
 			}
 
-			static void do_block_tests(Ref<VoxelGeneratorGraph> generator) {
+			static void do_chunk_tests(Ref<VoxelGeneratorGraph> generator) {
 				ERR_FAIL_COND(generator.is_null());
 				{
-					// Block centered on origin
+					// Chunk centered on origin
 					VoxelBufferInternal buffer;
 					buffer.create(Vector3i(16, 16, 16));
 
@@ -548,10 +548,10 @@ void test_voxel_graph_generator_texturing() {
 
 		// Try first without optimization
 		generator->set_use_optimized_execution_map(false);
-		L::do_block_tests(generator);
+		L::do_chunk_tests(generator);
 		// Try with optimization
 		generator->set_use_optimized_execution_map(true);
-		L::do_block_tests(generator);
+		L::do_chunk_tests(generator);
 	}
 }
 
@@ -1713,7 +1713,7 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 			bool expect_spot;
 		};
 
-		std::vector<BlockTest> block_tests;
+		std::vector<BlockTest> chunk_tests;
 
 		generator->set_use_optimized_execution_map(false);
 
@@ -1722,14 +1722,14 @@ void test_voxel_graph_spots2d_optimized_execution_map() {
 			for (bpos.x = -4; bpos.x < 4; ++bpos.x) {
 				const Vector3i origin = bpos * CHUNK_SIZE;
 				generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, origin, 0 });
-				block_tests.push_back(BlockTest{ origin, L::has_spot(voxels) });
+				chunk_tests.push_back(BlockTest{ origin, L::has_spot(voxels) });
 			}
 		}
 
 		generator->set_use_optimized_execution_map(true);
 
-		for (unsigned int bti = 0; bti < block_tests.size(); ++bti) {
-			const BlockTest bt = block_tests[bti];
+		for (unsigned int bti = 0; bti < chunk_tests.size(); ++bti) {
+			const BlockTest bt = chunk_tests[bti];
 			generator->generate_chunk(VoxelGenerator::VoxelQueryData{ voxels, bt.origin, 0 });
 			const bool spot_found = L::has_spot(voxels);
 			ZN_TEST_ASSERT(bt.expect_spot == spot_found);
