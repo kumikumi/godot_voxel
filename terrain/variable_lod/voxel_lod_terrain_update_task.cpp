@@ -333,7 +333,7 @@ inline bool check_chunk_sizes(int chunk_size, int chunk_mesh_size) {
 			chunk_mesh_size >= chunk_size;
 }
 
-bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const VoxelData &data,
+bool check_chunk_mesh_updated(VoxelLodTerrainUpdateData::State &state, const VoxelData &data,
 		VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh, Vector3i chunk_mesh_pos, uint8_t lod_index,
 		std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load,
 		const VoxelLodTerrainUpdateData::Settings &settings) {
@@ -435,7 +435,7 @@ VoxelLodTerrainUpdateData::ChunkMeshState &insert_new(
 	return block;
 }
 
-static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &state,
+static bool check_chunk_loaded_and_meshed(VoxelLodTerrainUpdateData::State &state,
 		const VoxelLodTerrainUpdateData::Settings &settings, const VoxelData &data, const Vector3i &p_chunk_mesh_pos,
 		uint8_t lod_index, std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load) {
 	//
@@ -485,7 +485,7 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 		chunk_mesh = &chunk_mesh_it->second;
 	}
 
-	return check_block_mesh_updated(state, data, *chunk_mesh, p_chunk_mesh_pos, lod_index, chunks_to_load, settings);
+	return check_chunk_mesh_updated(state, data, *chunk_mesh, p_chunk_mesh_pos, lod_index, chunks_to_load, settings);
 }
 
 uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpdateData::State &state,
@@ -675,7 +675,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 			bool can_create_root(int lod_index) {
 				const Vector3i offset = chunk_offset_lod0 >> lod_index;
 				const bool can =
-						check_block_loaded_and_meshed(state, settings, data, offset, lod_index, chunks_to_load);
+						check_chunk_loaded_and_meshed(state, settings, data, offset, lod_index, chunks_to_load);
 				if (!can) {
 					++blocked_count;
 				}
@@ -697,7 +697,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 					// Get chunk pos local-to-region + convert to local-to-terrain
 					const Vector3i child_pos = LodOctree::get_child_position(node_pos, i) + offset;
 					// We have to ping ALL children, because the reason we are here is we want them loaded
-					can &= check_block_loaded_and_meshed(
+					can &= check_chunk_loaded_and_meshed(
 							state, settings, data, child_pos, child_lod_index, chunks_to_load);
 				}
 
@@ -738,7 +738,7 @@ static void process_octrees_fitting(VoxelLodTerrainUpdateData::State &state,
 				}
 
 				// The chunk is loaded (?) but the mesh isn't up to date, we need to ping and wait.
-				const bool can = check_block_mesh_updated(
+				const bool can = check_chunk_mesh_updated(
 						state, data, chunk_mesh_it->second, bpos, parent_lod_index, chunks_to_load, settings);
 
 				if (!can) {
