@@ -825,11 +825,11 @@ inline Vector3i get_chunk_center(Vector3i pos, int bs) {
 static void init_sparse_grid_priority_dependency(PriorityDependency &dep, Vector3i chunk_position, int chunk_size,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, const Transform3D &volume_transform) {
 	const Vector3i voxel_pos = get_chunk_center(chunk_position, chunk_size);
-	const float block_radius = chunk_size / 2;
+	const float chunk_radius = chunk_size / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);
 	const float transformed_chunk_radius =
-			volume_transform.basis.xform(Vector3(block_radius, block_radius, block_radius)).length();
+			volume_transform.basis.xform(Vector3(chunk_radius, chunk_radius, chunk_radius)).length();
 
 	// Distance beyond which no field of view can overlap the chunk.
 	// Doubling chunk radius to account for an extra margin of chunks,

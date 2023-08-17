@@ -832,11 +832,11 @@ static void init_sparse_octree_priority_dependency(PriorityDependency &dep, Vect
 		const Transform3D &volume_transform, float octree_lod_distance) {
 	//
 	const Vector3i voxel_pos = get_chunk_center(chunk_position, chunk_size, lod);
-	const float block_radius = (chunk_size << lod) / 2;
+	const float chunk_radius = (chunk_size << lod) / 2;
 	dep.shared = shared_viewers_data;
 	dep.world_position = volume_transform.xform(voxel_pos);
 	const float transformed_chunk_radius =
-			volume_transform.basis.xform(Vector3(block_radius, block_radius, block_radius)).length();
+			volume_transform.basis.xform(Vector3(chunk_radius, chunk_radius, chunk_radius)).length();
 
 	// Distance beyond which it is safe to drop a chunk without risking to chunk LOD subdivision.
 	// This does not depend on viewer's view distance, but on LOD precision instead.
