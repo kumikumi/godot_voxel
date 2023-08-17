@@ -113,7 +113,7 @@ static void process_unload_chunks_sliding_box(VoxelLodTerrainUpdateData::State &
 			prev_box.difference_to_vec(new_box, tls_to_remove);
 
 			for (const Box3i bbox : tls_to_remove) {
-				data.unload_blocks(bbox, lod_index, &chunks_to_save);
+				data.unload_chunks(bbox, lod_index, &chunks_to_save);
 			}
 		}
 

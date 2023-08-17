@@ -683,7 +683,7 @@ void VoxelData::update_lods(Span<const Vector3i> modified_lod0_chunks, std::vect
 	//	}
 }
 
-void VoxelData::unload_blocks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save) {
+void VoxelData::unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save) {
 	Lod &lod = _lods[lod_index];
 	RWLockWrite wlock(lod.map_lock);
 	if (to_save == nullptr) {
@@ -697,7 +697,7 @@ void VoxelData::unload_blocks(Box3i bbox, unsigned int lod_index, std::vector<Bl
 	}
 }
 
-void VoxelData::unload_blocks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save) {
+void VoxelData::unload_chunks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save) {
 	Lod &lod = _lods[0];
 	RWLockWrite wlock(lod.map_lock);
 	if (to_save == nullptr) {

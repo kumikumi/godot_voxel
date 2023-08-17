@@ -207,11 +207,11 @@ public:
 
 	// Unloads data chunks in the specified area. If some of them were modified and `to_save` is not null, their data
 	// will be returned for the caller to save.
-	void unload_blocks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save);
+	void unload_chunks(Box3i bbox, unsigned int lod_index, std::vector<BlockToSave> *to_save);
 
 	// Unloads data chunks at specified positions of LOD0. If some of them were modified and `to_save` is not null,
 	// their data will be returned for the caller to save.
-	void unload_blocks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save);
+	void unload_chunks(Span<const Vector3i> positions, std::vector<BlockToSave> *to_save);
 
 	// If the chunk at the specified LOD0 position exists and is modified, marks it as non-modified and returns a copy
 	// of its data to save. Returns true if there is something to save.
