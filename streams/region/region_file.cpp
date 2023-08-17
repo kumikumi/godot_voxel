@@ -232,25 +232,25 @@ Error RegionFile::open(const String &fpath, bool create_if_not_found) {
 	};
 
 	// Filter only present chunks and keep the index around because it represents the 3D position of the chunk
-	std::vector<ChunkInfoAndIndex> blocks_sorted_by_offset;
+	std::vector<ChunkInfoAndIndex> chunks_sorted_by_offset;
 	for (unsigned int i = 0; i < _header.blocks.size(); ++i) {
 		const RegionChunkInfo b = _header.blocks[i];
 		if (b.data != 0) {
 			ChunkInfoAndIndex p;
 			p.b = b;
 			p.i = i;
-			blocks_sorted_by_offset.push_back(p);
+			chunks_sorted_by_offset.push_back(p);
 		}
 	}
 
-	std::sort(blocks_sorted_by_offset.begin(), blocks_sorted_by_offset.end(),
+	std::sort(chunks_sorted_by_offset.begin(), chunks_sorted_by_offset.end(),
 			[](const ChunkInfoAndIndex &a, const ChunkInfoAndIndex &b) {
 				return a.b.get_sector_index() < b.b.get_sector_index();
 			});
 
 	CRASH_COND(_sectors.size() != 0);
-	for (unsigned int i = 0; i < blocks_sorted_by_offset.size(); ++i) {
-		const ChunkInfoAndIndex b = blocks_sorted_by_offset[i];
+	for (unsigned int i = 0; i < chunks_sorted_by_offset.size(); ++i) {
+		const ChunkInfoAndIndex b = chunks_sorted_by_offset[i];
 		Vector3i bpos = get_chunk_position_from_index(b.i);
 		for (unsigned int j = 0; j < b.b.get_sector_count(); ++j) {
 			_sectors.push_back(bpos);
