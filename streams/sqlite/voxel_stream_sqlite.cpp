@@ -1035,7 +1035,7 @@ VoxelStreamSQLiteInternal *VoxelStreamSQLite::get_connection() {
 	if (_chunk_keys_cache_enabled) {
 		RWLockWrite wlock(_chunk_keys_cache.rw_lock);
 		con->load_all_chunk_keys(&_chunk_keys_cache, [](void *ctx, ChunkLocation loc) {
-			BlockKeysCache *cache = static_cast<BlockKeysCache *>(ctx);
+			ChunkKeysCache *cache = static_cast<ChunkKeysCache *>(ctx);
 			cache->add_no_lock({ loc.x, loc.y, loc.z }, loc.lod);
 		});
 	}

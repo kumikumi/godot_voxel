@@ -56,7 +56,7 @@ public:
 private:
 	void rebuild_key_cache();
 
-	struct BlockKeysCache {
+	struct ChunkKeysCache {
 		FixedArray<std::unordered_set<Vector3i16>, constants::MAX_LOD> lods;
 		RWLock rw_lock;
 
@@ -125,7 +125,7 @@ private:
 	// so it makes sense to cache keys to make this query fast and concurrent.
 	// Note: in the long term, on a game that systematically saves everything it generates instead of just edits,
 	// such a cache can become quite large. In this case we could either allow turning it off, or use an octree.
-	BlockKeysCache _chunk_keys_cache;
+	ChunkKeysCache _chunk_keys_cache;
 	bool _chunk_keys_cache_enabled = false;
 };
 
