@@ -575,7 +575,7 @@ Dictionary VoxelTerrain::_b_get_statistics() const {
 
 	// Breakdown of time spent in _process
 	d["time_detect_required_blocks"] = _stats.time_detect_required_blocks;
-	d["time_request_blocks_to_load"] = _stats.time_request_blocks_to_load;
+	d["time_request_chunks_to_load"] = _stats.time_request_chunks_to_load;
 	d["time_process_load_responses"] = _stats.time_process_load_responses;
 	d["time_request_chunks_to_update"] = _stats.time_request_chunks_to_update;
 
@@ -1242,7 +1242,7 @@ void VoxelTerrain::process_viewers() {
 		task_scheduler.flush();
 	}
 
-	_stats.time_request_blocks_to_load = profiling_clock.restart();
+	_stats.time_request_chunks_to_load = profiling_clock.restart();
 }
 
 void VoxelTerrain::process_viewer_data_box_change(

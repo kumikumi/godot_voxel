@@ -335,7 +335,7 @@ inline bool check_chunk_sizes(int chunk_size, int chunk_mesh_size) {
 
 bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const VoxelData &data,
 		VoxelLodTerrainUpdateData::ChunkMeshState &chunk_mesh, Vector3i chunk_mesh_pos, uint8_t lod_index,
-		std::vector<VoxelLodTerrainUpdateData::BlockLocation> &blocks_to_load,
+		std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load,
 		const VoxelLodTerrainUpdateData::Settings &settings) {
 	// ZN_PROFILE_SCOPE();
 
@@ -384,7 +384,7 @@ bool check_block_mesh_updated(VoxelLodTerrainUpdateData::State &state, const Vox
 				MutexLock lock(lod.loading_chunks_mutex);
 				for (const Vector3i &missing_pos : tls_missing) {
 					if (!lod.has_loading_chunk(missing_pos)) {
-						blocks_to_load.push_back({ missing_pos, lod_index });
+						chunks_to_load.push_back({ missing_pos, lod_index });
 						lod.loading_chunks.insert(missing_pos);
 					}
 				}
@@ -437,7 +437,7 @@ VoxelLodTerrainUpdateData::ChunkMeshState &insert_new(
 
 static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &state,
 		const VoxelLodTerrainUpdateData::Settings &settings, const VoxelData &data, const Vector3i &p_chunk_mesh_pos,
-		uint8_t lod_index, std::vector<VoxelLodTerrainUpdateData::BlockLocation> &blocks_to_load) {
+		uint8_t lod_index, std::vector<VoxelLodTerrainUpdateData::BlockLocation> &chunks_to_load) {
 	//
 
 	if (data.is_streaming_enabled()) {
@@ -464,7 +464,7 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 			MutexLock mlock(lod.loading_chunks_mutex);
 			for (const Vector3i &missing_bpos : tls_missing) {
 				if (!lod.has_loading_chunk(missing_bpos)) {
-					blocks_to_load.push_back({ missing_bpos, lod_index });
+					chunks_to_load.push_back({ missing_bpos, lod_index });
 					lod.loading_chunks.insert(missing_bpos);
 				}
 			}
@@ -485,7 +485,7 @@ static bool check_block_loaded_and_meshed(VoxelLodTerrainUpdateData::State &stat
 		chunk_mesh = &chunk_mesh_it->second;
 	}
 
-	return check_block_mesh_updated(state, data, *chunk_mesh, p_chunk_mesh_pos, lod_index, blocks_to_load, settings);
+	return check_block_mesh_updated(state, data, *chunk_mesh, p_chunk_mesh_pos, lod_index, chunks_to_load, settings);
 }
 
 uint8_t VoxelLodTerrainUpdateTask::get_transition_mask(const VoxelLodTerrainUpdateData::State &state,
@@ -907,23 +907,23 @@ static void request_block_load(VolumeID volume_id, unsigned int chunk_size,
 }
 
 static void send_chunk_data_requests(VolumeID volume_id,
-		Span<const VoxelLodTerrainUpdateData::BlockLocation> blocks_to_load,
+		Span<const VoxelLodTerrainUpdateData::BlockLocation> chunks_to_load,
 		std::shared_ptr<StreamingDependency> &stream_dependency, const std::shared_ptr<VoxelData> &data,
 		std::shared_ptr<PriorityDependency::ViewersData> &shared_viewers_data, unsigned int chunk_size,
 		bool request_instances, const Transform3D &volume_transform,
 		const VoxelLodTerrainUpdateData::Settings &settings, BufferedTaskScheduler &task_scheduler) {
 	//
-	for (unsigned int i = 0; i < blocks_to_load.size(); ++i) {
-		const VoxelLodTerrainUpdateData::BlockLocation loc = blocks_to_load[i];
+	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
+		const VoxelLodTerrainUpdateData::BlockLocation loc = chunks_to_load[i];
 		request_block_load(volume_id, chunk_size, stream_dependency, data, loc.position, loc.lod,
 				request_instances, shared_viewers_data, volume_transform, settings, task_scheduler);
 	}
 }
 
-static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateData::BlockLocation> blocks_to_load,
+static void apply_chunk_data_requests_as_empty(Span<const VoxelLodTerrainUpdateData::BlockLocation> chunks_to_load,
 		VoxelData &data, VoxelLodTerrainUpdateData::State &state) {
-	for (unsigned int i = 0; i < blocks_to_load.size(); ++i) {
-		const VoxelLodTerrainUpdateData::BlockLocation loc = blocks_to_load[i];
+	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
+		const VoxelLodTerrainUpdateData::BlockLocation loc = chunks_to_load[i];
 		VoxelLodTerrainUpdateData::Lod &lod = state.lods[loc.lod];
 		{
 			MutexLock mlock(lod.loading_chunks_mutex);

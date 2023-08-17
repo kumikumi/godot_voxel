@@ -701,7 +701,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 	const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// Check the cache first
-	std::vector<unsigned int> blocks_to_load;
+	std::vector<unsigned int> chunks_to_load;
 	for (unsigned int i = 0; i < p_blocks.size(); ++i) {
 		VoxelStream::VoxelQueryData &q = p_blocks[i];
 		const Vector3i pos = q.origin_in_voxels >> (bs_po2 + q.lod);
@@ -717,11 +717,11 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 			q.result = RESULT_BLOCK_FOUND;
 
 		} else {
-			blocks_to_load.push_back(i);
+			chunks_to_load.push_back(i);
 		}
 	}
 
-	if (blocks_to_load.size() == 0) {
+	if (chunks_to_load.size() == 0) {
 		// Everything was cached, no need to query the database
 		return;
 	}
@@ -732,8 +732,8 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 	// TODO We should handle busy return codes
 	ERR_FAIL_COND(con->begin_transaction() == false);
 
-	for (unsigned int i = 0; i < blocks_to_load.size(); ++i) {
-		const unsigned int ri = blocks_to_load[i];
+	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
+		const unsigned int ri = chunks_to_load[i];
 		VoxelStream::VoxelQueryData &q = p_blocks[ri];
 
 		const unsigned int po2 = bs_po2 + q.lod;
@@ -798,7 +798,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// Check the cache first
-	std::vector<unsigned int> blocks_to_load;
+	std::vector<unsigned int> chunks_to_load;
 	for (size_t i = 0; i < out_blocks.size(); ++i) {
 		VoxelStream::InstancesQueryData &q = out_blocks[i];
 
@@ -806,11 +806,11 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 			q.result = RESULT_BLOCK_FOUND;
 
 		} else {
-			blocks_to_load.push_back(i);
+			chunks_to_load.push_back(i);
 		}
 	}
 
-	if (blocks_to_load.size() == 0) {
+	if (chunks_to_load.size() == 0) {
 		// Everything was cached, no need to query the database
 		return;
 	}
@@ -822,8 +822,8 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 	// TODO recycle on error
 	ERR_FAIL_COND(con->begin_transaction() == false);
 
-	for (unsigned int i = 0; i < blocks_to_load.size(); ++i) {
-		const unsigned int ri = blocks_to_load[i];
+	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
+		const unsigned int ri = chunks_to_load[i];
 		VoxelStream::InstancesQueryData &q = out_blocks[ri];
 
 		BlockLocation loc;
