@@ -73,7 +73,7 @@ void VoxelInstancer::clear_blocks() {
 	}
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
-		lod.modified_blocks.clear();
+		lod.modified_chunks.clear();
 	}
 }
 
@@ -94,7 +94,7 @@ void VoxelInstancer::clear_layers() {
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
 		lod.layers.clear();
-		lod.modified_blocks.clear();
+		lod.modified_chunks.clear();
 	}
 	_layers.clear();
 }
@@ -325,7 +325,7 @@ void VoxelInstancer::process_gizmos() {
 						edited_color);
 			}
 
-			for (auto it = lod.modified_blocks.begin(); it != lod.modified_blocks.end(); ++it) {
+			for (auto it = lod.modified_chunks.begin(); it != lod.modified_chunks.end(); ++it) {
 				L::draw_box(_debug_renderer, parent_transform, *it, lod_index, base_chunk_size_po2, unsaved_color);
 			}
 		}
@@ -562,7 +562,7 @@ void VoxelInstancer::regenerate_layer(uint16_t layer_id, bool regenerate_blocks)
 		// Does not return a bool so it can be used in bit-shifting operations without a compiler warning.
 		// Can be treated like a bool too.
 		static inline uint8_t has_edited_chunk(const Lod &lod, Vector3i pos) {
-			return lod.modified_blocks.find(pos) != lod.modified_blocks.end() ||
+			return lod.modified_chunks.find(pos) != lod.modified_chunks.end() ||
 					lod.loaded_instances_data.find(pos) != lod.loaded_instances_data.end();
 		}
 
@@ -882,15 +882,15 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 				// Note, this data is what we loaded initially, it doesnt contain modifications.
 				lod.loaded_instances_data.erase(data_grid_pos);
 
-				auto modified_chunk_it = lod.modified_blocks.find(data_grid_pos);
-				if (modified_chunk_it != lod.modified_blocks.end()) {
+				auto modified_chunk_it = lod.modified_chunks.find(data_grid_pos);
+				if (modified_chunk_it != lod.modified_chunks.end()) {
 					if (can_save) {
 						SaveChunkDataTask *task = save_chunk(data_grid_pos, lod_index, nullptr);
 						if (task != nullptr) {
 							tasks.push_io_task(task);
 						}
 					}
-					lod.modified_blocks.erase(modified_chunk_it);
+					lod.modified_chunks.erase(modified_chunk_it);
 				}
 			}
 		}
@@ -911,7 +911,7 @@ void VoxelInstancer::on_chunk_mesh_exit(Vector3i render_grid_position, unsigned 
 	}
 }
 
-void VoxelInstancer::save_all_modified_blocks(
+void VoxelInstancer::save_all_modified_chunks(
 		BufferedTaskScheduler &tasks, std::shared_ptr<AsyncDependencyTracker> tracker) {
 	ZN_DSTACK();
 
@@ -923,13 +923,13 @@ void VoxelInstancer::save_all_modified_blocks(
 
 	for (unsigned int lod_index = 0; lod_index < _lods.size(); ++lod_index) {
 		Lod &lod = _lods[lod_index];
-		for (auto it = lod.modified_blocks.begin(); it != lod.modified_blocks.end(); ++it) {
+		for (auto it = lod.modified_chunks.begin(); it != lod.modified_chunks.end(); ++it) {
 			SaveChunkDataTask *task = save_chunk(*it, lod_index, tracker);
 			if (task != nullptr) {
 				tasks.push_io_task(task);
 			}
 		}
-		lod.modified_blocks.clear();
+		lod.modified_chunks.clear();
 	}
 }
 
@@ -1646,7 +1646,7 @@ void VoxelInstancer::on_area_edited(Box3i p_voxel_box) {
 				// Because even if none of them were removed or added, the ground on which they can spawn has changed,
 				// and at the moment we don't want unexpected instances to generate when loading back this area.
 				chunks_box.for_each_cell([&lod](Vector3i data_chunk_pos) { //
-					lod.modified_blocks.insert(data_chunk_pos);
+					lod.modified_chunks.insert(data_chunk_pos);
 				});
 			});
 		}
@@ -1688,7 +1688,7 @@ void VoxelInstancer::on_body_removed(
 	// Mark data chunk as modified
 	const Layer &layer = get_layer(block.layer_id);
 	Lod &lod = _lods[layer.lod_index];
-	lod.modified_blocks.insert(chunk_position);
+	lod.modified_chunks.insert(chunk_position);
 }
 
 void VoxelInstancer::on_scene_instance_removed(
@@ -1710,7 +1710,7 @@ void VoxelInstancer::on_scene_instance_removed(
 	// Mark data chunk as modified
 	const Layer &layer = get_layer(block.layer_id);
 	Lod &lod = _lods[layer.lod_index];
-	lod.modified_blocks.insert(chunk_position);
+	lod.modified_chunks.insert(chunk_position);
 }
 
 void VoxelInstancer::on_scene_instance_modified(Vector3i chunk_position, unsigned int render_chunk_index) {
@@ -1719,7 +1719,7 @@ void VoxelInstancer::on_scene_instance_modified(Vector3i chunk_position, unsigne
 	// Mark data chunk as modified
 	const Layer &layer = get_layer(block.layer_id);
 	Lod &lod = _lods[layer.lod_index];
-	lod.modified_blocks.insert(chunk_position);
+	lod.modified_chunks.insert(chunk_position);
 }
 
 void VoxelInstancer::set_chunk_mesh_size_po2(unsigned int p_chunk_mesh_size_po2) {

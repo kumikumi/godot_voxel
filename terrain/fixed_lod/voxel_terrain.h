@@ -197,7 +197,7 @@ private:
 	void try_schedule_mesh_update(VoxelChunkMeshVT &block);
 	void try_schedule_mesh_update_from_data(const Box3i &box_in_voxels);
 
-	void save_all_modified_blocks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker);
+	void save_all_modified_chunks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker);
 	void get_viewer_pos_and_direction(Vector3 &out_pos, Vector3 &out_direction) const;
 	void send_data_load_requests();
 	void consume_chunk_data_save_requests(
@@ -233,7 +233,7 @@ private:
 	Vector3i _b_voxel_to_chunk(Vector3 pos) const;
 	Vector3i _b_chunk_to_voxel(Vector3i pos) const;
 	// void _force_load_chunks_binding(Vector3 center, Vector3 extents) { force_load_chunks(center, extents); }
-	Ref<VoxelSaveCompletionTracker> _b_save_modified_blocks();
+	Ref<VoxelSaveCompletionTracker> _b_save_modified_chunks();
 	void _b_save_chunk(Vector3i p_chunk_pos);
 	void _b_set_bounds(AABB aabb);
 	AABB _b_get_bounds() const;

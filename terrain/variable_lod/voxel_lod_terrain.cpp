@@ -2011,7 +2011,7 @@ void VoxelLodTerrain::get_meshed_chunk_positions_at_lod(int lod_index, std::vect
 	});
 }
 
-void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
+void VoxelLodTerrain::save_all_modified_chunks(bool with_copy) {
 	ZN_PROFILE_SCOPE();
 
 	// This is often called before quitting the game or forcing a global save.
@@ -2029,7 +2029,7 @@ void VoxelLodTerrain::save_all_modified_blocks(bool with_copy) {
 		_data->consume_all_modifications(chunks_to_save, with_copy);
 
 		if (_instancer != nullptr && stream->supports_instance_blocks()) {
-			_instancer->save_all_modified_blocks(task_scheduler, nullptr);
+			_instancer->save_all_modified_chunks(task_scheduler, nullptr);
 		}
 	}
 
@@ -2375,8 +2375,8 @@ void VoxelLodTerrain::get_configuration_warnings(PackedStringArray &warnings) co
 
 #endif // TOOLS_ENABLED
 
-void VoxelLodTerrain::_b_save_modified_blocks() {
-	save_all_modified_blocks(true);
+void VoxelLodTerrain::_b_save_modified_chunks() {
+	save_all_modified_chunks(true);
 }
 
 void VoxelLodTerrain::_b_set_voxel_bounds(AABB aabb) {
@@ -2926,7 +2926,7 @@ void VoxelLodTerrain::_bind_methods() {
 			&VoxelLodTerrain::voxel_to_chunk_mesh_position);
 
 	ClassDB::bind_method(D_METHOD("get_voxel_tool"), &VoxelLodTerrain::get_voxel_tool);
-	ClassDB::bind_method(D_METHOD("save_modified_blocks"), &VoxelLodTerrain::_b_save_modified_blocks);
+	ClassDB::bind_method(D_METHOD("save_modified_chunks"), &VoxelLodTerrain::_b_save_modified_chunks);
 
 	ClassDB::bind_method(D_METHOD("set_run_stream_in_editor"), &VoxelLodTerrain::set_run_stream_in_editor);
 	ClassDB::bind_method(D_METHOD("is_stream_running_in_editor"), &VoxelLodTerrain::is_stream_running_in_editor);

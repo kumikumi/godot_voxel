@@ -69,7 +69,7 @@ public:
 
 	// Actions
 
-	void save_all_modified_blocks(BufferedTaskScheduler &tasks, std::shared_ptr<AsyncDependencyTracker> tracker);
+	void save_all_modified_chunks(BufferedTaskScheduler &tasks, std::shared_ptr<AsyncDependencyTracker> tracker);
 
 	// Event handlers
 
@@ -226,7 +226,7 @@ private:
 
 		// Chunks that have have unsaved changes.
 		// Keys follows the data chunk coordinate system.
-		std::unordered_set<Vector3i> modified_blocks;
+		std::unordered_set<Vector3i> modified_chunks;
 
 		// This is a temporary place to store loaded instances data while it's not visible yet.
 		// These instances are user-authored ones. If a chunk does not have an entry there,

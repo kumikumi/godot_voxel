@@ -137,7 +137,7 @@
 				Gets an instance of [VoxelTool] bound to this volume. Allows to query and edit voxels.
 			</description>
 		</method>
-		<method name="save_modified_blocks">
+		<method name="save_modified_chunks">
 			<return type="void" />
 			<description>
 				Requests saving of all modified voxels. Saving is asynchronous and will complete some time in the future. If the game quits, the engine will ensure saving tasks get completed before the application shuts down.

@@ -511,7 +511,7 @@ void VoxelTerrain::unload_chunk_mesh(Vector3i bpos) {
 	emit_chunk_mesh_exited(bpos);
 }
 
-void VoxelTerrain::save_all_modified_blocks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker) {
+void VoxelTerrain::save_all_modified_chunks(bool with_copy, std::shared_ptr<AsyncDependencyTracker> tracker) {
 	ZN_PROFILE_SCOPE();
 	Ref<VoxelStream> stream = get_stream();
 	ERR_FAIL_COND_MSG(stream.is_null(), "Attempting to save modified blocks, but there is no stream to save them to.");
@@ -522,7 +522,7 @@ void VoxelTerrain::save_all_modified_blocks(bool with_copy, std::shared_ptr<Asyn
 	_data->consume_all_modifications(_chunks_to_save, with_copy);
 
 	if (stream.is_valid() && _instancer != nullptr && stream->supports_instance_blocks()) {
-		_instancer->save_all_modified_blocks(task_scheduler, tracker);
+		_instancer->save_all_modified_chunks(task_scheduler, tracker);
 	}
 
 	// And flush immediately
@@ -1795,9 +1795,9 @@ Vector3i VoxelTerrain::_b_chunk_to_voxel(Vector3i pos) const {
 	return _data->chunk_to_voxel(pos);
 }
 
-Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_blocks() {
+Ref<VoxelSaveCompletionTracker> VoxelTerrain::_b_save_modified_chunks() {
 	std::shared_ptr<AsyncDependencyTracker> tracker = make_shared_instance<AsyncDependencyTracker>();
-	save_all_modified_blocks(true, tracker);
+	save_all_modified_chunks(true, tracker);
 	ZN_ASSERT_RETURN_V(tracker != nullptr, Ref<VoxelSaveCompletionTracker>());
 	return VoxelSaveCompletionTracker::create(tracker);
 }
@@ -1904,7 +1904,7 @@ void VoxelTerrain::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_statistics"), &VoxelTerrain::_b_get_statistics);
 	ClassDB::bind_method(D_METHOD("get_voxel_tool"), &VoxelTerrain::get_voxel_tool);
 
-	ClassDB::bind_method(D_METHOD("save_modified_blocks"), &VoxelTerrain::_b_save_modified_blocks);
+	ClassDB::bind_method(D_METHOD("save_modified_chunks"), &VoxelTerrain::_b_save_modified_chunks);
 	ClassDB::bind_method(D_METHOD("save_chunk", "position"), &VoxelTerrain::_b_save_chunk);
 
 	ClassDB::bind_method(D_METHOD("set_run_stream_in_editor", "enable"), &VoxelTerrain::set_run_stream_in_editor);
