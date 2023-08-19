@@ -791,7 +791,7 @@ bool VoxelStreamSQLite::supports_instance_chunks() const {
 	return true;
 }
 
-void VoxelStreamSQLite::load_instance_chunks(Span<VoxelStream::InstancesQueryData> out_blocks) {
+void VoxelStreamSQLite::load_instance_chunks(Span<VoxelStream::InstancesQueryData> out_chunks) {
 	ZN_PROFILE_SCOPE();
 
 	// TODO Get chunk size from database
@@ -799,8 +799,8 @@ void VoxelStreamSQLite::load_instance_chunks(Span<VoxelStream::InstancesQueryDat
 
 	// Check the cache first
 	std::vector<unsigned int> chunks_to_load;
-	for (size_t i = 0; i < out_blocks.size(); ++i) {
-		VoxelStream::InstancesQueryData &q = out_blocks[i];
+	for (size_t i = 0; i < out_chunks.size(); ++i) {
+		VoxelStream::InstancesQueryData &q = out_chunks[i];
 
 		if (_cache.load_instance_block(q.position, q.lod, q.data)) {
 			q.result = RESULT_CHUNK_FOUND;
@@ -824,7 +824,7 @@ void VoxelStreamSQLite::load_instance_chunks(Span<VoxelStream::InstancesQueryDat
 
 	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
 		const unsigned int ri = chunks_to_load[i];
-		VoxelStream::InstancesQueryData &q = out_blocks[ri];
+		VoxelStream::InstancesQueryData &q = out_chunks[ri];
 
 		ChunkLocation loc;
 		loc.x = q.position.x;

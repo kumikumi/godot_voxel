@@ -75,7 +75,7 @@ public:
 	// TODO Merge support functions into a single getter with Feature bitmask
 	virtual bool supports_instance_chunks() const;
 
-	virtual void load_instance_chunks(Span<InstancesQueryData> out_blocks);
+	virtual void load_instance_chunks(Span<InstancesQueryData> out_chunks);
 	virtual void save_instance_chunks(Span<InstancesQueryData> p_chunks);
 
 	struct FullLoadingResult {
