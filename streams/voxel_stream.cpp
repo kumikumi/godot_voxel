@@ -18,16 +18,16 @@ void VoxelStream::save_voxel_chunk(VoxelQueryData &query_data) {
 	// Can be implemented in subclasses
 }
 
-void VoxelStream::load_voxel_chunks(Span<VoxelQueryData> p_blocks) {
+void VoxelStream::load_voxel_chunks(Span<VoxelQueryData> p_chunks) {
 	// Default implementation. May matter for some stream types to optimize loading.
-	for (unsigned int i = 0; i < p_blocks.size(); ++i) {
-		load_voxel_chunk(p_blocks[i]);
+	for (unsigned int i = 0; i < p_chunks.size(); ++i) {
+		load_voxel_chunk(p_chunks[i]);
 	}
 }
 
-void VoxelStream::save_voxel_chunks(Span<VoxelQueryData> p_blocks) {
-	for (unsigned int i = 0; i < p_blocks.size(); ++i) {
-		save_voxel_chunk(p_blocks[i]);
+void VoxelStream::save_voxel_chunks(Span<VoxelQueryData> p_chunks) {
+	for (unsigned int i = 0; i < p_chunks.size(); ++i) {
+		save_voxel_chunk(p_chunks[i]);
 	}
 }
 
@@ -43,7 +43,7 @@ void VoxelStream::load_instance_chunks(Span<InstancesQueryData> out_blocks) {
 	}
 }
 
-void VoxelStream::save_instance_chunks(Span<InstancesQueryData> p_blocks) {
+void VoxelStream::save_instance_chunks(Span<InstancesQueryData> p_chunks) {
 	// Can be implemented in subclasses
 }
 

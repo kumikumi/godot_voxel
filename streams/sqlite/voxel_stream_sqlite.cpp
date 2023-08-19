@@ -694,7 +694,7 @@ void VoxelStreamSQLite::save_voxel_chunk(VoxelStream::VoxelQueryData &q) {
 	save_voxel_chunks(Span<VoxelStream::VoxelQueryData>(&q, 1));
 }
 
-void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_chunks) {
 	ZN_PROFILE_SCOPE();
 
 	// TODO Get chunk size from database
@@ -702,8 +702,8 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 
 	// Check the cache first
 	std::vector<unsigned int> chunks_to_load;
-	for (unsigned int i = 0; i < p_blocks.size(); ++i) {
-		VoxelStream::VoxelQueryData &q = p_blocks[i];
+	for (unsigned int i = 0; i < p_chunks.size(); ++i) {
+		VoxelStream::VoxelQueryData &q = p_chunks[i];
 		const Vector3i pos = q.origin_in_voxels >> (bs_po2 + q.lod);
 
 		ZN_ASSERT_CONTINUE(can_convert_to_i16(pos));
@@ -734,7 +734,7 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 
 	for (unsigned int i = 0; i < chunks_to_load.size(); ++i) {
 		const unsigned int ri = chunks_to_load[i];
-		VoxelStream::VoxelQueryData &q = p_blocks[ri];
+		VoxelStream::VoxelQueryData &q = p_chunks[ri];
 
 		const unsigned int po2 = bs_po2 + q.lod;
 
@@ -761,13 +761,13 @@ void VoxelStreamSQLite::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 	recycle_connection(con);
 }
 
-void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_chunks) {
 	// TODO Get chunk size from database
 	const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// First put in cache
-	for (unsigned int i = 0; i < p_blocks.size(); ++i) {
-		VoxelStream::VoxelQueryData &q = p_blocks[i];
+	for (unsigned int i = 0; i < p_chunks.size(); ++i) {
+		VoxelStream::VoxelQueryData &q = p_chunks[i];
 		const Vector3i pos = q.origin_in_voxels >> (bs_po2 + q.lod);
 
 		if (!ChunkLocation::validate(pos, q.lod)) {
@@ -860,13 +860,13 @@ void VoxelStreamSQLite::load_instance_chunks(Span<VoxelStream::InstancesQueryDat
 	recycle_connection(con);
 }
 
-void VoxelStreamSQLite::save_instance_chunks(Span<VoxelStream::InstancesQueryData> p_blocks) {
+void VoxelStreamSQLite::save_instance_chunks(Span<VoxelStream::InstancesQueryData> p_chunks) {
 	// TODO Get chunk size from database
 	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 
 	// First put in cache
-	for (size_t i = 0; i < p_blocks.size(); ++i) {
-		VoxelStream::InstancesQueryData &q = p_blocks[i];
+	for (size_t i = 0; i < p_chunks.size(); ++i) {
+		VoxelStream::InstancesQueryData &q = p_chunks[i];
 
 		if (!ChunkLocation::validate(q.position, q.lod)) {
 			ZN_PRINT_ERROR(format("Instance block position {} is outside of supported range", q.position));

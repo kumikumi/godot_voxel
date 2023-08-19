@@ -65,18 +65,18 @@ public:
 	// TODO Deprecate
 	virtual void save_voxel_chunk(VoxelQueryData &query_data);
 
-	// Note: Don't modify the order of `p_blocks`.
-	virtual void load_voxel_chunks(Span<VoxelQueryData> p_blocks);
+	// Note: Don't modify the order of `p_chunks`.
+	virtual void load_voxel_chunks(Span<VoxelQueryData> p_chunks);
 
 	// Returns multiple blocks of voxels to the stream.
 	// This function is recommended if you save to files, because you can batch their access.
-	virtual void save_voxel_chunks(Span<VoxelQueryData> p_blocks);
+	virtual void save_voxel_chunks(Span<VoxelQueryData> p_chunks);
 
 	// TODO Merge support functions into a single getter with Feature bitmask
 	virtual bool supports_instance_chunks() const;
 
 	virtual void load_instance_chunks(Span<InstancesQueryData> out_blocks);
-	virtual void save_instance_chunks(Span<InstancesQueryData> p_blocks);
+	virtual void save_instance_chunks(Span<InstancesQueryData> p_chunks);
 
 	struct FullLoadingResult {
 		struct Chunk {

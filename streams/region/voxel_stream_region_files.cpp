@@ -70,7 +70,7 @@ void VoxelStreamRegionFiles::save_voxel_chunk(VoxelStream::VoxelQueryData &query
 	save_voxel_chunks(Span<VoxelStream::VoxelQueryData>(&query, 1));
 }
 
-void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_chunks) {
 	ZN_PROFILE_SCOPE();
 
 	// In order to minimize opening/closing files, requests are grouped according to their region.
@@ -79,11 +79,11 @@ void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData>
 	std::vector<unsigned int> sorted_chunk_indices;
 	ChunkQueryComparator comparator;
 	comparator.self = this;
-	get_sorted_indices(p_blocks, comparator, sorted_chunk_indices);
+	get_sorted_indices(p_chunks, comparator, sorted_chunk_indices);
 
 	for (unsigned int i = 0; i < sorted_chunk_indices.size(); ++i) {
 		const unsigned int bi = sorted_chunk_indices[i];
-		VoxelStream::VoxelQueryData &q = p_blocks[bi];
+		VoxelStream::VoxelQueryData &q = p_chunks[bi];
 		const EmergeResult result = _load_chunk(q.voxel_buffer, q.origin_in_voxels, q.lod);
 		switch (result) {
 			case EMERGE_OK:
@@ -102,18 +102,18 @@ void VoxelStreamRegionFiles::load_voxel_chunks(Span<VoxelStream::VoxelQueryData>
 	}
 }
 
-void VoxelStreamRegionFiles::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_blocks) {
+void VoxelStreamRegionFiles::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_chunks) {
 	ZN_PROFILE_SCOPE();
 
 	// Had to copy input to sort it, as some areas in the module break if they get responses in different order
 	std::vector<unsigned int> sorted_chunk_indices;
 	ChunkQueryComparator comparator;
 	comparator.self = this;
-	get_sorted_indices(p_blocks, comparator, sorted_chunk_indices);
+	get_sorted_indices(p_chunks, comparator, sorted_chunk_indices);
 
 	for (unsigned int i = 0; i < sorted_chunk_indices.size(); ++i) {
 		const unsigned int bi = sorted_chunk_indices[i];
-		VoxelStream::VoxelQueryData &q = p_blocks[bi];
+		VoxelStream::VoxelQueryData &q = p_chunks[bi];
 		_save_chunk(q.voxel_buffer, q.origin_in_voxels, q.lod);
 	}
 }
