@@ -2028,7 +2028,7 @@ void VoxelLodTerrain::save_all_modified_chunks(bool with_copy) {
 		// That may cause a stutter, so should be used when the player won't notice
 		_data->consume_all_modifications(chunks_to_save, with_copy);
 
-		if (_instancer != nullptr && stream->supports_instance_blocks()) {
+		if (_instancer != nullptr && stream->supports_instance_chunks()) {
 			_instancer->save_all_modified_chunks(task_scheduler, nullptr);
 		}
 	}

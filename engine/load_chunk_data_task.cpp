@@ -96,7 +96,7 @@ void LoadChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 		}
 	}
 
-	if (_request_instances && stream->supports_instance_blocks()) {
+	if (_request_instances && stream->supports_instance_chunks()) {
 		ERR_FAIL_COND(_instances != nullptr);
 
 		VoxelStream::InstancesQueryData instances_query;

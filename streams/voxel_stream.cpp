@@ -31,7 +31,7 @@ void VoxelStream::save_voxel_chunks(Span<VoxelQueryData> p_blocks) {
 	}
 }
 
-bool VoxelStream::supports_instance_blocks() const {
+bool VoxelStream::supports_instance_chunks() const {
 	// Can be implemented in subclasses
 	return false;
 }

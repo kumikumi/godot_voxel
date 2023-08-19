@@ -81,7 +81,7 @@ void SaveChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 		stream->save_voxel_chunk(q);
 	}
 
-	if (_save_instances && stream->supports_instance_blocks()) {
+	if (_save_instances && stream->supports_instance_chunks()) {
 		// If the provided data is null, it means this instance chunk was never modified.
 		// Since we are in a save request, the saved data will revert to unmodified.
 		// On the other hand, if we want to represent the fact that "everything was deleted here",

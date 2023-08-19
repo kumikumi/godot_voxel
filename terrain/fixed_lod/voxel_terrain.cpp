@@ -521,7 +521,7 @@ void VoxelTerrain::save_all_modified_chunks(bool with_copy, std::shared_ptr<Asyn
 	// That may cause a stutter, so should be used when the player won't notice
 	_data->consume_all_modifications(_chunks_to_save, with_copy);
 
-	if (stream.is_valid() && _instancer != nullptr && stream->supports_instance_blocks()) {
+	if (stream.is_valid() && _instancer != nullptr && stream->supports_instance_chunks()) {
 		_instancer->save_all_modified_chunks(task_scheduler, tracker);
 	}
 

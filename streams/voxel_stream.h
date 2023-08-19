@@ -73,7 +73,7 @@ public:
 	virtual void save_voxel_chunks(Span<VoxelQueryData> p_blocks);
 
 	// TODO Merge support functions into a single getter with Feature bitmask
-	virtual bool supports_instance_blocks() const;
+	virtual bool supports_instance_chunks() const;
 
 	virtual void load_instance_blocks(Span<InstancesQueryData> out_blocks);
 	virtual void save_instance_blocks(Span<InstancesQueryData> p_blocks);

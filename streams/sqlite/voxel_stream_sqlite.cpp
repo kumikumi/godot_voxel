@@ -787,7 +787,7 @@ void VoxelStreamSQLite::save_voxel_chunks(Span<VoxelStream::VoxelQueryData> p_bl
 	}
 }
 
-bool VoxelStreamSQLite::supports_instance_blocks() const {
+bool VoxelStreamSQLite::supports_instance_chunks() const {
 	return true;
 }
 
