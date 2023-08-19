@@ -23,7 +23,7 @@ void test_chunk_serializer() {
 		std::vector<uint8_t> data = result.data;
 
 		ZN_TEST_ASSERT(data.size() > 0);
-		ZN_TEST_ASSERT(data[0] == ChunkSerializer::BLOCK_FORMAT_VERSION);
+		ZN_TEST_ASSERT(data[0] == ChunkSerializer::CHUNK_FORMAT_VERSION);
 
 		// Deserialize
 		VoxelBufferInternal deserialized_voxel_buffer;

@@ -49,8 +49,8 @@ void test_run_blocky_random_tick() {
 		for (int z = 0; z < model_buffer.get_size().z; ++z) {
 			for (int x = 0; x < model_buffer.get_size().x; ++x) {
 				for (int y = 0; y < model_buffer.get_size().y; ++y) {
-					const int block_id = (x + y + z) % 3;
-					model_buffer.set_voxel(block_id, x, y, z, VoxelBufferInternal::CHANNEL_TYPE);
+					const int chunk_id = (x + y + z) % 3;
+					model_buffer.set_voxel(chunk_id, x, y, z, VoxelBufferInternal::CHANNEL_TYPE);
 				}
 			}
 		}
@@ -75,15 +75,15 @@ void test_run_blocky_random_tick() {
 
 		Callback(Box3i p_voxel_box, int p_tickable_id) : voxel_box(p_voxel_box), tickable_id(p_tickable_id) {}
 
-		bool exec(Vector3i pos, int block_id) {
+		bool exec(Vector3i pos, int chunk_id) {
 			if (ok) {
-				ok = _exec(pos, block_id);
+				ok = _exec(pos, chunk_id);
 			}
 			return ok;
 		}
 
-		inline bool _exec(Vector3i pos, int block_id) {
-			ZN_TEST_ASSERT_V(block_id == tickable_id, false);
+		inline bool _exec(Vector3i pos, int chunk_id) {
+			ZN_TEST_ASSERT_V(chunk_id == tickable_id, false);
 			ZN_TEST_ASSERT_V(voxel_box.contains(pos), false);
 			if (first_pick) {
 				first_pick = false;

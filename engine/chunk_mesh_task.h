@@ -50,7 +50,7 @@ public:
 	bool require_detail_texture = false;
 	uint8_t detail_texture_generator_override_begin_lod_index = 0;
 	bool detail_texture_use_gpu = false;
-	bool block_generation_use_gpu = false;
+	bool chunk_generation_use_gpu = false;
 	PriorityDependency priority_dependency;
 	std::shared_ptr<MeshingDependency> meshing_dependency;
 	std::shared_ptr<VoxelData> data;

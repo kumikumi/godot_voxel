@@ -19,8 +19,8 @@
 namespace zylann::voxel {
 namespace ChunkSerializer {
 
-const unsigned int BLOCK_TRAILING_MAGIC = 0x900df00d;
-const unsigned int BLOCK_TRAILING_MAGIC_SIZE = 4;
+const unsigned int CHUNK_TRAILING_MAGIC = 0x900df00d;
+const unsigned int CHUNK_TRAILING_MAGIC_SIZE = 4;
 const unsigned int CHUNK_METADATA_HEADER_SIZE = sizeof(uint32_t);
 
 // Temporary data buffers, re-used to reduce allocations
@@ -267,7 +267,7 @@ size_t get_size_in_bytes(const VoxelBufferInternal &buffer, size_t &metadata_siz
 		metadata_size_with_header = metadata_size + CHUNK_METADATA_HEADER_SIZE;
 	}
 
-	return size + metadata_size_with_header + BLOCK_TRAILING_MAGIC_SIZE;
+	return size + metadata_size_with_header + CHUNK_TRAILING_MAGIC_SIZE;
 }
 
 SerializeResult serialize(const VoxelBufferInternal &voxel_buffer) {
@@ -287,7 +287,7 @@ SerializeResult serialize(const VoxelBufferInternal &voxel_buffer) {
 
 	MemoryWriter f(dst_data, ENDIANESS_LITTLE_ENDIAN);
 
-	f.store_8(BLOCK_FORMAT_VERSION);
+	f.store_8(CHUNK_FORMAT_VERSION);
 
 	ERR_FAIL_COND_V(
 			voxel_buffer.get_size().x > std::numeric_limits<uint16_t>().max(), SerializeResult(dst_data, false));
@@ -351,7 +351,7 @@ SerializeResult serialize(const VoxelBufferInternal &voxel_buffer) {
 		f.store_buffer(to_span(metadata_tmp));
 	}
 
-	f.store_32(BLOCK_TRAILING_MAGIC);
+	f.store_32(CHUNK_TRAILING_MAGIC);
 
 	// Check out of bounds writing
 	CRASH_COND(dst_data.size() != expected_data_size);
@@ -561,11 +561,11 @@ bool deserialize(Span<const uint8_t> p_data, VoxelBufferInternal &out_voxel_buff
 	ERR_FAIL_COND_V(p_data.size() < sizeof(uint32_t), false);
 	const uint32_t magic = *reinterpret_cast<const uint32_t *>(&p_data[p_data.size() - sizeof(uint32_t)]);
 #if DEV_ENABLED
-	if (magic != BLOCK_TRAILING_MAGIC) {
+	if (magic != CHUNK_TRAILING_MAGIC) {
 		print_data_hex(p_data);
 	}
 #endif
-	ERR_FAIL_COND_V(magic != BLOCK_TRAILING_MAGIC, false);
+	ERR_FAIL_COND_V(magic != CHUNK_TRAILING_MAGIC, false);
 
 	MemoryReader f(p_data, ENDIANESS_LITTLE_ENDIAN);
 
@@ -585,7 +585,7 @@ bool deserialize(Span<const uint8_t> p_data, VoxelBufferInternal &out_voxel_buff
 		} break;
 
 		default:
-			ERR_FAIL_COND_V(format_version != BLOCK_FORMAT_VERSION, false);
+			ERR_FAIL_COND_V(format_version != CHUNK_FORMAT_VERSION, false);
 	}
 
 	const unsigned int size_x = f.get_16();
@@ -649,7 +649,7 @@ bool deserialize(Span<const uint8_t> p_data, VoxelBufferInternal &out_voxel_buff
 		}
 	}
 
-	if (p_data.size() - f.get_position() > BLOCK_TRAILING_MAGIC_SIZE) {
+	if (p_data.size() - f.get_position() > CHUNK_TRAILING_MAGIC_SIZE) {
 		const size_t metadata_size = f.get_32();
 		ERR_FAIL_COND_V(f.get_position() + metadata_size > p_data.size(), false);
 		metadata_tmp.resize(metadata_size);
@@ -659,7 +659,7 @@ bool deserialize(Span<const uint8_t> p_data, VoxelBufferInternal &out_voxel_buff
 
 	// Failure at this indicates file corruption
 	ERR_FAIL_COND_V_MSG(
-			f.get_32() != BLOCK_TRAILING_MAGIC, false, "At offset 0x" + String::num_int64(f.get_position() - 4, 16));
+			f.get_32() != CHUNK_TRAILING_MAGIC, false, "At offset 0x" + String::num_int64(f.get_position() - 4, 16));
 	return true;
 }
 

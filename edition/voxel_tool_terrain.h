@@ -34,7 +34,7 @@ public:
 
 	void do_hemisphere(Vector3 center, float radius, Vector3 flat_direction, float smoothness);
 
-	void run_blocky_random_tick(AABB voxel_area, int voxel_count, const Callable &callback, int block_batch_count);
+	void run_blocky_random_tick(AABB voxel_area, int voxel_count, const Callable &callback, int chunk_batch_count);
 
 	// For easier unit testing (the regular one needs a terrain setup etc, harder to test atm)
 	// The `_static` suffix is because it otherwise conflicts with the non-static method when registering the class

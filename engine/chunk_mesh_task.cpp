@@ -281,7 +281,7 @@ int ChunkMeshTask::debug_get_running_count() {
 void ChunkMeshTask::run(zylann::ThreadedTaskContext &ctx) {
 	ZN_DSTACK();
 	ZN_PROFILE_SCOPE();
-	if (block_generation_use_gpu) {
+	if (chunk_generation_use_gpu) {
 		if (_stage == 0) {
 			gather_voxels_gpu(ctx);
 		}
