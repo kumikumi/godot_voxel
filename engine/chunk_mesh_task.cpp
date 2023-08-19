@@ -39,7 +39,7 @@ CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 			chunk_mesh_size_factor = 2;
 			break;
 		default:
-			ZN_PRINT_ERROR("Unsupported block count");
+			ZN_PRINT_ERROR("Unsupported chunk count");
 			return CubicAreaInfo{ 0, 0, 0 };
 	}
 
@@ -52,7 +52,7 @@ CubicAreaInfo get_cubic_area_info_from_size(unsigned int size) {
 // Takes a list of chunks and interprets it as a cube of chunks centered around the area we want to create a mesh from.
 // Voxels from central chunks are copied, and part of side chunks are also copied so we get a temporary buffer
 // which includes enough neighbors for the mesher to avoid doing bound checks.
-static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> blocks, VoxelBufferInternal &dst,
+static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> chunks, VoxelBufferInternal &dst,
 		int min_padding, int max_padding, int channels_mask, Ref<VoxelGenerator> generator, const VoxelData &voxel_data,
 		uint8_t lod_index, Vector3i chunk_mesh_pos, std::vector<Box3i> *out_boxes_to_generate,
 		Vector3i *out_origin_in_voxels) {
@@ -65,10 +65,10 @@ static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 			VoxelBufferInternal::mask_to_channels_list(channels_mask, channels_count);
 
 	// Determine size of the cube of chunks
-	const CubicAreaInfo area_info = get_cubic_area_info_from_size(blocks.size());
+	const CubicAreaInfo area_info = get_cubic_area_info_from_size(chunks.size());
 	ERR_FAIL_COND(!area_info.is_valid());
 
-	std::shared_ptr<VoxelBufferInternal> &central_buffer = blocks[area_info.anchor_buffer_index];
+	std::shared_ptr<VoxelBufferInternal> &central_buffer = chunks[area_info.anchor_buffer_index];
 	ERR_FAIL_COND_MSG(central_buffer == nullptr && generator.is_null(), "Central buffer must be valid");
 	if (central_buffer != nullptr) {
 		ERR_FAIL_COND_MSG(
@@ -85,8 +85,8 @@ static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	// 	dst.set_channel_depth(ci, central_buffer->get_channel_depth(ci));
 	// }
 	// This is a hack
-	for (unsigned int i = 0; i < blocks.size(); ++i) {
-		const std::shared_ptr<VoxelBufferInternal> &buffer = blocks[i];
+	for (unsigned int i = 0; i < chunks.size(); ++i) {
+		const std::shared_ptr<VoxelBufferInternal> &buffer = chunks[i];
 		if (buffer != nullptr) {
 			// Initialize channel depths from the first non-null chunk found
 			dst.copy_format(*buffer);
@@ -103,7 +103,7 @@ static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 	// These boxes are in buffer coordinates (not world voxel coordinates)
 	std::vector<Box3i> boxes_to_generate;
 	const Box3i mesh_data_box = Box3i::from_min_max(min_pos, max_pos);
-	if (contains(blocks.to_const(), std::shared_ptr<VoxelBufferInternal>())) {
+	if (contains(chunks.to_const(), std::shared_ptr<VoxelBufferInternal>())) {
 		boxes_to_generate.push_back(mesh_data_box);
 	}
 
@@ -122,7 +122,7 @@ static void copy_chunk_and_neighbors(Span<std::shared_ptr<VoxelBufferInternal>> 
 			for (int x = -1; x < area_info.edge_size - 1; ++x) {
 				for (int y = -1; y < area_info.edge_size - 1; ++y) {
 					const Vector3i offset = chunk_size * Vector3i(x, y, z);
-					const std::shared_ptr<VoxelBufferInternal> &src = blocks[chunk_index];
+					const std::shared_ptr<VoxelBufferInternal> &src = chunks[chunk_index];
 					++chunk_index;
 
 					if (src == nullptr) {
@@ -377,7 +377,7 @@ void ChunkMeshTask::gather_voxels_cpu() {
 
 	// Could cache generator data from here if it was safe to write into the map
 	/*if (data != nullptr && cache_generated_chunks) {
-		const CubicAreaInfo area_info = get_cubic_area_info_from_size(blocks.size());
+		const CubicAreaInfo area_info = get_cubic_area_info_from_size(chunks.size());
 		ERR_FAIL_COND(!area_info.is_valid());
 
 		VoxelDataLodMap::Lod &lod = data->lods[lod_index];
