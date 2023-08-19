@@ -186,7 +186,7 @@ public:
 	const Stats &get_stats() const;
 
 	void restart_stream() override;
-	void remesh_all_blocks() override;
+	void remesh_all_chunks() override;
 
 	bool is_area_meshed(const Box3i &box_in_voxels, unsigned int lod_index) const;
 

@@ -39,7 +39,7 @@ void VoxelNode::restart_stream() {
 	// Implemented in subclasses
 }
 
-void VoxelNode::remesh_all_blocks() {
+void VoxelNode::remesh_all_chunks() {
 	// Implemented in subclasses
 }
 

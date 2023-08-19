@@ -337,10 +337,10 @@ bool VoxelData::is_area_loaded(const Box3i p_voxels_box) const {
 	const Lod &data_lod0 = _lods[0];
 	{
 		RWLockRead rlock(data_lod0.map_lock);
-		const bool all_blocks_present = data_lod0.map.is_area_fully_loaded(voxel_box);
+		const bool all_chunks_present = data_lod0.map.is_area_fully_loaded(voxel_box);
 		// In a multi-LOD context, it is assumed the parent LOD follows the rule of covering all its children.
 		// In other words, all parent LODs are assumed to be loaded.
-		return all_blocks_present;
+		return all_chunks_present;
 	}
 }
 
@@ -513,7 +513,7 @@ bool VoxelData::has_chunk(Vector3i bpos, unsigned int lod_index) const {
 	return data_lod.map.has_chunk(bpos);
 }
 
-bool VoxelData::has_all_blocks_in_area(Box3i chunks_box) const {
+bool VoxelData::has_all_chunks_in_area(Box3i chunks_box) const {
 	ZN_PROFILE_SCOPE();
 	const Box3i bounds_in_chunks = get_bounds().downscaled(get_chunk_size());
 	chunks_box = chunks_box.clipped(bounds_in_chunks);

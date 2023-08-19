@@ -290,7 +290,7 @@ void VoxelInstancer::process_gizmos() {
 
 	_debug_renderer.begin();
 
-	if (debug_get_draw_flag(DEBUG_DRAW_ALL_BLOCKS)) {
+	if (debug_get_draw_flag(DEBUG_DRAW_ALL_CHUNKS)) {
 		for (auto it = _chunks.begin(); it != _chunks.end(); ++it) {
 			const Chunk &chunk = **it;
 
@@ -1941,7 +1941,7 @@ void VoxelInstancer::_bind_methods() {
 	BIND_ENUM_CONSTANT(UP_MODE_POSITIVE_Y);
 	BIND_ENUM_CONSTANT(UP_MODE_SPHERE);
 
-	BIND_ENUM_CONSTANT(DEBUG_DRAW_ALL_BLOCKS);
+	BIND_ENUM_CONSTANT(DEBUG_DRAW_ALL_CHUNKS);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_EDITED_CHUNKS);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_FLAGS_COUNT);
 }

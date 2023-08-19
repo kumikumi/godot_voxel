@@ -40,7 +40,7 @@ public:
 	void load_instance_chunks(Span<VoxelStream::InstancesQueryData> out_blocks) override;
 	void save_instance_chunks(Span<VoxelStream::InstancesQueryData> p_blocks) override;
 
-	bool supports_loading_all_blocks() const override {
+	bool supports_loading_all_chunks() const override {
 		return true;
 	}
 	void load_all_chunks(FullLoadingResult &result) override;

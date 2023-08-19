@@ -51,7 +51,7 @@ void VoxelInstancerEditorPlugin::_zn_edit(Object *p_object) {
 	VoxelInstancer *instancer = Object::cast_to<VoxelInstancer>(p_object);
 	ERR_FAIL_COND(instancer == nullptr);
 	instancer->debug_set_draw_enabled(true);
-	instancer->debug_set_draw_flag(VoxelInstancer::DEBUG_DRAW_ALL_BLOCKS, true);
+	instancer->debug_set_draw_flag(VoxelInstancer::DEBUG_DRAW_ALL_CHUNKS, true);
 	_node = instancer;
 	if (_stat_view != nullptr) {
 		_stat_view->set_instancer(_node);

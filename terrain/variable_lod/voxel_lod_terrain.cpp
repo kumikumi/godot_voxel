@@ -380,7 +380,7 @@ void VoxelLodTerrain::set_mesher(Ref<VoxelMesher> p_mesher) {
 
 	if (_mesher.is_valid()) {
 		start_updater();
-		remesh_all_blocks();
+		remesh_all_chunks();
 	}
 
 	update_configuration_warnings();
@@ -404,7 +404,7 @@ void VoxelLodTerrain::_on_stream_params_changed() {
 		// const int stream_lod_count = _stream->get_lod_count();
 		// _set_lod_count(min(stream_lod_count, get_lod_count()));
 
-		if (is_full_load_mode_enabled() && !stream->supports_loading_all_blocks()) {
+		if (is_full_load_mode_enabled() && !stream->supports_loading_all_chunks()) {
 			ERR_PRINT("The chosen stream does not supports loading all blocks. Full load mode cannot be used.");
 			_update_data->wait_for_end_of_task();
 			_data->set_streaming_enabled(true);
@@ -2096,7 +2096,7 @@ void VoxelLodTerrain::restart_stream() {
 	_on_stream_params_changed();
 }
 
-void VoxelLodTerrain::remesh_all_blocks() {
+void VoxelLodTerrain::remesh_all_chunks() {
 	// Requests a new mesh for all chunk meshes, without dropping everything first
 	_update_data->wait_for_end_of_task();
 	const unsigned int lod_count = get_lod_count();

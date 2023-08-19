@@ -99,7 +99,7 @@ public:
 	bool debug_is_draw_enabled() const;
 
 	enum DebugDrawFlag { //
-		DEBUG_DRAW_ALL_BLOCKS,
+		DEBUG_DRAW_ALL_CHUNKS,
 		DEBUG_DRAW_EDITED_CHUNKS,
 		DEBUG_DRAW_FLAGS_COUNT
 	};

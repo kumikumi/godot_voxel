@@ -63,7 +63,7 @@
 		</constant>
 		<constant name="UP_MODE_SPHERE" value="1" enum="UpMode">
 		</constant>
-		<constant name="DEBUG_DRAW_ALL_BLOCKS" value="0" enum="DebugDrawFlag">
+		<constant name="DEBUG_DRAW_ALL_CHUNKS" value="0" enum="DebugDrawFlag">
 		</constant>
 		<constant name="DEBUG_DRAW_EDITED_CHUNKS" value="1" enum="DebugDrawFlag">
 		</constant>

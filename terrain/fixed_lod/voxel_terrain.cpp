@@ -307,7 +307,7 @@ void VoxelTerrain::set_mesher(Ref<VoxelMesher> mesher) {
 	if (_mesher.is_valid()) {
 		start_updater();
 		// Voxel appearance might completely change
-		remesh_all_blocks();
+		remesh_all_chunks();
 	}
 
 	update_configuration_warnings();
@@ -425,7 +425,7 @@ void VoxelTerrain::try_schedule_mesh_update(VoxelChunkMeshVT &chunk_mesh) {
 	// If we get an empty box at this point, something is wrong with the caller
 	ZN_ASSERT_RETURN(!data_box.is_empty());
 
-	const bool data_available = _data->has_all_blocks_in_area(data_box);
+	const bool data_available = _data->has_all_chunks_in_area(data_box);
 
 	if (data_available) {
 		// Regardless of if the updater is updating the chunk already,
@@ -619,7 +619,7 @@ void VoxelTerrain::stop_updater() {
 	_chunks_pending_update.clear();
 }
 
-void VoxelTerrain::remesh_all_blocks() {
+void VoxelTerrain::remesh_all_chunks() {
 	_mesh_map.for_each_chunk([this](VoxelChunkMeshVT &block) { //
 		try_schedule_mesh_update(block);
 	});

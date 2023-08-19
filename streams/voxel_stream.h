@@ -88,7 +88,7 @@ public:
 		std::vector<Chunk> blocks;
 	};
 
-	virtual bool supports_loading_all_blocks() const {
+	virtual bool supports_loading_all_chunks() const {
 		return false;
 	}
 

@@ -185,7 +185,7 @@ public:
 	bool has_chunk(Vector3i bpos, unsigned int lod_index) const;
 
 	// Tests if all chunks in a LOD0 area are loaded. If any isn't, returns false. Otherwise, returns true.
-	bool has_all_blocks_in_area(Box3i chunks_box) const;
+	bool has_all_chunks_in_area(Box3i chunks_box) const;
 
 	// Gets the total amount of allocated chunks. This includes chunks having no voxel data.
 	unsigned int get_chunk_count() const;

@@ -115,7 +115,7 @@ public:
 	Box3i get_bounds() const;
 
 	void restart_stream() override;
-	void remesh_all_blocks() override;
+	void remesh_all_chunks() override;
 
 	// Asks to generate (or re-generate) a chunk at the given position asynchronously.
 	// If the chunk already exists once the chunk is generated, it will be cancelled.

@@ -251,7 +251,7 @@ void VoxelTerrainEditorPlugin::_on_menu_item_selected(int id) {
 
 		case MENU_REMESH:
 			ERR_FAIL_COND(_node == nullptr);
-			_node->remesh_all_blocks();
+			_node->remesh_all_chunks();
 			break;
 
 		case MENU_STREAM_FOLLOW_CAMERA: {

@@ -40,7 +40,7 @@ public:
 	GeometryInstance3D::ShadowCastingSetting get_shadow_casting() const;
 
 	virtual void restart_stream();
-	virtual void remesh_all_blocks();
+	virtual void remesh_all_chunks();
 
 	virtual VolumeID get_volume_id() const;
 	virtual std::shared_ptr<StreamingDependency> get_streaming_dependency() const;
