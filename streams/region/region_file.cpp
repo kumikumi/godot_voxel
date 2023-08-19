@@ -47,10 +47,10 @@ bool RegionFormat::validate() const {
 	return true;
 }
 
-bool RegionFormat::verify_block(const VoxelBufferInternal &block) const {
-	ERR_FAIL_COND_V(block.get_size() != Vector3iUtil::create(1 << chunk_size_po2), false);
+bool RegionFormat::verify_chunk(const VoxelBufferInternal &chunk) const {
+	ERR_FAIL_COND_V(chunk.get_size() != Vector3iUtil::create(1 << chunk_size_po2), false);
 	for (unsigned int i = 0; i < VoxelBufferInternal::MAX_CHANNELS; ++i) {
-		ERR_FAIL_COND_V(block.get_channel_depth(i) != channel_depths[i], false);
+		ERR_FAIL_COND_V(chunk.get_channel_depth(i) != channel_depths[i], false);
 	}
 	return true;
 }
@@ -343,8 +343,8 @@ Error RegionFile::load_chunk(Vector3i position, VoxelBufferInternal &out_block) 
 	return OK;
 }
 
-Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
-	ERR_FAIL_COND_V(_header.format.verify_block(block) == false, ERR_INVALID_PARAMETER);
+Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &chunk) {
+	ERR_FAIL_COND_V(_header.format.verify_chunk(chunk) == false, ERR_INVALID_PARAMETER);
 	ERR_FAIL_COND_V(!is_valid_chunk_position(position), ERR_INVALID_PARAMETER);
 
 	ERR_FAIL_COND_V(_file_access == nullptr, ERR_FILE_CANT_WRITE);
@@ -368,7 +368,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		// Check position matches the sectors rule
 		CRASH_COND((chunk_offset - _chunks_begin_offset) % _header.format.sector_size != 0);
 
-		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
+		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(chunk);
 		ERR_FAIL_COND_V(!res.success, ERR_INVALID_PARAMETER);
 		f.store_32(res.data.size());
 		const unsigned int written_size = sizeof(uint32_t) + res.data.size();
@@ -398,7 +398,7 @@ Error RegionFile::save_chunk(Vector3i position, VoxelBufferInternal &block) {
 		const int old_sector_count = chunk_info.get_sector_count();
 		CRASH_COND(old_sector_count < 1);
 
-		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(block);
+		ChunkSerializer::SerializeResult res = ChunkSerializer::serialize_and_compress(chunk);
 		ERR_FAIL_COND_V(!res.success, ERR_INVALID_PARAMETER);
 		const std::vector<uint8_t> &data = res.data;
 		const size_t written_size = sizeof(uint32_t) + data.size();

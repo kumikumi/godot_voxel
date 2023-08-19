@@ -30,7 +30,7 @@ struct RegionFormat {
 	bool has_palette = false;
 
 	bool validate() const;
-	bool verify_block(const VoxelBufferInternal &block) const;
+	bool verify_chunk(const VoxelBufferInternal &chunk) const;
 };
 
 struct RegionChunkInfo {
