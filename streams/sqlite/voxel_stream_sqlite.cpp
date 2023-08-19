@@ -791,7 +791,7 @@ bool VoxelStreamSQLite::supports_instance_chunks() const {
 	return true;
 }
 
-void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryData> out_blocks) {
+void VoxelStreamSQLite::load_instance_chunks(Span<VoxelStream::InstancesQueryData> out_blocks) {
 	ZN_PROFILE_SCOPE();
 
 	// TODO Get chunk size from database
@@ -860,7 +860,7 @@ void VoxelStreamSQLite::load_instance_blocks(Span<VoxelStream::InstancesQueryDat
 	recycle_connection(con);
 }
 
-void VoxelStreamSQLite::save_instance_blocks(Span<VoxelStream::InstancesQueryData> p_blocks) {
+void VoxelStreamSQLite::save_instance_chunks(Span<VoxelStream::InstancesQueryData> p_blocks) {
 	// TODO Get chunk size from database
 	// const int bs_po2 = constants::DEFAULT_CHUNK_SIZE_PO2;
 

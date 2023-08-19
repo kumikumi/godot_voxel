@@ -36,14 +36,14 @@ bool VoxelStream::supports_instance_chunks() const {
 	return false;
 }
 
-void VoxelStream::load_instance_blocks(Span<InstancesQueryData> out_blocks) {
+void VoxelStream::load_instance_chunks(Span<InstancesQueryData> out_blocks) {
 	// Can be implemented in subclasses
 	for (size_t i = 0; i < out_blocks.size(); ++i) {
 		out_blocks[i].result = RESULT_CHUNK_NOT_FOUND;
 	}
 }
 
-void VoxelStream::save_instance_blocks(Span<InstancesQueryData> p_blocks) {
+void VoxelStream::save_instance_chunks(Span<InstancesQueryData> p_blocks) {
 	// Can be implemented in subclasses
 }
 

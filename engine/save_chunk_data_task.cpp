@@ -91,7 +91,7 @@ void SaveChunkDataTask::run(zylann::ThreadedTaskContext &ctx) {
 
 		VoxelStream::InstancesQueryData instances_query{ std::move(_instances), _position, _lod,
 			VoxelStream::RESULT_ERROR };
-		stream->save_instance_blocks(Span<VoxelStream::InstancesQueryData>(&instances_query, 1));
+		stream->save_instance_chunks(Span<VoxelStream::InstancesQueryData>(&instances_query, 1));
 	}
 
 	if (_tracker != nullptr) {
