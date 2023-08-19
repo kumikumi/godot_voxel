@@ -224,20 +224,20 @@ void VoxelGenerator::compile_shaders() {
 	std::shared_ptr<ComputeShader> detail_render_shader =
 			compile_detail_rendering_compute_shader(*this, *detail_params);
 
-	std::shared_ptr<ComputeShaderParameters> block_params = make_shared_instance<ComputeShaderParameters>();
-	std::shared_ptr<ShaderOutputs> block_outputs = make_shared_instance<ShaderOutputs>();
-	std::shared_ptr<ComputeShader> block_render_shader =
-			compile_chunk_rendering_compute_shader(*this, *block_params, *block_outputs);
+	std::shared_ptr<ComputeShaderParameters> chunk_params = make_shared_instance<ComputeShaderParameters>();
+	std::shared_ptr<ShaderOutputs> chunk_outputs = make_shared_instance<ShaderOutputs>();
+	std::shared_ptr<ComputeShader> chunk_render_shader =
+			compile_chunk_rendering_compute_shader(*this, *chunk_params, *chunk_outputs);
 
 	{
 		MutexLock mlock(_shader_mutex);
 
 		_detail_rendering_shader = detail_render_shader;
-		_detail_rendering_shader_parameters = block_params;
+		_detail_rendering_shader_parameters = detail_params;
 
-		_chunk_rendering_shader = block_render_shader;
-		_chunk_rendering_shader_parameters = block_params;
-		_chunk_rendering_shader_outputs = block_outputs;
+		_chunk_rendering_shader = chunk_render_shader;
+		_chunk_rendering_shader_parameters = chunk_params;
+		_chunk_rendering_shader_outputs = chunk_outputs;
 	}
 }
 
