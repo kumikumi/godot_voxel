@@ -598,7 +598,7 @@ void VoxelLodTerrain::post_edit_area(Box3i p_box, bool update_mesh) {
 
 void VoxelLodTerrain::post_edit_modifiers(Box3i p_voxel_box) {
 	// clear_cached_chunks_in_voxel_area(*_data, p_voxel_box);
-	_data->clear_cached_blocks_in_voxel_area(p_voxel_box);
+	_data->clear_cached_chunks_in_voxel_area(p_voxel_box);
 	// Not sure if it is worth re-caching these chunks. We may see about that in the future if performance is an issue.
 
 	MutexLock lock(_update_data->state.changed_generated_areas_mutex);

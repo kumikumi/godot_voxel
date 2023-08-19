@@ -127,7 +127,7 @@ public:
 	// Clears voxel data from chunks that are pure results of generators and modifiers.
 	// WARNING: this does not check if the area is editable.
 	// TODO Rename `clear_cached_voxel_data_in_area`
-	void clear_cached_blocks_in_voxel_area(Box3i p_voxel_box);
+	void clear_cached_chunks_in_voxel_area(Box3i p_voxel_box);
 
 	// Flags all chunks in the given area as modified at LOD0.
 	// Also marks them as requiring LOD updates (if lod count is 1 this has no effect).
@@ -139,25 +139,25 @@ public:
 
 	// Sets all the data of a chunk.
 	// If the chunk already exists, returns false. Otherwise, returns true.
-	bool try_set_chunk(Vector3i chunk_position, const VoxelChunkData &block);
+	bool try_set_chunk(Vector3i chunk_position, const VoxelChunkData &chunk);
 
 	// Sets all the data of a chunk.
 	// If the chunk already exists, `action_when_exists` is called.
 	// `void action_when_exists(VoxelChunkData &existing_chunk, const VoxelChunkData &incoming_chunk)`
 	template <typename F>
-	void try_set_chunk(Vector3i chunk_position, const VoxelChunkData &block, F action_when_exists) {
-		Lod &lod = _lods[block.get_lod_index()];
+	void try_set_chunk(Vector3i chunk_position, const VoxelChunkData &chunk, F action_when_exists) {
+		Lod &lod = _lods[chunk.get_lod_index()];
 #ifdef DEBUG_ENABLED
-		if (block.has_voxels()) {
-			ZN_ASSERT(block.get_voxels_const().get_size() == Vector3iUtil::create(get_chunk_size()));
+		if (chunk.has_voxels()) {
+			ZN_ASSERT(chunk.get_voxels_const().get_size() == Vector3iUtil::create(get_chunk_size()));
 		}
 #endif
 		RWLockWrite wlock(lod.map_lock);
 		VoxelChunkData *existing_chunk = lod.map.get_chunk(chunk_position);
 		if (existing_chunk != nullptr) {
-			action_when_exists(*existing_chunk, block);
+			action_when_exists(*existing_chunk, chunk);
 		} else {
-			lod.map.set_chunk(chunk_position, block);
+			lod.map.set_chunk(chunk_position, chunk);
 		}
 	}
 
@@ -307,19 +307,19 @@ private:
 	static inline std::shared_ptr<VoxelBufferInternal> try_get_voxel_buffer_with_lock(
 			const Lod &data_lod, Vector3i chunk_pos, bool &out_generate) {
 		RWLockRead rlock(data_lod.map_lock);
-		const VoxelChunkData *block = data_lod.map.get_chunk(chunk_pos);
-		if (block == nullptr) {
+		const VoxelChunkData *chunk = data_lod.map.get_chunk(chunk_pos);
+		if (chunk == nullptr) {
 			return nullptr;
 		}
 		// TODO Thread-safety: this checking presence of voxels is not safe.
 		// It can change while meshing takes place if a modifier is moved in the same area,
 		// because it invalidates cached data (that doesn't require locking the map, and doesn't lock a VoxelBuffer,
 		// so there is no sync going on). One way to fix this is to implement a spatial lock.
-		if (!block->has_voxels()) {
+		if (!chunk->has_voxels()) {
 			out_generate = true;
 			return nullptr;
 		}
-		return block->get_voxels_shared();
+		return chunk->get_voxels_shared();
 	}
 
 	// Each LOD works in a set of coordinates spanning 2x more voxels the higher their index is.
