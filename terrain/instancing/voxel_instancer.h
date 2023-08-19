@@ -133,8 +133,8 @@ private:
 	unsigned int create_chunk(Layer &layer, uint16_t layer_id, Vector3i grid_position, bool pending_instances);
 	void remove_chunk(unsigned int chunk_index);
 	void set_world(World3D *world);
-	void clear_blocks();
-	void clear_blocks_in_layer(int layer_id);
+	void clear_chunks();
+	void clear_chunks_in_layer(int layer_id);
 	void clear_layers();
 	void update_visibility();
 	SaveChunkDataTask *save_chunk(
@@ -144,10 +144,10 @@ private:
 	Layer &get_layer(int id);
 	const Layer &get_layer_const(int id) const;
 
-	void regenerate_layer(uint16_t layer_id, bool regenerate_blocks);
+	void regenerate_layer(uint16_t layer_id, bool regenerate_chunks);
 	void update_layer_meshes(int layer_id);
 	void update_layer_scenes(int layer_id);
-	void create_render_blocks(Vector3i grid_position, int lod_index, Array surface_arrays);
+	void create_render_chunks(Vector3i grid_position, int lod_index, Array surface_arrays);
 
 #ifdef TOOLS_ENABLED
 	void process_gizmos();
@@ -164,16 +164,16 @@ private:
 
 	void update_chunk_from_transforms(int chunk_index, Span<const Transform3f> transforms, Vector3i grid_position,
 			Layer &layer, const VoxelInstanceLibraryItem &item_base, uint16_t layer_id, World3D &world,
-			const Transform3D &block_transform, Vector3 block_local_position);
+			const Transform3D &chunk_transform, Vector3 chunk_local_position);
 
 	void on_library_item_changed(int item_id, VoxelInstanceLibraryItem::ChangeType change) override;
 
 	struct Chunk;
 
-	static void remove_floating_multimesh_instances(Chunk &block, const Transform3D &parent_transform,
+	static void remove_floating_multimesh_instances(Chunk &chunk, const Transform3D &parent_transform,
 			Box3i p_voxel_box, const VoxelTool &voxel_tool, int chunk_size_po2);
 
-	static void remove_floating_scene_instances(Chunk &block, const Transform3D &parent_transform, Box3i p_voxel_box,
+	static void remove_floating_scene_instances(Chunk &chunk, const Transform3D &parent_transform, Box3i p_voxel_box,
 			const VoxelTool &voxel_tool, int chunk_size_po2);
 
 	Dictionary _b_debug_get_instance_counts() const;
