@@ -27,11 +27,11 @@ public:
 			sl->lock_read(chunks_box);
 		}
 		chunks_box.for_each_cell_zxy([&map, this](const Vector3i pos) {
-			const VoxelChunkData *block = map.get_chunk(pos);
+			const VoxelChunkData *chunk = map.get_chunk(pos);
 			// TODO Might need to invoke the generator at some level for present chunks without voxels,
 			// or make sure all chunks contain voxel data
-			if (block != nullptr && block->has_voxels()) {
-				set_chunk(pos, block->get_voxels_shared());
+			if (chunk != nullptr && chunk->has_voxels()) {
+				set_chunk(pos, chunk->get_voxels_shared());
 			} else {
 				set_chunk(pos, nullptr);
 			}
@@ -214,12 +214,12 @@ private:
 		return is_valid_relative_chunk_position(pos - _offset_in_chunks);
 	}
 
-	inline void set_chunk(Vector3i position, std::shared_ptr<VoxelBufferInternal> block) {
+	inline void set_chunk(Vector3i position, std::shared_ptr<VoxelBufferInternal> chunk) {
 		ZN_ASSERT_RETURN(is_valid_chunk_position(position));
 		position -= _offset_in_chunks;
 		const unsigned int index = Vector3iUtil::get_zxy_index(position, _size_in_chunks);
 		ZN_ASSERT(index < _chunks.size());
-		_chunks[index] = block;
+		_chunks[index] = chunk;
 	}
 
 	inline VoxelBufferInternal *get_chunk(Vector3i position) {
