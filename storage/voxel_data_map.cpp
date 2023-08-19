@@ -47,11 +47,11 @@ unsigned int VoxelDataMap::get_lod_index() const {
 
 int VoxelDataMap::get_voxel(Vector3i pos, unsigned int c) const {
 	Vector3i bpos = voxel_to_chunk(pos);
-	const VoxelChunkData *block = get_chunk(bpos);
-	if (block == nullptr || !block->has_voxels()) {
+	const VoxelChunkData *chunk = get_chunk(bpos);
+	if (chunk == nullptr || !chunk->has_voxels()) {
 		return VoxelBufferInternal::get_default_value_static(c);
 	}
-	return block->get_voxels_const().get_voxel(to_local(pos), c);
+	return chunk->get_voxels_const().get_voxel(to_local(pos), c);
 }
 
 VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
@@ -68,38 +68,38 @@ VoxelChunkData *VoxelDataMap::create_default_chunk(Vector3i bpos) {
 
 VoxelChunkData *VoxelDataMap::get_or_create_chunk_at_voxel_pos(Vector3i pos) {
 	Vector3i bpos = voxel_to_chunk(pos);
-	VoxelChunkData *block = get_chunk(bpos);
-	if (block == nullptr) {
-		block = create_default_chunk(bpos);
+	VoxelChunkData *chunk = get_chunk(bpos);
+	if (chunk == nullptr) {
+		chunk = create_default_chunk(bpos);
 	}
-	return block;
+	return chunk;
 }
 
 void VoxelDataMap::set_voxel(int value, Vector3i pos, unsigned int c) {
-	VoxelChunkData *block = get_or_create_chunk_at_voxel_pos(pos);
+	VoxelChunkData *chunk = get_or_create_chunk_at_voxel_pos(pos);
 	// TODO If it turns out to be a problem, use CoW
-	VoxelBufferInternal &voxels = block->get_voxels();
+	VoxelBufferInternal &voxels = chunk->get_voxels();
 	voxels.set_voxel(value, to_local(pos), c);
 }
 
 float VoxelDataMap::get_voxel_f(Vector3i pos, unsigned int c) const {
 	Vector3i bpos = voxel_to_chunk(pos);
-	const VoxelChunkData *block = get_chunk(bpos);
+	const VoxelChunkData *chunk = get_chunk(bpos);
 	// TODO The generator needs to be invoked if the chunk has no voxels
-	if (block == nullptr || !block->has_voxels()) {
+	if (chunk == nullptr || !chunk->has_voxels()) {
 		// TODO Not valid for a float return value
 		return VoxelBufferInternal::get_default_value_static(c);
 	}
 	Vector3i lpos = to_local(pos);
-	return block->get_voxels_const().get_voxel_f(lpos.x, lpos.y, lpos.z, c);
+	return chunk->get_voxels_const().get_voxel_f(lpos.x, lpos.y, lpos.z, c);
 }
 
 void VoxelDataMap::set_voxel_f(real_t value, Vector3i pos, unsigned int c) {
-	VoxelChunkData *block = get_or_create_chunk_at_voxel_pos(pos);
+	VoxelChunkData *chunk = get_or_create_chunk_at_voxel_pos(pos);
 	Vector3i lpos = to_local(pos);
 	// TODO In this situation, the generator must be invoked to fill the chunk
-	ZN_ASSERT_RETURN_MSG(block->has_voxels(), "Chunk not cached");
-	VoxelBufferInternal &voxels = block->get_voxels();
+	ZN_ASSERT_RETURN_MSG(chunk->has_voxels(), "Chunk not cached");
+	VoxelBufferInternal &voxels = chunk->get_voxels();
 	voxels.set_voxel_f(value, lpos.x, lpos.y, lpos.z, c);
 }
 
@@ -123,50 +123,50 @@ VoxelChunkData *VoxelDataMap::set_chunk_buffer(
 		Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite) {
 	ZN_ASSERT_RETURN_V(buffer != nullptr, nullptr);
 
-	VoxelChunkData *block = get_chunk(bpos);
+	VoxelChunkData *chunk = get_chunk(bpos);
 
-	if (block == nullptr) {
+	if (chunk == nullptr) {
 		VoxelChunkData &map_chunk = _chunks_map[bpos];
 		map_chunk = VoxelChunkData(buffer, _lod_index);
-		block = &map_chunk;
+		chunk = &map_chunk;
 
 	} else if (overwrite) {
-		block->set_voxels(buffer);
+		chunk->set_voxels(buffer);
 
 	} else {
-		ZN_PROFILE_MESSAGE("Redundant data block");
+		ZN_PROFILE_MESSAGE("Redundant data chunk");
 		ZN_PRINT_VERBOSE(format(
-				"Discarded block {} lod {}, there was already data and overwriting is not enabled", bpos, _lod_index));
+				"Discarded chunk {} lod {}, there was already data and overwriting is not enabled", bpos, _lod_index));
 	}
 
-	return block;
+	return chunk;
 }
 
-void VoxelDataMap::set_chunk(Vector3i bpos, const VoxelChunkData &block) {
+void VoxelDataMap::set_chunk(Vector3i bpos, const VoxelChunkData &chunk) {
 #ifdef DEBUG_ENABLED
-	ZN_ASSERT(block.get_lod_index() == _lod_index);
+	ZN_ASSERT(chunk.get_lod_index() == _lod_index);
 #endif
-	_chunks_map[bpos] = block;
+	_chunks_map[bpos] = chunk;
 }
 
 VoxelChunkData *VoxelDataMap::set_empty_chunk(Vector3i bpos, bool overwrite) {
-	VoxelChunkData *block = get_chunk(bpos);
+	VoxelChunkData *chunk = get_chunk(bpos);
 
-	if (block == nullptr) {
+	if (chunk == nullptr) {
 		VoxelChunkData &map_chunk = _chunks_map[bpos];
 		map_chunk = VoxelChunkData(_lod_index);
-		block = &map_chunk;
+		chunk = &map_chunk;
 
 	} else if (overwrite) {
-		block->clear_voxels();
+		chunk->clear_voxels();
 
 	} else {
-		ZN_PROFILE_MESSAGE("Redundant data block");
+		ZN_PROFILE_MESSAGE("Redundant data chunk");
 		ZN_PRINT_VERBOSE(format(
-				"Discarded block {} lod {}, there was already data and overwriting is not enabled", bpos, _lod_index));
+				"Discarded chunk {} lod {}, there was already data and overwriting is not enabled", bpos, _lod_index));
 	}
 
-	return block;
+	return chunk;
 }
 
 bool VoxelDataMap::has_chunk(Vector3i pos) const {
@@ -202,11 +202,11 @@ void VoxelDataMap::copy(Vector3i min_pos, VoxelBufferInternal &dst_buffer, unsig
 	for (bpos.z = min_chunk_pos.z; bpos.z < max_chunk_pos.z; ++bpos.z) {
 		for (bpos.x = min_chunk_pos.x; bpos.x < max_chunk_pos.x; ++bpos.x) {
 			for (bpos.y = min_chunk_pos.y; bpos.y < max_chunk_pos.y; ++bpos.y) {
-				const VoxelChunkData *block = get_chunk(bpos);
+				const VoxelChunkData *chunk = get_chunk(bpos);
 				const Vector3i src_chunk_origin = chunk_to_voxel(bpos);
 
-				if (block != nullptr && block->has_voxels()) {
-					const VoxelBufferInternal &src_buffer = block->get_voxels_const();
+				if (chunk != nullptr && chunk->has_voxels()) {
+					const VoxelBufferInternal &src_buffer = chunk->get_voxels_const();
 
 					for (unsigned int ci = 0; ci < channels_count; ++ci) {
 						const uint8_t channel = channels[ci];
@@ -259,22 +259,22 @@ void VoxelDataMap::paste(Vector3i min_pos, const VoxelBufferInternal &src_buffer
 					if (((1 << channel) & channels_mask) == 0) {
 						continue;
 					}
-					VoxelChunkData *block = get_chunk(bpos);
+					VoxelChunkData *chunk = get_chunk(bpos);
 
-					if (block == nullptr) {
+					if (chunk == nullptr) {
 						if (create_new_chunks) {
-							block = create_default_chunk(bpos);
+							chunk = create_default_chunk(bpos);
 						} else {
 							continue;
 						}
 					}
 
 					// TODO In this situation, the generator has to be invoked to fill the blanks
-					ZN_ASSERT_CONTINUE_MSG(block->has_voxels(), "Area not cached");
+					ZN_ASSERT_CONTINUE_MSG(chunk->has_voxels(), "Area not cached");
 
 					const Vector3i dst_chunk_origin = chunk_to_voxel(bpos);
 
-					VoxelBufferInternal &dst_buffer = block->get_voxels();
+					VoxelBufferInternal &dst_buffer = chunk->get_voxels();
 
 					if (use_mask) {
 						const Box3i dst_box(min_pos - dst_chunk_origin, src_buffer.get_size());

@@ -86,10 +86,10 @@ public:
 	// Moves the given buffer into a chunk of the map. The buffer is referenced, no copy is made.
 	VoxelChunkData *set_chunk_buffer(Vector3i bpos, std::shared_ptr<VoxelBufferInternal> &buffer, bool overwrite);
 	VoxelChunkData *set_empty_chunk(Vector3i bpos, bool overwrite);
-	void set_chunk(Vector3i bpos, const VoxelChunkData &block);
+	void set_chunk(Vector3i bpos, const VoxelChunkData &chunk);
 
 	struct NoAction {
-		inline void operator()(VoxelChunkData &block) {}
+		inline void operator()(VoxelChunkData &chunk) {}
 	};
 
 	template <typename Action_T>
@@ -140,16 +140,16 @@ public:
 		const Box3i chunk_box = voxel_box.downscaled(get_chunk_size());
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
 		chunk_box.for_each_cell_zxy([this, action, voxel_box, channel, chunk_size, gen_func](Vector3i chunk_pos) {
-			VoxelChunkData *block = get_chunk(chunk_pos);
-			if (block == nullptr) {
+			VoxelChunkData *chunk = get_chunk(chunk_pos);
+			if (chunk == nullptr) {
 				ZN_PROFILE_SCOPE_NAMED("Generate");
-				block = create_default_chunk(chunk_pos);
-				gen_func(block->get_voxels(), chunk_pos << get_chunk_size_pow2());
+				chunk = create_default_chunk(chunk_pos);
+				gen_func(chunk->get_voxels(), chunk_pos << get_chunk_size_pow2());
 			}
 			const Vector3i chunk_origin = chunk_to_voxel(chunk_pos);
 			Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 			local_box.clip(Box3i(Vector3i(), chunk_size));
-			block->get_voxels().write_box(local_box, channel, action, chunk_origin);
+			chunk->get_voxels().write_box(local_box, channel, action, chunk_origin);
 		});
 	}
 
@@ -165,15 +165,15 @@ public:
 		const Vector3i chunk_size = Vector3iUtil::create(get_chunk_size());
 		chunk_box.for_each_cell_zxy(
 				[this, action, voxel_box, channel0, channel1, chunk_size, gen_func](Vector3i chunk_pos) {
-					VoxelChunkData *block = get_chunk(chunk_pos);
-					if (block == nullptr) {
-						block = create_default_chunk(chunk_pos);
-						gen_func(block->get_voxels(), chunk_pos << get_chunk_size_pow2());
+					VoxelChunkData *chunk = get_chunk(chunk_pos);
+					if (chunk == nullptr) {
+						chunk = create_default_chunk(chunk_pos);
+						gen_func(chunk->get_voxels(), chunk_pos << get_chunk_size_pow2());
 					}
 					const Vector3i chunk_origin = chunk_to_voxel(chunk_pos);
 					Box3i local_box(voxel_box.pos - chunk_origin, voxel_box.size);
 					local_box.clip(Box3i(Vector3i(), chunk_size));
-					block->get_voxels().write_box_2_template<F, uint16_t, uint16_t>(
+					chunk->get_voxels().write_box_2_template<F, uint16_t, uint16_t>(
 							local_box, channel0, channel1, action, chunk_origin);
 				});
 	}
